@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
       user, perfil, loading,
       login, cadastrar, logout,
       enviarOTP, verificarOTP, redefinirSenha,
-      carregarPerfil,
+      carregarPerfil, setPerfil,
     }}>
       {children}
     </AuthCtx.Provider>
