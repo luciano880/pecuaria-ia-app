@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, lazy, Suspense } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth.jsx'
 import AuthPage      from './pages/AuthPage.jsx'
 import Layout        from './components/Layout.jsx'
@@ -10,18 +10,10 @@ import Sanidade      from './pages/Sanidade.jsx'
 import Estoque       from './pages/Estoque.jsx'
 import Pesagens      from './pages/Pesagens.jsx'
 import AnaliseIA     from './pages/AnaliseIA.jsx'
+import Financeiro    from './pages/Financeiro.jsx'
 import Configuracoes from './pages/Configuracoes.jsx'
+import FichaAnimal   from './pages/FichaAnimal.jsx'
 import { C } from './utils/helpers.js'
-
-// Financeiro inline simples para não depender de arquivo externo
-import { lazy, Suspense } from 'react'
-const Financeiro = lazy(() => import('./pages/Financeiro.jsx').catch(() => ({ default: () => (
-  <div style={{color:C.texto,padding:32,textAlign:'center'}}>
-    <div style={{fontSize:32,marginBottom:12}}>💰</div>
-    <div>Módulo Financeiro</div>
-    <div style={{color:C.textoMuted,fontSize:13,marginTop:8}}>Copie o Financeiro.jsx da versão anterior para src/pages/</div>
-  </div>
-) })))
 
 function Carregando() {
   return (
@@ -46,16 +38,17 @@ export default function App() {
     <Routes>
       <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
       <Route path="/" element={<Privado><Layout /></Privado>}>
-        <Route index                 element={<Dashboard />} />
-        <Route path="animais"        element={<Animais />} />
-        <Route path="producao-leite" element={<ProducaoLeite />} />
-        <Route path="reproducao"     element={<Reproducao />} />
-        <Route path="sanidade"       element={<Sanidade />} />
-        <Route path="estoque"        element={<Estoque />} />
-        <Route path="pesagens"       element={<Pesagens />} />
-        <Route path="analise-ia"     element={<AnaliseIA />} />
-        <Route path="financeiro"     element={<Suspense fallback={<Carregando/>}><Financeiro /></Suspense>} />
-        <Route path="configuracoes"  element={<Configuracoes />} />
+        <Route index                        element={<Dashboard />} />
+        <Route path="animais"               element={<Animais />} />
+        <Route path="animais/:brinco"       element={<FichaAnimal />} />
+        <Route path="producao-leite"        element={<ProducaoLeite />} />
+        <Route path="reproducao"            element={<Reproducao />} />
+        <Route path="sanidade"              element={<Sanidade />} />
+        <Route path="estoque"               element={<Estoque />} />
+        <Route path="pesagens"              element={<Pesagens />} />
+        <Route path="analise-ia"            element={<AnaliseIA />} />
+        <Route path="financeiro"            element={<Financeiro />} />
+        <Route path="configuracoes"         element={<Configuracoes />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

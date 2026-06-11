@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { C, fmtData, hoje, CATEGORIAS_LEITE, CATEGORIAS_CORTE, LABEL_CATEGORIA } from '../utils/helpers.js'
@@ -6,6 +7,7 @@ import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/
 
 export default function Animais() {
   const { perfil } = useAuth()
+  const navigate = useNavigate()
   const seg = perfil?.segmento
   const { dados, loading, inserir, atualizar, remover } = useTabela('animais', { segmento: seg })
   const [modal, setModal] = useState(false)
@@ -52,7 +54,13 @@ export default function Animais() {
   })).filter(r => r.count > 0)
 
   const colunas = [
-    { key: 'brinco',    label: 'Brinco',    render: r => <strong style={{ color: C.ambar }}>#{r.brinco}</strong> },
+    { key: 'brinco', label: 'Brinco', render: r => (
+      <button onClick={() => navigate(`/animais/${r.brinco}`)} style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        color: C.ambar, fontWeight: 700, fontSize: 13,
+        textDecoration: 'underline', padding: 0,
+      }}>#{r.brinco}</button>
+    )},
     { key: 'nome',      label: 'Nome' },
     { key: 'categoria', label: 'Categoria', render: r => LABEL_CATEGORIA[r.categoria] || r.categoria },
     { key: 'raca',      label: 'Raça' },
