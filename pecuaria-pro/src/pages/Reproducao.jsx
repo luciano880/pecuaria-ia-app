@@ -41,6 +41,10 @@ export default function Reproducao() {
         peso_cria_kg: form.peso_cria_kg === '' ? null : (form.peso_cria_kg ? parseFloat(form.peso_cria_kg) : null),
         previsao_parto: form.previsao_parto === '' ? null : form.previsao_parto,
         data_parto_real: form.data_parto_real === '' ? null : form.data_parto_real,
+        sexo_cria: form.sexo_cria === '' ? null : form.sexo_cria,
+        brinco_cria: form.brinco_cria === '' ? null : form.brinco_cria,
+        touro_semen: form.touro_semen === '' ? null : form.touro_semen,
+        obs: form.obs === '' ? null : form.obs,
       }
       if (editando) await atualizar(editando, payload)
       else await inserir(payload)
