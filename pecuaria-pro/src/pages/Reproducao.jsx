@@ -54,11 +54,15 @@ export default function Reproducao() {
         brinco_cria: n(form.brinco_cria),
         obs: n(form.obs),
       }
+      console.log('PAYLOAD REPRODUCAO:', JSON.stringify(payload))
       if (editando) await atualizar(editando, payload)
       else await inserir(payload)
       toast(editando ? 'Evento atualizado!' : 'Evento reprodutivo registrado!')
       setModal(false)
-    } catch(e) { toast(e.message, 'erro') }
+    } catch(e) { 
+      console.log('ERRO:', e.message)
+      toast(e.message, 'erro') 
+    }
   }
 
   // Prenhas com parto próximo (30 dias)
