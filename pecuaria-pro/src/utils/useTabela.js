@@ -2,6 +2,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
 
+// Limpa strings vazias para null antes de enviar ao Supabase
+function limpar(obj) {
+  const r = {}
+  for (const [k, v] of Object.entries(obj)) {
+    r[k] = (v === '' || v === undefined) ? null : v
+  }
+  return r
+}
+
 export function useTabela(tabela, filtrosExtra = {}) {
   const { user } = useAuth()
   const [dados,    setDados]    = useState([])
@@ -23,7 +32,7 @@ export function useTabela(tabela, filtrosExtra = {}) {
 
   async function inserir(registro) {
     const { data, error } = await supabase
-      .from(tabela).insert({ ...registro, user_id: user.id }).select().single()
+      .from(tabela).insert({ ...limpar(registro), user_id: user.id }).select().single()
     if (error) throw error
     setDados(prev => [data, ...prev])
     return data
@@ -31,7 +40,7 @@ export function useTabela(tabela, filtrosExtra = {}) {
 
   async function atualizar(id, registro) {
     const { data, error } = await supabase
-      .from(tabela).update(registro).eq('id', id).eq('user_id', user.id).select().single()
+      .from(tabela).update(limpar(registro)).eq('id', id).eq('user_id', user.id).select().single()
     if (error) throw error
     setDados(prev => prev.map(r => r.id === id ? data : r))
     return data
