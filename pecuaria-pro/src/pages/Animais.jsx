@@ -29,8 +29,15 @@ export default function Animais() {
   async function salvar() {
     if (!form.brinco) { toast('Número do brinco obrigatório', 'erro'); return }
     try {
-      if (editando) await atualizar(editando, { ...form, segmento: seg })
-      else await inserir({ ...form, segmento: seg })
+      // Converter campos numéricos vazios para null
+      const payload = {
+        ...form,
+        segmento: seg,
+        peso_entrada: form.peso_entrada === '' || form.peso_entrada === null ? null : parseFloat(form.peso_entrada),
+        data_nascimento: form.data_nascimento === '' ? null : form.data_nascimento,
+      }
+      if (editando) await atualizar(editando, payload)
+      else await inserir(payload)
       toast(editando ? 'Animal atualizado!' : 'Animal cadastrado!')
       setModal(false)
     } catch (e) { toast(e.message, 'erro') }

@@ -24,7 +24,12 @@ export default function FichaAnimal() {
   const [aba,         setAba]         = useState('resumo')
   const [modalPeso,   setModalPeso]   = useState(false)
   const [modalEdit,   setModalEdit]   = useState(false)
+  const [modalParto,  setModalParto]  = useState(false)
   const [novoPeso,    setNovoPeso]    = useState({ data: hoje(), peso_kg: '', obs: '' })
+  const [formParto,   setFormParto]   = useState({
+    data_parto_real: hoje(), sexo_cria: 'F',
+    peso_cria_kg: '', brinco_cria: '', obs: ''
+  })
 
   useEffect(() => {
     if (!user || !brinco) return
@@ -53,6 +58,28 @@ export default function FichaAnimal() {
     setVacinacoes(vacRes.data || [])
     setProducao(prodRes.data || [])
     setCarregando(false)
+  }
+
+  async function salvarParto() {
+    try {
+      await supabase.from('reproducao').insert({
+        user_id: user.id,
+        animal_id: animal.id,
+        brinco: animal.brinco,
+        tipo: 'parto',
+        data_evento: formParto.data_parto_real,
+        data_parto_real: formParto.data_parto_real,
+        sexo_cria: formParto.sexo_cria,
+        peso_cria_kg: formParto.peso_cria_kg === '' ? null : parseFloat(formParto.peso_cria_kg) || null,
+        brinco_cria: formParto.brinco_cria || null,
+        resultado: 'positivo',
+        obs: formParto.obs || null,
+      })
+      toast('Parto registrado!')
+      setModalParto(false)
+      setFormParto({ data_parto_real: hoje(), sexo_cria: 'F', peso_cria_kg: '', brinco_cria: '', obs: '' })
+      carregarTudo()
+    } catch(e) { toast(e.message, 'erro') }
   }
 
   async function salvarPeso() {
@@ -178,6 +205,7 @@ export default function FichaAnimal() {
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
+            <Btn size="sm" cor={C.verdeClaro} onClick={() => setModalParto(true)}>🐣 Parto</Btn>
             <Btn size="sm" cor={accent} onClick={() => setModalPeso(true)}>⚖️ Pesagem</Btn>
             <Btn size="sm" cor={C.ambar} outline onClick={() => setModalEdit(true)}>✏️ Editar</Btn>
           </div>
@@ -542,6 +570,29 @@ export default function FichaAnimal() {
         </Modal>
       )}
 
+      {/* Modal parto */}
+      {modalParto && (
+        <Modal titulo={`Registrar Parto — #${animal.brinco}`} onClose={() => setModalParto(false)}>
+          <div style={{ background: `${C.verdeClaro}18`, border: `1px solid ${C.verdeClaro}`, borderRadius: 8, padding: '8px 12px', marginBottom: 14, fontSize: 12, color: C.textoSub }}>
+            🐄 Previsão Embrapa: 283 dias de gestação para bovinos
+          </div>
+          <Grid cols={2}>
+            <Campo label="Data do parto" type="date" value={formParto.data_parto_real} onChange={v => setFormParto(f => ({ ...f, data_parto_real: v }))} required />
+            <Campo label="Sexo da cria" type="select" value={formParto.sexo_cria} onChange={v => setFormParto(f => ({ ...f, sexo_cria: v }))}
+              options={[{ value: 'F', label: 'Fêmea' }, { value: 'M', label: 'Macho' }]} />
+          </Grid>
+          <Grid cols={2}>
+            <Campo label="Peso da cria (kg)" type="number" step="0.1" value={formParto.peso_cria_kg} onChange={v => setFormParto(f => ({ ...f, peso_cria_kg: v }))} placeholder="ex: 38.5" />
+            <Campo label="Brinco da cria" value={formParto.brinco_cria} onChange={v => setFormParto(f => ({ ...f, brinco_cria: v }))} placeholder="ex: 0087" />
+          </Grid>
+          <Campo label="Observações" type="textarea" value={formParto.obs} onChange={v => setFormParto(f => ({ ...f, obs: v }))} />
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
+            <Btn outline cor={C.textoMuted} onClick={() => setModalParto(false)}>Cancelar</Btn>
+            <Btn cor={C.verdeClaro} onClick={salvarParto}>🐣 Registrar parto</Btn>
+          </div>
+        </Modal>
+      )}
+
       {/* Modal editar animal */}
       {modalEdit && (
         <EditarAnimal animal={animal} onSave={salvarAnimal} onClose={() => setModalEdit(false)} seg={seg} />
@@ -551,37 +602,54 @@ export default function FichaAnimal() {
 }
 
 function EditarAnimal({ animal, onSave, onClose, seg }) {
-  const { CATEGORIAS_LEITE, CATEGORIAS_CORTE } = require ? {} : {}
   const cats = seg === 'leite'
     ? ['lactacao','seca','novilha','bezerra','touro']
     : ['bezerro','bezerro_desmamado','garrote','novilho','boi_gordo','vaca','touro']
 
-  const [form, setForm] = useState({ ...animal })
+  const [form, setForm] = useState({
+    ...animal,
+    nome: animal.nome || '',
+    raca: animal.raca || '',
+    lote: animal.lote || '',
+    mae_brinco: animal.mae_brinco || '',
+    pai_brinco: animal.pai_brinco || '',
+    obs: animal.obs || '',
+    data_nascimento: animal.data_nascimento || '',
+    peso_entrada: animal.peso_entrada || '',
+  })
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
+
+  function handleSave() {
+    onSave({
+      ...form,
+      peso_entrada: form.peso_entrada === '' ? null : parseFloat(form.peso_entrada) || null,
+      data_nascimento: form.data_nascimento === '' ? null : form.data_nascimento,
+    })
+  }
 
   return (
     <Modal titulo={`Editar — #${animal.brinco}`} onClose={onClose} largura={580}>
       <Grid cols={2}>
-        <Campo label="Nome" value={form.nome || ''} onChange={v => set('nome', v)} />
+        <Campo label="Nome" value={form.nome} onChange={v => set('nome', v)} />
         <Campo label="Categoria" type="select" value={form.categoria} onChange={v => set('categoria', v)}
           options={cats.map(c => ({ value: c, label: LABEL_CATEGORIA[c] || c }))} />
       </Grid>
       <Grid cols={2}>
-        <Campo label="Raça" value={form.raca || ''} onChange={v => set('raca', v)} />
-        <Campo label="Lote" value={form.lote || ''} onChange={v => set('lote', v)} />
+        <Campo label="Raça" value={form.raca} onChange={v => set('raca', v)} />
+        <Campo label="Lote" value={form.lote} onChange={v => set('lote', v)} />
       </Grid>
       <Grid cols={2}>
-        <Campo label="Data de nascimento" type="date" value={form.data_nascimento || ''} onChange={v => set('data_nascimento', v)} />
-        <Campo label="Peso de entrada (kg)" type="number" step="0.1" value={form.peso_entrada || ''} onChange={v => set('peso_entrada', v)} />
+        <Campo label="Data de nascimento" type="date" value={form.data_nascimento} onChange={v => set('data_nascimento', v)} />
+        <Campo label="Peso de entrada (kg)" type="number" step="0.1" value={form.peso_entrada} onChange={v => set('peso_entrada', v)} />
       </Grid>
       <Grid cols={2}>
-        <Campo label="Brinco da mãe" value={form.mae_brinco || ''} onChange={v => set('mae_brinco', v)} />
-        <Campo label="Pai/Sêmen" value={form.pai_brinco || ''} onChange={v => set('pai_brinco', v)} />
+        <Campo label="Brinco da mãe" value={form.mae_brinco} onChange={v => set('mae_brinco', v)} />
+        <Campo label="Pai/Sêmen" value={form.pai_brinco} onChange={v => set('pai_brinco', v)} />
       </Grid>
-      <Campo label="Observações" type="textarea" value={form.obs || ''} onChange={v => set('obs', v)} />
+      <Campo label="Observações" type="textarea" value={form.obs} onChange={v => set('obs', v)} />
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
         <Btn outline cor={C.textoMuted} onClick={onClose}>Cancelar</Btn>
-        <Btn cor={C.verdeClaro} onClick={() => onSave(form)}>Salvar</Btn>
+        <Btn cor={C.verdeClaro} onClick={handleSave}>Salvar</Btn>
       </div>
     </Modal>
   )

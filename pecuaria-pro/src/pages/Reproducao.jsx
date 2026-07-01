@@ -35,7 +35,13 @@ export default function Reproducao() {
     if (!form.brinco || !form.tipo) { toast('Brinco e tipo obrigatórios', 'erro'); return }
     const animal = animais.find(a => a.brinco === form.brinco)
     try {
-      const payload = { ...form, animal_id: animal?.id || null }
+      const payload = {
+        ...form,
+        animal_id: animal?.id || null,
+        peso_cria_kg: form.peso_cria_kg === '' ? null : (form.peso_cria_kg ? parseFloat(form.peso_cria_kg) : null),
+        previsao_parto: form.previsao_parto === '' ? null : form.previsao_parto,
+        data_parto_real: form.data_parto_real === '' ? null : form.data_parto_real,
+      }
       if (editando) await atualizar(editando, payload)
       else await inserir(payload)
       toast(editando ? 'Evento atualizado!' : 'Evento reprodutivo registrado!')

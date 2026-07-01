@@ -64,11 +64,24 @@ export default function Financeiro() {
 
   async function salvarR() {
     if(!fR.valor||!fR.descricao){toast('Preencha valor e descrição','erro');return}
-    try{await inserirR(fR);toast('Receita lançada!');setModalR(false);setFR(vR)}catch(e){toast(e.message,'erro')}
+    try{
+      await inserirR({
+        ...fR,
+        valor: fR.valor===''?null:parseFloat(fR.valor),
+        quantidade: fR.quantidade===''?null:(fR.quantidade?parseFloat(fR.quantidade):null),
+      })
+      toast('Receita lançada!');setModalR(false);setFR(vR)
+    }catch(e){toast(e.message,'erro')}
   }
   async function salvarD() {
     if(!fD.valor||!fD.descricao){toast('Preencha valor e descrição','erro');return}
-    try{await inserirD(fD);toast('Despesa lançada!');setModalD(false);setFD(vD)}catch(e){toast(e.message,'erro')}
+    try{
+      await inserirD({
+        ...fD,
+        valor: fD.valor===''?null:parseFloat(fD.valor),
+      })
+      toast('Despesa lançada!');setModalD(false);setFD(vD)
+    }catch(e){toast(e.message,'erro')}
   }
 
   const totalRec = receitas.reduce((s,r)=>s+parseFloat(r.valor||0),0)

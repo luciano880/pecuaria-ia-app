@@ -54,8 +54,16 @@ export default function Estoque() {
   async function salvar() {
     if (!form.nome) { toast('Nome obrigatório', 'erro'); return }
     try {
-      if (editando) await atualizar(editando, { ...form, segmento: seg })
-      else await inserir({ ...form, segmento: seg })
+      const numerico = (v) => v === '' || v === null || v === undefined ? null : parseFloat(v) || 0
+      const payload = {
+        ...form, segmento: seg,
+        quantidade: numerico(form.quantidade),
+        consumo_diario: numerico(form.consumo_diario),
+        estoque_minimo: numerico(form.estoque_minimo),
+        preco_unitario: numerico(form.preco_unitario),
+      }
+      if (editando) await atualizar(editando, payload)
+      else await inserir(payload)
       toast(editando ? 'Insumo atualizado!' : 'Insumo cadastrado!')
       setModal(false)
     } catch(e) { toast(e.message, 'erro') }

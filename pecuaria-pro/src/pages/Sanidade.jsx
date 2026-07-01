@@ -56,6 +56,7 @@ export default function Sanidade() {
         unidade: med.unidade,
         fim_carencia_leite: fimLeite,
         fim_carencia_carne: fimCarne,
+        dose: fApl.dose === '' ? null : (fApl.dose ? parseFloat(fApl.dose) : null),
       })
       // Gerar alertas no Supabase
       if (animal && (fimLeite || fimCarne)) {

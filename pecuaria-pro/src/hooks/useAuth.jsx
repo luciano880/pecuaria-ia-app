@@ -24,11 +24,30 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function carregarPerfil(uid) {
-    const { data } = await supabase
+    let { data } = await supabase
       .from('perfis')
       .select('*')
       .eq('id', uid)
       .single()
+
+    // Rede de segurança: se não existe perfil, cria um padrão automaticamente
+    if (!data) {
+      const { data: userData } = await supabase.auth.getUser()
+      const email = userData?.user?.email || ''
+      const { data: novoPerfil } = await supabase
+        .from('perfis')
+        .insert({
+          id: uid,
+          email,
+          nome: email.split('@')[0] || 'Produtor',
+          fazenda: 'Minha Fazenda',
+          segmento: 'leite',
+        })
+        .select()
+        .single()
+      data = novoPerfil
+    }
+
     setPerfil(data)
     setLoading(false)
   }
@@ -41,10 +60,26 @@ export function AuthProvider({ children }) {
   async function cadastrar(email, senha, nome, fazenda, segmento) {
     const { data, error } = await supabase.auth.signUp({ email, password: senha })
     if (error) throw error
+
     if (data.user) {
-      await supabase.from('perfis').upsert({
-        id: data.user.id, email, nome, fazenda, segmento,
-      })
+      // Tenta criar o perfil. Se a sessão ainda não propagou (confirmação de e-mail
+      // pendente), tenta novamente algumas vezes antes de desistir.
+      let tentativas = 0
+      let perfilCriado = false
+      while (tentativas < 3 && !perfilCriado) {
+        const { error: perfilError } = await supabase.from('perfis').upsert({
+          id: data.user.id, email, nome, fazenda, segmento,
+        })
+        if (!perfilError) {
+          perfilCriado = true
+        } else {
+          tentativas++
+          await new Promise(r => setTimeout(r, 500))
+        }
+      }
+      if (!perfilCriado) {
+        console.error('Não foi possível criar o perfil após o cadastro')
+      }
     }
   }
 
