@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, fmtData, fmtNum, hoje } from '../utils/helpers.js'
+import { C, fmtData, fmtNum, hoje, limparPayload } from '../utils/helpers.js'
 import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 
 export default function Pesagens() {

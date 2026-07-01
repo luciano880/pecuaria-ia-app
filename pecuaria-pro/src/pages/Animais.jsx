@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, fmtData, hoje, CATEGORIAS_LEITE, CATEGORIAS_CORTE, LABEL_CATEGORIA } from '../utils/helpers.js'
+import { C, fmtData, hoje, CATEGORIAS_LEITE, CATEGORIAS_CORTE, LABEL_CATEGORIA, limparPayload } from '../utils/helpers.js'
 import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 
 export default function Animais() {
@@ -30,12 +30,7 @@ export default function Animais() {
     if (!form.brinco) { toast('Número do brinco obrigatório', 'erro'); return }
     try {
       // Converter campos numéricos vazios para null
-      const payload = {
-        ...form,
-        segmento: seg,
-        peso_entrada: form.peso_entrada === '' || form.peso_entrada === null ? null : parseFloat(form.peso_entrada),
-        data_nascimento: form.data_nascimento === '' ? null : form.data_nascimento,
-      }
+      const payload = limparPayload({ ...form, segmento: seg })
       if (editando) await atualizar(editando, payload)
       else await inserir(payload)
       toast(editando ? 'Animal atualizado!' : 'Animal cadastrado!')

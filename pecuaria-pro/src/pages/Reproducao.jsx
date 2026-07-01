@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, fmtData, hoje, diasAte } from '../utils/helpers.js'
+import { C, fmtData, hoje, diasAte, limparPayload } from '../utils/helpers.js'
 import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 
 export default function Reproducao() {
@@ -35,17 +35,11 @@ export default function Reproducao() {
     if (!form.brinco || !form.tipo) { toast('Brinco e tipo obrigatórios', 'erro'); return }
     const animal = animais.find(a => a.brinco === form.brinco)
     try {
-      const payload = {
+      const payload = limparPayload({
         ...form,
         animal_id: animal?.id || null,
-        peso_cria_kg: form.peso_cria_kg === '' ? null : (form.peso_cria_kg ? parseFloat(form.peso_cria_kg) : null),
-        previsao_parto: form.previsao_parto === '' ? null : form.previsao_parto,
-        data_parto_real: form.data_parto_real === '' ? null : form.data_parto_real,
-        sexo_cria: form.sexo_cria === '' ? null : form.sexo_cria,
-        brinco_cria: form.brinco_cria === '' ? null : form.brinco_cria,
-        touro_semen: form.touro_semen === '' ? null : form.touro_semen,
-        obs: form.obs === '' ? null : form.obs,
-      }
+        data_evento: form.data_evento === '' ? hoje() : form.data_evento,
+      })
       if (editando) await atualizar(editando, payload)
       else await inserir(payload)
       toast(editando ? 'Evento atualizado!' : 'Evento reprodutivo registrado!')

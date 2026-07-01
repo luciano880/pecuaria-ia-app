@@ -25,6 +25,21 @@ export function getCor(segmento) {
     : { primary: C.cortePrimary, accent: C.corteAccent }
 }
 
+// Limpa payload — converte strings vazias para null, numbers para parseFloat
+export function limparPayload(obj) {
+  const result = {}
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === '' || v === undefined) {
+      result[k] = null
+    } else if (typeof v === 'string' && !isNaN(v) && v.trim() !== '' && !v.includes('-')) {
+      result[k] = parseFloat(v)
+    } else {
+      result[k] = v
+    }
+  }
+  return result
+}
+
 export function statusDias(dias) {
   if (dias <= 0)  return { cor: C.critico,   label: 'VENCIDO', icon: '🚨' }
   if (dias < 15)  return { cor: C.critico,   label: 'CRÍTICO', icon: '⚠️' }
