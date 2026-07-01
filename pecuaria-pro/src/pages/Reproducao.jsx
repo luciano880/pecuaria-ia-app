@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, fmtData, hoje, diasAte, limparPayload } from '../utils/helpers.js'
+import { C, fmtData, hoje, diasAte } from '../utils/helpers.js'
 import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
+
+// Converte string vazia para null
+const n = (v) => (v === '' || v === undefined || v === null) ? null : v
+const nd = (v) => n(v) // para datas
+const nf = (v) => (v === '' || v === undefined || v === null) ? null : parseFloat(v) || null
 
 export default function Reproducao() {
   const { perfil } = useAuth()
@@ -35,11 +40,20 @@ export default function Reproducao() {
     if (!form.brinco || !form.tipo) { toast('Brinco e tipo obrigatórios', 'erro'); return }
     const animal = animais.find(a => a.brinco === form.brinco)
     try {
-      const payload = limparPayload({
-        ...form,
+      const payload = {
+        brinco: form.brinco,
+        tipo: form.tipo,
+        data_evento: form.data_evento && form.data_evento !== '' ? form.data_evento : hoje(),
         animal_id: animal?.id || null,
-        data_evento: form.data_evento === '' ? hoje() : form.data_evento,
-      })
+        touro_semen: n(form.touro_semen),
+        resultado: n(form.resultado),
+        previsao_parto: nd(form.previsao_parto),
+        data_parto_real: nd(form.data_parto_real),
+        sexo_cria: n(form.sexo_cria),
+        peso_cria_kg: nf(form.peso_cria_kg),
+        brinco_cria: n(form.brinco_cria),
+        obs: n(form.obs),
+      }
       if (editando) await atualizar(editando, payload)
       else await inserir(payload)
       toast(editando ? 'Evento atualizado!' : 'Evento reprodutivo registrado!')
