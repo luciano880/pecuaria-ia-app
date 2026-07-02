@@ -1,4 +1,5 @@
-﻿import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { useAuth } from './hooks/useAuth.jsx'
 import AuthPage      from './pages/AuthPage.jsx'
 import Layout        from './components/Layout.jsx'
@@ -17,8 +18,9 @@ import { C } from './utils/helpers.js'
 
 function Carregando() {
   return (
-    <div style={{ minHeight:'100vh', background: C.bg, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
-      <div style={{ fontSize:40 }}>🐄</div>
+    <div style={{ minHeight:'100vh', background: C.bg, display:'flex', alignItems:'center',
+      justifyContent:'center', flexDirection:'column', gap:16 }}>
+      <div className="pulse" style={{ fontSize:40 }}>🐄</div>
       <div style={{ color: C.textoMuted, fontSize:14 }}>Carregando...</div>
     </div>
   )
@@ -37,17 +39,17 @@ export default function App() {
     <Routes>
       <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
       <Route path="/" element={<Privado><Layout /></Privado>}>
-        <Route index                  element={<Dashboard />} />
-        <Route path="animais"         element={<Animais />} />
-        <Route path="animais/:brinco" element={<FichaAnimal />} />
-        <Route path="producao-leite"  element={<ProducaoLeite />} />
-        <Route path="reproducao"      element={<Reproducao />} />
-        <Route path="sanidade"        element={<Sanidade />} />
-        <Route path="estoque"         element={<Estoque />} />
-        <Route path="pesagens"        element={<Pesagens />} />
-        <Route path="analise-ia"      element={<AnaliseIA />} />
-        <Route path="financeiro"      element={<Financeiro />} />
-        <Route path="configuracoes"   element={<Configuracoes />} />
+        <Route index                        element={<Dashboard />} />
+        <Route path="animais"               element={<Animais />} />
+        <Route path="animais/:brinco"       element={<FichaAnimal />} />
+        <Route path="producao-leite"        element={<ProducaoLeite />} />
+        <Route path="reproducao"            element={<Reproducao />} />
+        <Route path="sanidade"              element={<Sanidade />} />
+        <Route path="estoque"               element={<Estoque />} />
+        <Route path="pesagens"              element={<Pesagens />} />
+        <Route path="analise-ia"            element={<AnaliseIA />} />
+        <Route path="financeiro"            element={<Financeiro />} />
+        <Route path="configuracoes"         element={<Configuracoes />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
