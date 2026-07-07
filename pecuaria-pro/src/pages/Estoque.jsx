@@ -104,12 +104,11 @@ export default function Estoque() {
   const colunas = [
     { key: 'nome', label: 'Insumo' },
     { key: 'categoria', label: 'Categoria', render: r => LABEL_CAT[r.categoria] || r.categoria },
-    { key: 'quantidade', label: 'Estoque', render: r => {
-      const s = statusDias(diasCobertura(r.quantidade, r.consumo_diario))
-      return <span style={{ color: parseFloat(r.quantidade) <= parseFloat(r.estoque_minimo||0) ? C.critico : C.texto }}>
+    { key: 'quantidade', label: 'Estoque', render: r => (
+      <span style={{ color: parseFloat(r.quantidade) <= parseFloat(r.estoque_minimo||0) ? C.critico : C.texto, fontWeight: 700, fontFamily: 'monospace' }}>
         {fmtNum(r.quantidade)} {r.unidade}
       </span>
-    }},
+    )},
     { key: 'consumo_diario', label: 'Consumo/dia', render: r => r.consumo_diario > 0 ? `${r.consumo_diario} ${r.unidade}/dia` : '—' },
     { key: 'dias', label: 'Cobertura', render: r => {
       const dias = diasCobertura(r.quantidade, r.consumo_diario)
@@ -120,7 +119,14 @@ export default function Estoque() {
     { key: 'preco_unitario', label: 'Preço/un', render: r => r.preco_unitario > 0 ? fmtBRL(r.preco_unitario) : '—' },
     { key: 'acoes', label: '', render: r => (
       <div style={{ display: 'flex', gap: 4 }}>
-        <Btn size="sm" cor={C.verdeClaro} onClick={() => { setModalMov(r); setFMov({ tipo:'entrada', quantidade:0, data: hoje(), motivo:'' }) }}>📥 Mov.</Btn>
+        <Btn size="sm" cor={C.verdeClaro} onClick={() => {
+          setModalMov(r)
+          setFMov({ tipo: 'entrada', quantidade: '', data: hoje(), motivo: '' })
+        }}>📥 Entrada</Btn>
+        <Btn size="sm" cor={C.critico} onClick={() => {
+          setModalMov(r)
+          setFMov({ tipo: 'saida', quantidade: '', data: hoje(), motivo: 'Consumo' })
+        }}>📤 Baixa</Btn>
         <Btn size="sm" cor={C.verde} outline onClick={() => abrirEditar(r)}>✏️</Btn>
       </div>
     )},
@@ -217,24 +223,70 @@ export default function Estoque() {
 
       {/* Modal movimentação */}
       {modalMov && (
-        <Modal titulo={`Movimentar Estoque — ${modalMov.nome}`} onClose={() => setModalMov(null)}>
-          <div style={{ marginBottom: 12, fontSize: 13, color: C.textoSub }}>
-            Estoque atual: <strong style={{ color: C.texto }}>{fmtNum(modalMov.quantidade)} {modalMov.unidade}</strong>
+        <Modal titulo={fMov.tipo === 'entrada' ? `📥 Entrada — ${modalMov.nome}` : `📤 Baixa de Estoque — ${modalMov.nome}`} onClose={() => setModalMov(null)}>
+          {/* Status atual */}
+          <div style={{
+            background: C.bgInput, borderRadius: 8, padding: '10px 14px',
+            marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <div>
+              <div style={{ fontSize: 11, color: C.textoMuted, textTransform: 'uppercase', fontWeight: 600 }}>Estoque atual</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.texto, fontFamily: 'monospace', marginTop: 2 }}>
+                {fmtNum(modalMov.quantidade)} {modalMov.unidade}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 11, color: C.textoMuted, textTransform: 'uppercase', fontWeight: 600 }}>Após movimentação</div>
+              <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'monospace', marginTop: 2,
+                color: fMov.tipo === 'entrada' ? C.verdeClaro : C.critico }}>
+                {fMov.tipo === 'entrada'
+                  ? fmtNum(parseFloat(modalMov.quantidade || 0) + parseFloat(fMov.quantidade || 0))
+                  : fmtNum(Math.max(0, parseFloat(modalMov.quantidade || 0) - parseFloat(fMov.quantidade || 0)))
+                } {modalMov.unidade}
+              </div>
+            </div>
           </div>
-          <Grid cols={2}>
-            <Campo label="Tipo" type="select" value={fMov.tipo} onChange={v => setFMov(f => ({ ...f, tipo: v }))}
-              options={[{ value:'entrada', label:'📥 Entrada' }, { value:'saida', label:'📤 Saída/Consumo' }]} />
-            <Campo label="Data" type="date" value={fMov.data} onChange={v => setFMov(f => ({ ...f, data: v }))} />
-          </Grid>
+
+          {/* Tipo de movimentação */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+            {[
+              { v: 'entrada', icon: '📥', label: 'Entrada', cor: C.verdeClaro },
+              { v: 'saida',   icon: '📤', label: 'Baixa / Consumo', cor: C.critico },
+            ].map(t => (
+              <button key={t.v} onClick={() => setFMov(f => ({ ...f, tipo: t.v }))} style={{
+                padding: '10px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
+                border: `2px solid ${fMov.tipo === t.v ? t.cor : C.border}`,
+                background: fMov.tipo === t.v ? `${t.cor}22` : C.bgInput,
+                color: fMov.tipo === t.v ? t.cor : C.textoMuted,
+                fontWeight: 700, fontSize: 13,
+              }}>
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </div>
+
           <Grid cols={2}>
             <Campo label={`Quantidade (${modalMov.unidade})`} type="number" step="0.1"
-              value={fMov.quantidade} onChange={v => setFMov(f => ({ ...f, quantidade: v }))} />
-            <Campo label="Motivo" value={fMov.motivo} onChange={v => setFMov(f => ({ ...f, motivo: v }))} placeholder="ex: Compra, Consumo semanal..." />
+              value={fMov.quantidade}
+              onChange={v => setFMov(f => ({ ...f, quantidade: v }))} />
+            <Campo label="Data" type="date" value={fMov.data}
+              onChange={v => setFMov(f => ({ ...f, data: v }))} />
           </Grid>
+          <Campo label="Motivo" value={fMov.motivo}
+            onChange={v => setFMov(f => ({ ...f, motivo: v }))}
+            placeholder={fMov.tipo === 'entrada' ? 'ex: Compra, NF 1234...' : 'ex: Consumo semanal, Fornecimento lote A...'} />
+
+          {/* Alerta se baixa deixa estoque negativo */}
+          {fMov.tipo === 'saida' && parseFloat(fMov.quantidade || 0) > parseFloat(modalMov.quantidade || 0) && (
+            <div style={{ background: `${C.critico}22`, border: `1px solid ${C.critico}`, borderRadius: 6, padding: '8px 12px', fontSize: 12, color: C.critico, marginBottom: 12 }}>
+              ⚠️ Quantidade maior que o estoque disponível! O saldo ficará zerado.
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
             <Btn outline cor={C.textoMuted} onClick={() => setModalMov(null)}>Cancelar</Btn>
-            <Btn cor={fMov.tipo === 'entrada' ? C.verdeClaro : C.ambar} onClick={salvarMov}>
-              {fMov.tipo === 'entrada' ? '📥 Registrar entrada' : '📤 Registrar saída'}
+            <Btn cor={fMov.tipo === 'entrada' ? C.verdeClaro : C.critico} onClick={salvarMov}>
+              {fMov.tipo === 'entrada' ? '📥 Registrar entrada' : '📤 Dar baixa'}
             </Btn>
           </div>
         </Modal>
