@@ -1,0 +1,24 @@
+# UE5 generated
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.xcodeproj
+*.xcworkspace
+
+# Content: por padrão versionamos .uasset/.umap (use Git LFS quando adicionar)
+# Descomente se preferir não versionar conteúdo binário:
+# Content/**/*.uasset
+# Content/**/*.umap
