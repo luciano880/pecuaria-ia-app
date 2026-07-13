@@ -1,9 +1,11 @@
 # TerraForge — Simulador de Mineração na Terra (UE5)
 
-Jogo de simulação/automação estilo **Satisfactory**, ambientado no **planeta Terra**.
-Você começa com uma picareta e uma mineradora portátil, e evolui por **fases tecnológicas**
-até operar complexos industriais inteiros: escavadeiras gigantes, esteiras, fundições,
-refinarias e redes de energia.
+Jogo de simulação/automação estilo **Satisfactory**, ambientado no **planeta Terra**
+com estética industrial **moderna/atual**. Você começa com uma mineradora portátil e
+evolui por **fases tecnológicas** até operar complexos industriais inteiros:
+alto-fornos, aciarias, refinarias de petróleo, plantas químicas e uma matriz elétrica
+completa — **biomassa, carvão, petróleo e nuclear** como fontes principais, com
+**geotérmica (gêiseres), solar e eólica** como opcionais.
 
 ## Requisitos
 
@@ -27,7 +29,7 @@ refinarias e redes de energia.
 | `docs/GDD.md` | Documento de design completo (fases, máquinas, recursos, economia) |
 | `Source/TerraForge/Items` | Definições de itens/recursos (Data Assets) |
 | `Source/TerraForge/Resources` | Nós de recurso no mundo (jazidas de minério) |
-| `Source/TerraForge/Machines` | Máquinas: base comum, mineradora, fundição |
+| `Source/TerraForge/Machines` | Máquinas: base comum, mineradora, fundição, refinaria multi-processo, geradores a combustível e renováveis |
 | `Source/TerraForge/Logistics` | Esteiras transportadoras |
 | `Source/TerraForge/Power` | Rede elétrica (subsystem de mundo) |
 | `Source/TerraForge/Progression` | Progressão de fases/tiers tecnológicos |

@@ -36,6 +36,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Resource")
 	int32 RemainingAmount = -1;
 
+	/**
+	 * true para gêiseres: não têm OreType nem extração — servem de fundação
+	 * obrigatória para a usina geotérmica (ARenewableGenerator::Geothermal).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Resource")
+	bool bIsGeyser = false;
+
 	/** Multiplicador de extração dado pela pureza. */
 	UFUNCTION(BlueprintPure, Category = "Resource")
 	float GetPurityMultiplier() const;

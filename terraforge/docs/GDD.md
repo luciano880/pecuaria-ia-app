@@ -26,32 +26,73 @@ expansão; reflorestar/recuperar libera bônus.
 
 | Tier | Nome | Desbloqueia | Meta de entrega |
 |---|---|---|---|
-| 0 | Acampamento | Picareta, mineradora portátil, fogueira de fundição | 50x Minério de Ferro |
-| 1 | Mecanização | Miner Mk1, esteira Mk1, fundição a carvão | 100x Lingote de Ferro |
-| 2 | Eletrificação | Gerador a carvão, rede elétrica, Miner Mk2 | 200x Placa de Ferro, 100x Fio de Cobre |
-| 3 | Indústria Pesada | Fundição elétrica, esteira Mk2, escavadeira de superfície | 500x Aço, 200x Concreto |
-| 4 | Automação Avançada | Braços robóticos, trens de carga, Miner Mk3 | 100x Motor, 100x Circuito |
-| 5 | Era Verde | Solar/eólica, recuperação de área, mineração profunda | 50x Bateria de Lítio, índice ambiental ≥ 80 |
+| 0 | Instalação Inicial | Mineradora portátil, forno básico | 50x Minério de Ferro |
+| 1 | Mecanização | Miner Mk1, esteira Mk1, **usina de biomassa**, rede elétrica | 100x Lingote de Ferro |
+| 2 | Siderurgia | **Termelétrica a carvão**, alto-forno (aço), Miner Mk2 | 200x Placa de Aço, 100x Fio de Cobre |
+| 3 | Petroquímica | Poço de petróleo, **refinaria**, **usina a óleo combustível**, plásticos | 500x Aço, 300x Plástico, 200x Concreto |
+| 4 | Alta Tecnologia | Eletrólise de alumínio, forno de silício, circuitos, **usina nuclear** | 100x Motor, 100x Circuito, 20x Barra de Urânio |
+| 5 | Matriz Limpa (opcional) | **Geotérmica (gêiseres), solar, eólica**, reciclagem, mineração profunda | 50x Bateria de Lítio, índice ambiental ≥ 80 |
 
 Cada tier multiplica velocidade/capacidade das máquinas e abre novas receitas.
 Upgrade de máquina é **in-place**: interagir com a máquina + pagar o custo → Mk seguinte.
 
-## 4. Recursos e cadeia produtiva (inicial)
+## 4. Recursos e cadeias produtivas (indústria moderna)
 
+O jogo usa processos de fundição/refino inspirados na indústria real. Cada processo
+é uma máquina diferente, com receitas multi-entrada/multi-saída (`ARefineryMachine`):
+
+### Metalurgia
 ```
-Minério de Ferro ──► Lingote de Ferro ──► Placa / Haste ──► Peças
-Minério de Cobre ──► Lingote de Cobre ──► Fio / Chapa
-Carvão ──► combustível (fundição, gerador)
-Calcário ──► Concreto (construções)
-Lítio (tier 5) ──► Baterias
+Alto-forno:        Minério de Ferro + Carvão + Calcário ──► Ferro-gusa + Escória
+Aciaria (BOF):     Ferro-gusa + Sucata ──► Aço ──► Placa / Viga / Tubo
+Forno elétrico:    Sucata + energia ──► Aço reciclado (tier 5, menos poluição)
+Eletrorrefino:     Minério de Cobre ──► Cobre blister ──► Cobre eletrolítico ──► Fio / Chapa
+Eletrólise:        Bauxita ──► Alumina ──► Alumínio (consome MUITA energia — tier 4)
+Forno de silício:  Quartzo + Carvão ──► Silício metálico ──► Wafer ──► Circuito
 ```
 
-## 5. Energia
+### Petroquímica (tier 3)
+```
+Poço de petróleo ──► Petróleo cru
+Refinaria: Petróleo cru ──► Óleo combustível + Nafta + Betume
+Planta química: Nafta ──► Plástico / Borracha sintética
+Betume + Brita ──► Asfalto (estradas/fundações)
+```
+
+### Construção e alta tecnologia
+```
+Calcário ──► Cimento ──► Concreto (com areia + água)
+Silício + Cobre + Plástico ──► Circuitos ──► Computadores industriais
+Lítio + Alumínio + Circuito ──► Baterias (tier 5)
+Urânio ──► Barra de combustível nuclear (tier 4)
+```
+
+## 5. Energia — matriz elétrica
 
 - Máquinas elétricas consomem **MW** de uma rede (grid) conectada por postes/cabos.
 - Produção < consumo → todas as máquinas do grid reduzem velocidade proporcionalmente
   (brownout), em vez de desligar tudo (mais amigável que fusível do Satisfactory).
-- Fontes: gerador a carvão (t2) → hidrelétrica (t3) → solar/eólica (t5, sem poluição).
+
+### Fontes principais (a combustível — `AGeneratorMachine`)
+
+| Fonte | Tier | Combustível | Potência base | Poluição | Observação |
+|---|---|---|---|---|---|
+| **Biomassa** | 1 | Restos vegetais, madeira | 20 MW | Baixa | Primeira fonte; combustível renovável mas fraco |
+| **Carvão** | 2 | Carvão mineral | 60 MW | Alta | Barata e abundante; pior índice ambiental |
+| **Petróleo** | 3 | Óleo combustível (da refinaria) | 120 MW | Média-alta | Integra com a cadeia petroquímica |
+| **Nuclear** | 4 | Barra de urânio | 500 MW | Zero (ar) | Gera **rejeito radioativo** que precisa de armazenamento |
+
+### Fontes opcionais (renováveis — `ARenewableGenerator`)
+
+| Fonte | Tier | Requisito | Potência | Comportamento |
+|---|---|---|---|---|
+| **Geotérmica** | 5 | Construir sobre um **gêiser** (nó especial no mapa) | 150 MW | Constante, 24h — a melhor renovável, mas limitada aos gêiseres |
+| **Solar** | 5 | Área aberta | 40 MW pico | Segue o ciclo dia/noite (zero à noite) — pede baterias |
+| **Eólica** | 5 | Morros/costa | 60 MW pico | Oscila com o vento (fator 30–100%) |
+
+Estratégia esperada: começar em biomassa → escalar em carvão → migrar para petróleo
+integrado à refinaria → base firme nuclear → complementar com renováveis para
+recuperar o índice ambiental (tier 5 exige índice ≥ 80).
 
 ## 6. Impacto ambiental
 
