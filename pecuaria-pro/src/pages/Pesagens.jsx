@@ -8,12 +8,18 @@ export default function Pesagens() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
-  const { dados, loading, inserir } = useTabela('pesagens')
+  const { dados, loading, inserir, remover } = useTabela('pesagens')
   const { dados: animais } = useTabela('animais', { segmento: seg })
   const [modal, setModal] = useState(false)
   const { toast, ToastContainer } = useToast()
   const [form, setForm] = useState({ brinco:'', data: hoje(), peso_kg:'', obs:'' })
   function set(k,v) { setForm(f => ({ ...f, [k]: v })) }
+
+  async function excluir(row) {
+    if (!confirm(`Excluir pesagem de ${row.peso_kg}kg em ${row.data}?`)) return
+    try { await remover(row.id); toast('Pesagem removida!') }
+    catch(e) { toast(e.message, 'erro') }
+  }
 
   async function salvar() {
     if (!form.brinco || !form.peso_kg) { toast('Brinco e peso obrigatórios', 'erro'); return }
@@ -100,7 +106,7 @@ export default function Pesagens() {
           { key: 'data', label: 'Data', render: r => fmtData(r.data) },
           { key: 'peso_kg', label: 'Peso (kg)', render: r => <strong>{r.peso_kg} kg</strong> },
           { key: 'obs', label: 'Obs' },
-        ]} dados={dados.slice(0,100)} loading={loading} />
+        ]} dados={dados.slice(0,100)} loading={loading} onDelete={excluir} />
       </Secao>
 
       {modal && (

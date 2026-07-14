@@ -10,9 +10,9 @@ export default function Sanidade() {
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
 
-  const { dados: medicamentos, loading: loadMed, inserir: inserirMed } = useTabela('medicamentos')
-  const { dados: aplicacoes, loading: loadApl, inserir: inserirApl, carregar: recarregarApl } = useTabela('aplicacoes')
-  const { dados: vacinacoes, loading: loadVac, inserir: inserirVac } = useTabela('vacinacoes')
+  const { dados: medicamentos, loading: loadMed, inserir: inserirMed, remover: removerMed } = useTabela('medicamentos')
+  const { dados: aplicacoes, loading: loadApl, inserir: inserirApl, carregar: recarregarApl, remover: removerApl } = useTabela('aplicacoes')
+  const { dados: vacinacoes, loading: loadVac, inserir: inserirVac, remover: removerVac } = useTabela('vacinacoes')
   const { dados: animais } = useTabela('animais', { segmento: seg })
   const { toast, ToastContainer } = useToast()
 
@@ -30,6 +30,19 @@ export default function Sanidade() {
   function setM(k, v) { setFMed(f => ({ ...f, [k]: v })) }
   function setA(k, v) { setFApl(f => ({ ...f, [k]: v })) }
   function setV(k, v) { setFVac(f => ({ ...f, [k]: v })) }
+
+  async function excluirMed(row) {
+    if (!confirm(`Excluir medicamento "${row.nome}"?`)) return
+    try { await removerMed(row.id); toast('Medicamento removido!') } catch(e) { toast(e.message,'erro') }
+  }
+  async function excluirApl(row) {
+    if (!confirm(`Excluir aplicação de ${row.medicamento_nome} no brinco #${row.brinco}?`)) return
+    try { await removerApl(row.id); toast('Aplicação removida!') } catch(e) { toast(e.message,'erro') }
+  }
+  async function excluirVac(row) {
+    if (!confirm(`Excluir vacinação de ${row.vacina}?`)) return
+    try { await removerVac(row.id); toast('Vacinação removida!') } catch(e) { toast(e.message,'erro') }
+  }
 
   async function salvarMed() {
     if (!fMed.nome) { toast('Nome do medicamento obrigatório', 'erro'); return }
@@ -183,7 +196,7 @@ export default function Sanidade() {
 
       {aba === 'aplicacoes' && (
         <Secao titulo="Histórico de Aplicações" icon="💉">
-          <Tabela colunas={colsApl} dados={aplicacoes} loading={loadApl} />
+          <Tabela colunas={colsApl} dados={aplicacoes} loading={loadApl} onDelete={excluirApl} />
         </Secao>
       )}
 
@@ -195,7 +208,7 @@ export default function Sanidade() {
             { key: 'data_aplicacao', label: 'Data', render: r => fmtData(r.data_aplicacao) },
             { key: 'proxima_dose', label: 'Próxima dose', render: r => fmtData(r.proxima_dose) },
             { key: 'responsavel', label: 'Responsável' },
-          ]} dados={vacinacoes} loading={loadVac} />
+          ]} dados={vacinacoes} loading={loadVac} onDelete={excluirVac} />
         </Secao>
       )}
 
@@ -209,7 +222,7 @@ export default function Sanidade() {
             { key: 'carencia_leite', label: 'Car. Leite', render: r => `${r.carencia_leite}d` },
             { key: 'carencia_carne', label: 'Car. Carne', render: r => `${r.carencia_carne}d` },
             { key: 'estoque_atual', label: 'Estoque', render: r => `${r.estoque_atual} ${r.unidade}` },
-          ]} dados={medicamentos} loading={loadMed} />
+          ]} dados={medicamentos} loading={loadMed} onDelete={excluirMed} />
         </Secao>
       )}
 

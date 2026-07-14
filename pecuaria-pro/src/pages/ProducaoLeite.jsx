@@ -6,8 +6,8 @@ import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/
 
 export default function ProducaoLeite() {
   const { perfil } = useAuth()
-  const { dados, loading, inserir } = useTabela('producao_leite')
-  const { dados: entregas, inserir: inserirEntrega } = useTabela('entrega_leite')
+  const { dados, loading, inserir, remover } = useTabela('producao_leite')
+  const { dados: entregas, inserir: inserirEntrega, remover: removerEntrega } = useTabela('entrega_leite')
   const { dados: animais } = useTabela('animais', { segmento: 'leite', categoria: 'lactacao' })
   const [modal, setModal] = useState(false)
   const [modalEntrega, setModalEntrega] = useState(false)
@@ -19,6 +19,15 @@ export default function ProducaoLeite() {
 
   function set(k,v) { setForm(f => ({ ...f, [k]: v })) }
   function setE(k,v) { setFEnt(f => ({ ...f, [k]: v })) }
+
+  async function excluirProducao(row) {
+    if (!confirm('Excluir este lançamento de produção?')) return
+    try { await remover(row.id); toast('Removido!') } catch(e) { toast(e.message,'erro') }
+  }
+  async function excluirEntrega(row) {
+    if (!confirm('Excluir esta entrega?')) return
+    try { await removerEntrega(row.id); toast('Removido!') } catch(e) { toast(e.message,'erro') }
+  }
 
   async function salvar() {
     if (!form.brinco) { toast('Informe o brinco', 'erro'); return }
@@ -122,7 +131,7 @@ export default function ProducaoLeite() {
             { key: 'litros_tarde', label: 'Tarde', render: r => `${r.litros_tarde}L` },
             { key: 'litros_noite', label: 'Noite', render: r => `${r.litros_noite}L` },
             { key: 'total_litros', label: 'Total', render: r => <strong style={{ color: C.leiteAccent }}>{r.total_litros}L</strong> },
-          ]} dados={dados.slice(0,100)} loading={loading} />
+          ]} dados={dados.slice(0,100)} loading={loading} onDelete={excluirProducao} />
         </Secao>
       )}
 
@@ -149,7 +158,7 @@ export default function ProducaoLeite() {
             { key: 'preco_litro', label: 'Preço/L', render: r => fmtBRL(r.preco_litro) },
             { key: 'valor_total', label: 'Total', render: r => <strong style={{ color: C.verdeVivo }}>{fmtBRL(r.valor_total)}</strong> },
             { key: 'laticinio', label: 'Laticínio' },
-          ]} dados={entregas} loading={false} />
+          ]} dados={entregas} loading={false} onDelete={excluirEntrega} />
         </Secao>
       )}
 

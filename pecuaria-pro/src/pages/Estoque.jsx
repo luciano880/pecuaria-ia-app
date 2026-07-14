@@ -10,8 +10,8 @@ export default function Estoque() {
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
 
-  const { dados: insumos, loading, inserir, atualizar, carregar } = useTabela('estoque_insumos', { segmento: seg })
-  const { dados: dietas, inserir: inserirDieta } = useTabela('dietas', { segmento: seg })
+  const { dados: insumos, loading, inserir, atualizar, carregar, remover } = useTabela('estoque_insumos', { segmento: seg })
+  const { dados: dietas, inserir: inserirDieta, remover: removerDieta } = useTabela('dietas', { segmento: seg })
   const { toast, ToastContainer } = useToast()
 
   const [aba, setAba] = useState('estoque')
@@ -47,6 +47,15 @@ export default function Estoque() {
 
   function set(k,v)  { setForm(f => ({ ...f, [k]: v })) }
   function setD(k,v) { setFDieta(f => ({ ...f, [k]: v })) }
+
+  async function excluirInsumo(row) {
+    if (!confirm(`Excluir "${row.nome}" do estoque?`)) return
+    try { await remover(row.id); toast('Insumo removido!') } catch(e) { toast(e.message,'erro') }
+  }
+  async function excluirDieta(row) {
+    if (!confirm(`Excluir dieta do lote "${row.lote}"?`)) return
+    try { await removerDieta(row.id); toast('Dieta removida!') } catch(e) { toast(e.message,'erro') }
+  }
 
   function abrirNovo()  { setForm(vazio); setEditando(null); setModal(true) }
   function abrirEditar(row) { setForm({ ...vazio, ...row }); setEditando(row.id); setModal(true) }
@@ -172,7 +181,7 @@ export default function Estoque() {
 
       {aba === 'estoque' && (
         <Secao titulo="Insumos Cadastrados" icon="📦">
-          <Tabela colunas={colunas} dados={insumos} loading={loading} />
+          <Tabela colunas={colunas} dados={insumos} loading={loading} onDelete={excluirInsumo} />
         </Secao>
       )}
 
@@ -185,7 +194,7 @@ export default function Estoque() {
             { key: 'silagem_kg_cab_dia', label: 'Silagem/cab/dia', render: r => `${r.silagem_kg_cab_dia} kg` },
             { key: 'concentrado_kg_cab_dia', label: 'Concentrado/cab/dia', render: r => `${r.concentrado_kg_cab_dia} kg` },
             { key: 'sal_mineral_g_cab_dia', label: 'Sal mineral/cab/dia', render: r => `${r.sal_mineral_g_cab_dia} g` },
-          ]} dados={dietas} loading={false} />
+          ]} dados={dietas} loading={false} onDelete={excluirDieta} />
           <div style={{ marginTop: 16, padding: '12px 14px', background: C.bgInput, borderRadius: 8, fontSize: 12, color: C.textoSub, lineHeight: 1.8 }}>
             <strong style={{ color: C.ambar }}>📚 Referências Embrapa/CBNA:</strong><br />
             {seg === 'leite'

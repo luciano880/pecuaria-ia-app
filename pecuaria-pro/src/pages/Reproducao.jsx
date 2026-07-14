@@ -13,7 +13,7 @@ export default function Reproducao() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
-  const { dados, loading, inserir, atualizar } = useTabela('reproducao')
+  const { dados, loading, inserir, atualizar, remover } = useTabela('reproducao')
   const { dados: animais } = useTabela('animais', { segmento: seg, sexo: 'F' })
   const [modal, setModal] = useState(false)
   const [editando, setEditando] = useState(null)
@@ -31,6 +31,11 @@ export default function Reproducao() {
     const d = new Date(dataCobertura)
     d.setDate(d.getDate() + 283)
     return d.toISOString().split('T')[0]
+  }
+
+  async function excluir(row) {
+    if (!confirm(`Excluir evento reprodutivo de #${row.brinco}?`)) return
+    try { await remover(row.id); toast('Evento removido!') } catch(e) { toast(e.message,'erro') }
   }
 
   function abrirNovo() { setForm(vazio); setEditando(null); setModal(true) }
@@ -154,7 +159,7 @@ export default function Reproducao() {
       </div>
 
       <Secao titulo="Eventos Reprodutivos" icon="🐄">
-        <Tabela colunas={colunas} dados={dados} loading={loading} onEdit={abrirEditar} />
+        <Tabela colunas={colunas} dados={dados} loading={loading} onEdit={abrirEditar} onDelete={excluir} />
       </Secao>
 
       {modal && (
