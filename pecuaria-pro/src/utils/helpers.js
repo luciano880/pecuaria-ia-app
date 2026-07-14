@@ -103,86 +103,98 @@ export const LABEL_CATEGORIA = {
 
 // Gerar PDF relatório mensal
 export async function gerarPDFRelatorio(perfil, dados) {
-  const { jsPDF } = await import('jspdf')
-  await import('jspdf-autotable')
-  const doc = new jsPDF()
-  const mes = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  try {
+    const jsPDFModule = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
+    const { jsPDF } = jsPDFModule
+    const doc = new jsPDF()
+    const mes = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
-  // Header
-  doc.setFillColor(61, 107, 37)
-  doc.rect(0, 0, 210, 30, 'F')
-  doc.setTextColor(238, 232, 208)
-  doc.setFontSize(18)
-  doc.setFont('helvetica', 'bold')
-  doc.text('PecuáriaIA — Relatório Mensal', 14, 14)
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.text(`${perfil?.fazenda} | ${perfil?.nome} | ${mes}`, 14, 23)
+    // Wrapper para autoTable compatível com ambas as versões
+    const addTable = (opts) => {
+      if (typeof doc.autoTable === 'function') {
+        doc.autoTable(opts)
+      } else {
+        autoTable(doc, opts)
+      }
+    }
 
-  // Reset cor
-  doc.setTextColor(30, 30, 30)
-
-  let y = 40
-
-  // Resumo financeiro
-  if (dados.financeiro) {
-    doc.setFontSize(13)
+    // Header
+    doc.setFillColor(61, 107, 37)
+    doc.rect(0, 0, 210, 30, 'F')
+    doc.setTextColor(238, 232, 208)
+    doc.setFontSize(18)
     doc.setFont('helvetica', 'bold')
-    doc.text('Resumo Financeiro', 14, y); y += 8
-    doc.autoTable({
-      startY: y,
-      head: [['Item', 'Valor']],
-      body: [
-        ['Receita total', fmtBRL(dados.financeiro.receitas)],
-        ['Despesa total', fmtBRL(dados.financeiro.despesas)],
-        ['Resultado líquido', fmtBRL(dados.financeiro.lucro)],
-      ],
-      theme: 'striped',
-      headStyles: { fillColor: [61,107,37] },
-      margin: { left: 14, right: 14 },
-    })
-    y = doc.lastAutoTable.finalY + 12
+    doc.text('PecuariaIA - Relatorio Mensal', 14, 14)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`${perfil?.fazenda || ''} | ${perfil?.nome || ''} | ${mes}`, 14, 23)
+    doc.setTextColor(30, 30, 30)
+
+    let y = 40
+
+    // Resumo financeiro
+    if (dados.financeiro) {
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Resumo Financeiro', 14, y); y += 8
+      addTable({
+        startY: y,
+        head: [['Item', 'Valor']],
+        body: [
+          ['Receita total', fmtBRL(dados.financeiro.receitas)],
+          ['Despesa total', fmtBRL(dados.financeiro.despesas)],
+          ['Resultado liquido', fmtBRL(dados.financeiro.lucro)],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [61,107,37] },
+        margin: { left: 14, right: 14 },
+      })
+      y = (doc.lastAutoTable?.finalY || y + 40) + 12
+    }
+
+    // Animais
+    if (dados.animais?.length) {
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Rebanho por Categoria', 14, y); y += 8
+      const catMap = {}
+      dados.animais.forEach(a => { catMap[a.categoria] = (catMap[a.categoria]||0)+1 })
+      addTable({
+        startY: y,
+        head: [['Categoria', 'Quantidade']],
+        body: Object.entries(catMap).map(([k,v]) => [LABEL_CATEGORIA[k]||k, v]),
+        theme: 'striped',
+        headStyles: { fillColor: [61,107,37] },
+        margin: { left: 14, right: 14 },
+      })
+      y = (doc.lastAutoTable?.finalY || y + 40) + 12
+    }
+
+    // Alertas
+    if (dados.alertas?.length) {
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Alertas Pendentes', 14, y); y += 8
+      addTable({
+        startY: y,
+        head: [['Tipo', 'Descricao', 'Data']],
+        body: dados.alertas.map(a => [a.tipo, a.titulo, fmtData(a.data_alerta)]),
+        theme: 'striped',
+        headStyles: { fillColor: [192, 53, 32] },
+        margin: { left: 14, right: 14 },
+      })
+    }
+
+    // Rodapé
+    doc.setFontSize(8)
+    doc.setTextColor(150)
+    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} - PecuariaIA`, 14, 285)
+    doc.save(`Relatorio_${(perfil?.fazenda||'fazenda').replace(/\s/g,'_')}_${mes}.pdf`)
+  } catch(e) {
+    console.error('Erro ao gerar PDF:', e)
+    alert('Erro ao gerar PDF: ' + e.message)
   }
-
-  // Animais
-  if (dados.animais?.length) {
-    doc.setFontSize(13)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Rebanho por Categoria', 14, y); y += 8
-    const catMap = {}
-    dados.animais.forEach(a => { catMap[a.categoria] = (catMap[a.categoria]||0)+1 })
-    doc.autoTable({
-      startY: y,
-      head: [['Categoria', 'Quantidade']],
-      body: Object.entries(catMap).map(([k,v]) => [LABEL_CATEGORIA[k]||k, v]),
-      theme: 'striped',
-      headStyles: { fillColor: [61,107,37] },
-      margin: { left: 14, right: 14 },
-    })
-    y = doc.lastAutoTable.finalY + 12
-  }
-
-  // Alertas
-  if (dados.alertas?.length) {
-    doc.setFontSize(13)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Alertas Pendentes', 14, y); y += 8
-    doc.autoTable({
-      startY: y,
-      head: [['Tipo', 'Descrição', 'Data']],
-      body: dados.alertas.map(a => [a.tipo, a.titulo, fmtData(a.data_alerta)]),
-      theme: 'striped',
-      headStyles: { fillColor: [192, 53, 32] },
-      margin: { left: 14, right: 14 },
-    })
-  }
-
-  // Rodapé
-  doc.setFontSize(8)
-  doc.setTextColor(150)
-  doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — PecuáriaIA`, 14, 285)
-
-  doc.save(`Relatorio_${perfil?.fazenda}_${mes}.pdf`)
 }
 
 // Exportar Excel

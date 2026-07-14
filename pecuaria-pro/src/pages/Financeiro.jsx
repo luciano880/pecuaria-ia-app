@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useTabela } from '../utils/useTabela.js'
 import { supabase } from '../utils/supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -47,9 +47,11 @@ export default function Financeiro() {
   const { toast, ToastContainer } = useToast()
   const { dados: receitas, loading: loadR, inserir: inserirR, remover: removerR } = useTabela('receitas')
   const { dados: despesas, loading: loadD, inserir: inserirD, remover: removerD } = useTabela('despesas')
+  const { dados: contasReceber, loading: loadCR, inserir: inserirCR, atualizar: atualizarCR, carregar: recarregarCR } = useTabela('contas_receber')
   const [aba, setAba] = useState('resumo')
   const [modalR, setModalR] = useState(false)
   const [modalD, setModalD] = useState(false)
+  const [modalCR, setModalCR] = useState(false)
   const [anoIR, setAnoIR] = useState(new Date().getFullYear()-1)
   const [relIA, setRelIA] = useState(null)
   const [loadIA, setLoadIA] = useState(false)
@@ -57,11 +59,50 @@ export default function Financeiro() {
 
   const vR = {data:hoje(),categoria:'venda_leite',descricao:'',valor:'',quantidade:'',unidade:'L',nota_fiscal:'',comprador:'',obs:''}
   const vD = {data:hoje(),categoria:'alimentacao',descricao:'',valor:'',fornecedor:'',nota_fiscal:'',deducivel_ir:true,obs:''}
+  const vCR = {descricao:'',categoria:'cheque',valor:'',data_emissao:hoje(),data_vencimento:'',pagador:'',banco:'',numero_cheque:'',obs:''}
   const [fR, setFR] = useState(vR)
   const [fD, setFD] = useState(vD)
+  const [fCR, setFCR] = useState(vCR)
   const sR = (k,v) => setFR(f=>({...f,[k]:v}))
   const sD = (k,v) => setFD(f=>({...f,[k]:v}))
+  const sCR = (k,v) => setFCR(f=>({...f,[k]:v}))
 
+  // Verificar contas a receber vencidas/hoje e lançar automaticamente
+  async function processarContasVencidas() {
+    const hj = hoje()
+    const pendentes = contasReceber.filter(c =>
+      c.status === 'pendente' && c.data_vencimento <= hj
+    )
+    for (const conta of pendentes) {
+      try {
+        // Lançar como receita automaticamente
+        const { data: rec } = await supabase.from('receitas').insert({
+          user_id: user.id,
+          data: conta.data_vencimento,
+          categoria: 'outro',
+          descricao: `[AUTO] ${conta.descricao} — ${conta.categoria === 'cheque' ? `Cheque ${conta.numero_cheque || ''}` : conta.categoria}`,
+          valor: conta.valor,
+          comprador: conta.pagador || null,
+          obs: `Lançado automaticamente do A Receber`,
+        }).select().single()
+        // Marcar como recebido
+        await atualizarCR(conta.id, {
+          status: 'recebido',
+          data_recebimento: hj,
+          receita_id: rec?.id || null,
+        })
+        toast(`✅ ${conta.descricao} — R$ ${conta.valor} lançado automaticamente!`)
+      } catch(e) {
+        console.error('Erro ao processar conta:', e)
+      }
+    }
+    if (pendentes.length > 0) recarregarCR()
+  }
+
+  // Processar contas vencidas ao carregar
+  useEffect(() => {
+    if (contasReceber.length > 0) processarContasVencidas()
+  }, [contasReceber.length])
   async function salvarR() {
     if(!fR.valor||!fR.descricao){toast('Preencha valor e descrição','erro');return}
     try{
@@ -82,6 +123,43 @@ export default function Financeiro() {
       })
       toast('Despesa lançada!');setModalD(false);setFD(vD)
     }catch(e){toast(e.message,'erro')}
+  }
+
+  async function salvarCR() {
+    if(!fCR.valor||!fCR.descricao||!fCR.data_vencimento){
+      toast('Preencha descrição, valor e data de vencimento','erro'); return
+    }
+    try{
+      await inserirCR({
+        ...fCR,
+        valor: parseFloat(fCR.valor),
+        status: 'pendente',
+      })
+      toast('Conta a receber cadastrada!')
+      setModalCR(false); setFCR(vCR)
+    }catch(e){toast(e.message,'erro')}
+  }
+
+  async function marcarRecebido(conta) {
+    try {
+      // Lançar receita
+      await supabase.from('receitas').insert({
+        user_id: user.id,
+        data: hoje(),
+        categoria: 'outro',
+        descricao: conta.descricao,
+        valor: conta.valor,
+        comprador: conta.pagador || null,
+      })
+      await atualizarCR(conta.id, { status: 'recebido', data_recebimento: hoje() })
+      toast('✅ Recebido e lançado nas receitas!')
+    } catch(e) { toast(e.message,'erro') }
+  }
+
+  async function cancelarConta(conta) {
+    if (!confirm('Cancelar esta conta?')) return
+    await atualizarCR(conta.id, { status: 'cancelado' })
+    toast('Conta cancelada')
   }
 
   const totalRec = receitas.reduce((s,r)=>s+parseFloat(r.valor||0),0)
@@ -159,7 +237,13 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
     } catch(e){toast(e.message,'erro')}
   }
 
-  const abas=[{id:'resumo',l:'📊 Resumo'},{id:'receitas',l:'💰 Receitas'},{id:'despesas',l:'💸 Despesas'},{id:'ir',l:'📋 IR Rural'}]
+  const abas=[
+    {id:'resumo',l:'📊 Resumo'},
+    {id:'receitas',l:'💰 Receitas'},
+    {id:'despesas',l:'💸 Despesas'},
+    {id:'receber',l:`📬 A Receber ${contasReceber.filter(c=>c.status==='pendente').length > 0 ? `(${contasReceber.filter(c=>c.status==='pendente').length})` : ''}`},
+    {id:'ir',l:'📋 IR Rural'},
+  ]
 
   return (
     <div style={{maxWidth:1000,margin:'0 auto'}}>
@@ -172,6 +256,7 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
         <div style={{display:'flex',gap:8}}>
           <Btn cor={C.verdeClaro} onClick={()=>setModalR(true)}>+ Receita</Btn>
           <Btn cor={C.critico} outline onClick={()=>setModalD(true)}>+ Despesa</Btn>
+          <Btn cor={C.ambar} outline onClick={()=>setModalCR(true)}>📬 + A Receber</Btn>
           <Btn cor={C.ambar} outline onClick={exportarXLSX}>📥 Excel</Btn>
         </div>
       </div>
@@ -273,6 +358,75 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
         </Secao>
       )}
 
+      {aba==='receber'&&(
+        <>
+          {/* Cards resumo */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:16}}>
+            {[
+              {l:'Pendentes',v:contasReceber.filter(c=>c.status==='pendente').length,val:fmtBRL(contasReceber.filter(c=>c.status==='pendente').reduce((s,c)=>s+parseFloat(c.valor||0),0)),c:C.ambar},
+              {l:'Vencidos hoje',v:contasReceber.filter(c=>c.status==='pendente'&&c.data_vencimento<=hoje()).length,val:'',c:C.critico},
+              {l:'Recebidos',v:contasReceber.filter(c=>c.status==='recebido').length,val:fmtBRL(contasReceber.filter(c=>c.status==='recebido').reduce((s,c)=>s+parseFloat(c.valor||0),0)),c:C.verdeClaro},
+            ].map((s,i)=>(
+              <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderLeft:`3px solid ${s.c}`,borderRadius:10,padding:'12px 14px'}}>
+                <div style={{fontSize:10,color:C.textoMuted,textTransform:'uppercase',fontWeight:600}}>{s.l}</div>
+                <div style={{fontSize:22,fontWeight:800,color:s.c,fontFamily:'monospace',marginTop:4}}>{s.v}</div>
+                {s.val&&<div style={{fontSize:11,color:C.textoSub,marginTop:2}}>{s.val}</div>}
+              </div>
+            ))}
+          </div>
+
+          {/* Lista de contas */}
+          <Secao titulo="Contas a Receber" icon="📬" cor={C.ambar}
+            acao={<Btn size="sm" cor={C.ambar} onClick={()=>setModalCR(true)}>+ Nova</Btn>}>
+            {contasReceber.length===0?(
+              <div style={{color:C.textoMuted,padding:24,textAlign:'center'}}>Nenhuma conta cadastrada</div>
+            ):contasReceber.map(c=>{
+              const diasRestantes = Math.ceil((new Date(c.data_vencimento)-new Date())/(1000*60*60*24))
+              const vencido = diasRestantes < 0 && c.status==='pendente'
+              const venceHoje = diasRestantes === 0 && c.status==='pendente'
+              return (
+                <div key={c.id} style={{
+                  padding:'14px 0', borderBottom:`1px solid ${C.border}`,
+                  display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12
+                }}>
+                  <div style={{flex:1}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                      <span style={{
+                        fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:4,
+                        background: c.status==='recebido'?`${C.verdeClaro}22`:vencido?`${C.critico}22`:venceHoje?`${C.ambar}22`:`${C.ambar}11`,
+                        color: c.status==='recebido'?C.verdeClaro:vencido?C.critico:venceHoje?C.ambar:C.textoMuted,
+                      }}>
+                        {c.status==='recebido'?'✅ RECEBIDO':vencido?'🚨 VENCIDO':venceHoje?'⚠️ VENCE HOJE':'⏳ PENDENTE'}
+                      </span>
+                      <span style={{fontSize:12,color:C.textoMuted}}>{c.categoria?.toUpperCase()}</span>
+                      {c.numero_cheque&&<span style={{fontSize:11,color:C.textoMuted}}>Nº {c.numero_cheque}</span>}
+                    </div>
+                    <div style={{fontSize:14,fontWeight:600,color:C.texto}}>{c.descricao}</div>
+                    <div style={{fontSize:12,color:C.textoMuted,marginTop:3}}>
+                      {c.pagador&&`${c.pagador} · `}
+                      Emissão: {fmtData(c.data_emissao)} →
+                      Vencimento: <strong style={{color:vencido?C.critico:venceHoje?C.ambar:C.texto}}>{fmtData(c.data_vencimento)}</strong>
+                      {c.status==='pendente'&&diasRestantes>0&&<span style={{color:C.textoMuted}}> ({diasRestantes}d)</span>}
+                    </div>
+                  </div>
+                  <div style={{textAlign:'right',flexShrink:0}}>
+                    <div style={{fontSize:18,fontWeight:800,color:c.status==='recebido'?C.verdeClaro:C.ambar,fontFamily:'monospace'}}>
+                      {fmtBRL(c.valor)}
+                    </div>
+                    {c.status==='pendente'&&(
+                      <div style={{display:'flex',gap:6,marginTop:6,justifyContent:'flex-end'}}>
+                        <Btn size="sm" cor={C.verdeClaro} onClick={()=>marcarRecebido(c)}>✅ Recebido</Btn>
+                        <Btn size="sm" cor={C.critico} outline onClick={()=>cancelarConta(c)}>✗</Btn>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </Secao>
+        </>
+      )}
+
       {aba==='ir'&&(
         <>
           <Secao titulo="Apuração IR — Atividade Rural" icon="📋" cor={C.ambar}>
@@ -309,6 +463,41 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
             </div>
           )}
         </>
+      )}
+
+      {/* Modal A Receber */}
+      {modalCR&&(
+        <Modal titulo="Cadastrar Conta a Receber" onClose={()=>setModalCR(false)}>
+          <Grid cols={2}>
+            <Campo label="Tipo" type="select" value={fCR.categoria} onChange={v=>sCR('categoria',v)}
+              options={[
+                {value:'cheque',label:'💵 Cheque'},
+                {value:'duplicata',label:'📄 Duplicata'},
+                {value:'pix_agendado',label:'📲 PIX Agendado'},
+                {value:'boleto',label:'🏦 Boleto'},
+                {value:'outro',label:'📦 Outro'},
+              ]}/>
+            <Campo label="Nº Cheque / Referência" value={fCR.numero_cheque} onChange={v=>sCR('numero_cheque',v)} placeholder="ex: 000123"/>
+          </Grid>
+          <Campo label="Descrição" value={fCR.descricao} onChange={v=>sCR('descricao',v)} required placeholder="ex: Venda de 3 bezerros — João Silva"/>
+          <Grid cols={2}>
+            <Campo label="Valor (R$)" type="number" step="0.01" value={fCR.valor} onChange={v=>sCR('valor',v)} required/>
+            <Campo label="Pagador / Devedor" value={fCR.pagador} onChange={v=>sCR('pagador',v)} placeholder="Nome de quem vai pagar"/>
+          </Grid>
+          <Grid cols={2}>
+            <Campo label="Data de emissão" type="date" value={fCR.data_emissao} onChange={v=>sCR('data_emissao',v)}/>
+            <Campo label="Data de vencimento" type="date" value={fCR.data_vencimento} onChange={v=>sCR('data_vencimento',v)} required/>
+          </Grid>
+          <Campo label="Banco" value={fCR.banco} onChange={v=>sCR('banco',v)} placeholder="ex: Banco do Brasil, Sicoob..."/>
+          <Campo label="Observações" type="textarea" value={fCR.obs} onChange={v=>sCR('obs',v)}/>
+          <div style={{background:`${C.ambar}18`,border:`1px solid ${C.ambar}`,borderRadius:6,padding:'8px 12px',fontSize:12,color:C.textoSub,marginBottom:12}}>
+            💡 Quando chegar a data de vencimento, o sistema lança automaticamente nas receitas e marca como recebido.
+          </div>
+          <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+            <Btn outline cor={C.textoMuted} onClick={()=>setModalCR(false)}>Cancelar</Btn>
+            <Btn cor={C.ambar} onClick={salvarCR}>📬 Cadastrar</Btn>
+          </div>
+        </Modal>
       )}
 
       {/* Modal Receita */}
