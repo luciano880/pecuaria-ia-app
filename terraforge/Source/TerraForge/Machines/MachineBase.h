@@ -50,6 +50,15 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	// --- Construção ---
+
+	/** Custo em itens para construir esta máquina (cobrado pelo BuildSystem). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Machine")
+	TArray<FItemStack> BuildCost;
+
+	UFUNCTION(BlueprintPure, Category = "Machine")
+	UStaticMeshComponent* GetMachineMesh() const { return Mesh; }
+
 	// --- Tier / upgrade ---
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
@@ -111,6 +120,10 @@ public:
 protected:
 	/** Progresso do ciclo atual [0..CycleTime). */
 	float CycleProgress = 0.0f;
+
+	/** Cache do sistema ambiental (poluição/penalidade), setado no BeginPlay. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UEnvironmentSubsystem> EnvSubsystem;
 
 	/** Retorna true se a máquina tem insumos/condições para produzir agora. */
 	virtual bool CanProduce() const { return true; }

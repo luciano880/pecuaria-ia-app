@@ -13,6 +13,12 @@ ambiental.
 **licença ambiental e recuperação de área** — poluir demais reduz eficiência e bloqueia
 expansão; reflorestar/recuperar libera bônus.
 
+**Narrativa — Projeto Êxodo** (detalhes em [`HISTORIA.md`](HISTORIA.md)): o planeta
+vai colapsar em 20 anos; o jogador constrói uma nave colonial para salvar a espécie.
+Cada meta de tier entregue no Hub é um módulo da nave, que cresce fisicamente na
+plataforma de lançamento. Dois finais: **Êxodo** (completar a nave e partir) ou
+**Regeneração** (matriz limpa e índice ambiental ≥ 80 — ninguém precisa partir).
+
 ## 2. Loop de gameplay
 
 1. **Explorar** → encontrar jazidas (ferro, cobre, carvão, calcário, bauxita, lítio…).

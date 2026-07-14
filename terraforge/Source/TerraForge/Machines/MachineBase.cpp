@@ -1,6 +1,7 @@
 #include "Machines/MachineBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "Power/PowerGridSubsystem.h"
+#include "Environment/EnvironmentSubsystem.h"
 #include "TerraForge.h"
 
 AMachineBase::AMachineBase()
@@ -22,6 +23,8 @@ void AMachineBase::BeginPlay()
 	{
 		Grid->RegisterConsumer(this);
 	}
+
+	EnvSubsystem = GetWorld()->GetSubsystem<UEnvironmentSubsystem>();
 }
 
 void AMachineBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -47,7 +50,19 @@ void AMachineBase::Tick(float DeltaSeconds)
 	}
 
 	const FMachineTierSpec& Spec = GetCurrentSpec();
-	CycleProgress += DeltaSeconds * GridEfficiency;
+
+	// Poluição ambiental gerada + penalidade quando o índice do planeta está baixo.
+	float EnvMultiplier = 1.0f;
+	if (EnvSubsystem)
+	{
+		if (Spec.PollutionPerMinute > 0.0f)
+		{
+			EnvSubsystem->AddPollution(Spec.PollutionPerMinute * DeltaSeconds / 60.0f);
+		}
+		EnvMultiplier = EnvSubsystem->GetMachineEfficiencyMultiplier();
+	}
+
+	CycleProgress += DeltaSeconds * GridEfficiency * EnvMultiplier;
 
 	while (CycleProgress >= Spec.CycleTime)
 	{

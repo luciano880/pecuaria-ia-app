@@ -1,5 +1,6 @@
 #include "Machines/GeneratorMachine.h"
 #include "Power/PowerGridSubsystem.h"
+#include "Environment/EnvironmentSubsystem.h"
 
 AGeneratorMachine::AGeneratorMachine()
 {
@@ -28,6 +29,13 @@ void AGeneratorMachine::Tick(float DeltaSeconds)
 	if (bHasFuel)
 	{
 		FuelRemainingSeconds -= DeltaSeconds;
+
+		// Usinas a combustível poluem enquanto queimam (valor no TierSpec).
+		if (EnvSubsystem)
+		{
+			EnvSubsystem->AddPollution(
+				GetCurrentSpec().PollutionPerMinute * DeltaSeconds / 60.0f);
+		}
 	}
 	SetOnline(bHasFuel);
 }
