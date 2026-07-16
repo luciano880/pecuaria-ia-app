@@ -4,6 +4,9 @@
 #include "Engine/DataAsset.h"
 #include "ItemData.generated.h"
 
+class UTexture2D;
+class UStaticMesh;
+
 /**
  * Definição de um item/recurso do jogo (minério, lingote, peça...).
  * Criar um Data Asset por item no editor (ex.: DA_IronOre, DA_IronIngot).

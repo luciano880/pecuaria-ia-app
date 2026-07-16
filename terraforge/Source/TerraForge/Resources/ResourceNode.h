@@ -5,6 +5,7 @@
 #include "ResourceNode.generated.h"
 
 class UItemData;
+class UStaticMeshComponent;
 
 UENUM(BlueprintType)
 enum class ENodePurity : uint8

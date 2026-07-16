@@ -5,6 +5,8 @@
 #include "Items/ItemData.h"
 #include "MachineBase.generated.h"
 
+class UStaticMeshComponent;
+
 /** Parâmetros de uma máquina em um tier específico (Mk1, Mk2...). */
 USTRUCT(BlueprintType)
 struct TERRAFORGE_API FMachineTierSpec
@@ -71,8 +73,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Machine")
 	int32 CurrentTier = 0;
 
-	UFUNCTION(BlueprintPure, Category = "Machine")
+	/** Spec do tier atual (C++). Blueprints usam GetCurrentSpecCopy. */
 	const FMachineTierSpec& GetCurrentSpec() const;
+
+	UFUNCTION(BlueprintPure, Category = "Machine", DisplayName = "Get Current Spec")
+	FMachineTierSpec GetCurrentSpecCopy() const { return GetCurrentSpec(); }
 
 	UFUNCTION(BlueprintPure, Category = "Machine")
 	bool CanUpgrade() const { return TierSpecs.IsValidIndex(CurrentTier + 1); }

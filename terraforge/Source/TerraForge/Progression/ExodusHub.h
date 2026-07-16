@@ -5,6 +5,7 @@
 #include "ExodusHub.generated.h"
 
 class UTierProgressionSubsystem;
+class UStaticMesh;
 
 /**
  * Hub do Projeto Êxodo (ver docs/HISTORIA.md).
