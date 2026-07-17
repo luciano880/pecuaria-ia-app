@@ -11,6 +11,21 @@
 #include "Engine/World.h"
 #include "TerraForge.h"
 
+namespace
+{
+	/** Spawna um ator com a base apoiada em Location (elevado por HalfHeight). */
+	template <typename T>
+	T* SpawnAt(UWorld* World, const FVector& Location, float HalfHeight)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride =
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		return World->SpawnActor<T>(
+			T::StaticClass(), Location + FVector(0, 0, HalfHeight),
+			FRotator::ZeroRotator, Params);
+	}
+}
+
 ATerraForgeGameMode::ATerraForgeGameMode()
 {
 	// O Blueprint filho (BP_TerraForgeGameMode) pode trocar pelo BP_Character
@@ -59,19 +74,19 @@ void ATerraForgeGameMode::SpawnDemoFactory()
 	};
 
 	// Jazida de ferro + mineradora em cima dela.
-	AResourceNode* IronNode = SpawnAt<AResourceNode>(GroundAt(BaseX, BaseY), 30.0f);
+	AResourceNode* IronNode = SpawnAt<AResourceNode>(GetWorld(), GroundAt(BaseX, BaseY), 30.0f);
 	if (IronNode)
 	{
 		IronNode->OreType = IronOre;
 	}
-	AMinerMachine* Miner = SpawnAt<AMinerMachine>(GroundAt(BaseX, BaseY), 110.0f);
+	AMinerMachine* Miner = SpawnAt<AMinerMachine>(GetWorld(), GroundAt(BaseX, BaseY), 110.0f);
 	if (Miner)
 	{
 		Miner->TargetNode = IronNode;
 	}
 
 	// Fundição a 8 m, com receita ferro → lingote.
-	ASmelterMachine* Smelter = SpawnAt<ASmelterMachine>(GroundAt(BaseX + 800.0f, BaseY), 100.0f);
+	ASmelterMachine* Smelter = SpawnAt<ASmelterMachine>(GetWorld(), GroundAt(BaseX + 800.0f, BaseY), 100.0f);
 	if (Smelter)
 	{
 		Smelter->ActiveRecipe.InputItem = IronOre;
@@ -81,11 +96,11 @@ void ATerraForgeGameMode::SpawnDemoFactory()
 	}
 
 	// Hub Êxodo a 16 m.
-	AExodusHub* Hub = SpawnAt<AExodusHub>(GroundAt(BaseX + 1600.0f, BaseY), 50.0f);
+	AExodusHub* Hub = SpawnAt<AExodusHub>(GetWorld(), GroundAt(BaseX + 1600.0f, BaseY), 50.0f);
 
 	// Usina de biomassa ao lado, já abastecida com 100 de combustível.
 	AGeneratorMachine* Generator =
-		SpawnAt<AGeneratorMachine>(GroundAt(BaseX, BaseY + 800.0f), 150.0f);
+		SpawnAt<AGeneratorMachine>(GetWorld(), GroundAt(BaseX, BaseY + 800.0f), 150.0f);
 	if (Generator)
 	{
 		Generator->FuelItem = Biomass;

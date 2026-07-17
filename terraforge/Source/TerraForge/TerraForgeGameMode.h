@@ -33,14 +33,4 @@ private:
 
 	/** Altura do chão em (X,Y) via trace; retorna DefaultZ se não achar nada. */
 	float GetGroundZ(float X, float Y, float DefaultZ = 0.0f) const;
-
-	template <typename T>
-	T* SpawnAt(const FVector& Location, float HalfHeight)
-	{
-		FActorSpawnParameters Params;
-		Params.SpawnCollisionHandlingOverride =
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		return GetWorld()->SpawnActor<T>(
-			T::StaticClass(), Location + FVector(0, 0, HalfHeight), FRotator::ZeroRotator, Params);
-	}
 };

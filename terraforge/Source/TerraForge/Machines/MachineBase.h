@@ -6,6 +6,7 @@
 #include "MachineBase.generated.h"
 
 class UStaticMeshComponent;
+class UEnvironmentSubsystem;
 
 /** Parâmetros de uma máquina em um tier específico (Mk1, Mk2...). */
 USTRUCT(BlueprintType)
@@ -132,7 +133,7 @@ protected:
 
 	/** Cache do sistema ambiental (poluição/penalidade), setado no BeginPlay. */
 	UPROPERTY(Transient)
-	TObjectPtr<class UEnvironmentSubsystem> EnvSubsystem;
+	TObjectPtr<UEnvironmentSubsystem> EnvSubsystem;
 
 	/** Retorna true se a máquina tem insumos/condições para produzir agora. */
 	virtual bool CanProduce() const { return true; }
