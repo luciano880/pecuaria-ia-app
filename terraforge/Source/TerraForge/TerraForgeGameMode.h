@@ -32,6 +32,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
 	bool bGenerateResourceVeins = true;
 
+	/**
+	 * Gera o planeta procedural (relevo, biomas, rios, lagos, florestas).
+	 * Desligue quando for usar um Landscape feito à mão no editor.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
+	bool bGenerateTerrain = true;
+
 	/** Semente do gerador (mesma semente = mesmo mapa). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
 	int32 WorldSeed = 1337;

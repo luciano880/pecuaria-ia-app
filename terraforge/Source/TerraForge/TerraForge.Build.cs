@@ -15,7 +15,8 @@ public class TerraForge : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"InputCore",
-			"EnhancedInput"
+			"EnhancedInput",
+			"ProceduralMeshComponent"
 		});
 	}
 }
