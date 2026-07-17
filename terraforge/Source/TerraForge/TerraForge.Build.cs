@@ -6,6 +6,9 @@ public class TerraForge : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+		// Permite includes relativos à raiz do módulo (ex.: "Machines/MinerMachine.h").
+		PublicIncludePaths.Add(ModuleDirectory);
+
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core",
