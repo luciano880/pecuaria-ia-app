@@ -9,6 +9,10 @@
 #include "Logistics/ConveyorBelt.h"
 #include "Progression/ExodusHub.h"
 #include "Engine/World.h"
+#include "Engine/StaticMeshActor.h"
+#include "Engine/DirectionalLight.h"
+#include "Components/LightComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "TerraForge.h"
 
 namespace
@@ -37,9 +41,58 @@ void ATerraForgeGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	EnsureWorldEnvironment();
+
 	if (bSpawnDemoFactory)
 	{
 		SpawnDemoFactory();
+	}
+}
+
+void ATerraForgeGameMode::EnsureWorldEnvironment()
+{
+	// Se um trace para baixo acha chão, o mapa já é utilizável.
+	FHitResult Hit;
+	const bool bHasGround = GetWorld()->LineTraceSingleByChannel(Hit,
+		FVector(DemoOrigin.X, DemoOrigin.Y, 10000.0f),
+		FVector(DemoOrigin.X, DemoOrigin.Y, -10000.0f), ECC_Visibility);
+	if (bHasGround)
+	{
+		return;
+	}
+
+	UE_LOG(LogTerraForge, Warning,
+		TEXT("Mapa vazio detectado: criando chão e iluminação básicos por código"));
+
+	// Chão: cubo do engine esticado em 400x400 m, topo em Z = 0.
+	if (UStaticMesh* Cube =
+		LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))
+	{
+		if (AStaticMeshActor* Floor = GetWorld()->SpawnActor<AStaticMeshActor>())
+		{
+			Floor->SetMobility(EComponentMobility::Movable);
+			Floor->GetStaticMeshComponent()->SetStaticMesh(Cube);
+			Floor->SetActorScale3D(FVector(400.0f, 400.0f, 1.0f));
+			Floor->SetActorLocation(FVector(0.0f, 0.0f, -50.0f));
+		}
+	}
+
+	// Sol principal com sombras.
+	if (ADirectionalLight* Sun = GetWorld()->SpawnActor<ADirectionalLight>())
+	{
+		Sun->GetLightComponent()->SetMobility(EComponentMobility::Movable);
+		Sun->SetActorRotation(FRotator(-50.0f, 30.0f, 0.0f));
+		Sun->GetLightComponent()->SetIntensity(8.0f);
+	}
+
+	// Luz de preenchimento fraca do lado oposto (sem sombra), para os lados
+	// escuros das máquinas não ficarem pretos num mapa sem céu.
+	if (ADirectionalLight* Fill = GetWorld()->SpawnActor<ADirectionalLight>())
+	{
+		Fill->GetLightComponent()->SetMobility(EComponentMobility::Movable);
+		Fill->SetActorRotation(FRotator(-30.0f, 210.0f, 0.0f));
+		Fill->GetLightComponent()->SetIntensity(2.0f);
+		Fill->GetLightComponent()->SetCastShadows(false);
 	}
 }
 

@@ -31,6 +31,12 @@ public:
 private:
 	void SpawnDemoFactory();
 
+	/**
+	 * Se o mapa estiver vazio (sem chão), cria chão e iluminação básicos por
+	 * código — garante que Play nunca resulte em tela preta.
+	 */
+	void EnsureWorldEnvironment();
+
 	/** Altura do chão em (X,Y) via trace; retorna DefaultZ se não achar nada. */
 	float GetGroundZ(float X, float Y, float DefaultZ = 0.0f) const;
 };
