@@ -28,10 +28,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hub")
 	bool bAutoAdvanceTier = true;
 
-	/** Estágios visuais da nave, um por tier concluído (índice 0 = tier 1 pronto). */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hub")
-	TArray<TSoftObjectPtr<UStaticMesh>> ShipStageMeshes;
-
 	/** Depósito manual do jogador (chamado pela UI de interação). */
 	UFUNCTION(BlueprintCallable, Category = "Hub")
 	int32 DepositItem(UItemData* Item, int32 Count);
@@ -47,10 +43,21 @@ protected:
 	UFUNCTION()
 	void HandleTierAdvanced(int32 NewTier);
 
-	/** Plataforma onde a nave cresce, ao lado do Hub. */
-	UPROPERTY(VisibleAnywhere, Category = "Hub")
-	TObjectPtr<UStaticMeshComponent> ShipMesh;
+	/**
+	 * Peças do foguete na plataforma de lançamento e o tier em que cada uma
+	 * aparece (arrays paralelos). A nave cresce fisicamente a cada fase.
+	 */
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> ShipParts;
+
+	UPROPERTY()
+	TArray<int32> ShipPartStage;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTierProgressionSubsystem> Progression;
+
+private:
+	void AddShipPart(FName PartName, UStaticMesh* PartMesh, const FVector& RelLocation,
+		const FVector& RelScale, const FRotator& RelRotation, int32 Stage, bool bAccent);
+	void UpdateShipVisual(int32 CurrentTier);
 };

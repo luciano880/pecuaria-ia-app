@@ -5,7 +5,15 @@ ARefineryMachine::ARefineryMachine()
 {
 	MachineName = NSLOCTEXT("TerraForge", "RefineryName", "Processadora Industrial");
 	MachineTint = FLinearColor(0.5f, 0.2f, 0.7f); // roxo química
-	Mesh->SetRelativeScale3D(FVector(3.0f, 2.5f, 2.5f));
+
+	// Visual: bloco industrial com colunas de destilação e tubulação.
+	Mesh->SetStaticMesh(nullptr);
+	CreatePart("Body", CubeMeshAsset, FVector(0, 0, 110), FVector(3.0f, 2.5f, 2.2f),
+		FRotator::ZeroRotator, /*bAccent*/ false);
+	CreatePart("ColumnA", CylinderMeshAsset, FVector(110, 80, 350), FVector(0.45f, 0.45f, 2.8f));
+	CreatePart("ColumnB", CylinderMeshAsset, FVector(110, -80, 320), FVector(0.45f, 0.45f, 2.4f));
+	CreatePart("PipeTop", CylinderMeshAsset, FVector(110, 0, 430), FVector(0.16f, 0.16f, 1.7f),
+		FRotator(90.0f, 0.0f, 0.0f));
 
 	TierSpecs[0].CycleTime = 4.0f;
 	TierSpecs[0].PowerConsumptionMW = 15.0f;

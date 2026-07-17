@@ -67,4 +67,16 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Resource")
 	TObjectPtr<UStaticMeshComponent> Mesh;
+
+	/** Pedaços de minério sobre o monte principal. */
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> Chunks;
+
+	/** Coluna de vapor, visível apenas em gêiseres. */
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Steam;
+
+private:
+	/** Cor automática pelo tipo de minério quando NodeTint não foi alterada. */
+	FLinearColor ResolveTint() const;
 };

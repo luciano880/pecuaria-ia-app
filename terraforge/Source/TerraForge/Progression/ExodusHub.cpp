@@ -7,15 +7,51 @@ AExodusHub::AExodusHub()
 {
 	MachineName = NSLOCTEXT("TerraForge", "HubName", "Hub Êxodo");
 	MachineTint = FLinearColor(0.85f, 0.7f, 0.15f); // dourado
-	Mesh->SetRelativeScale3D(FVector(4.0f, 4.0f, 1.0f));
 
 	// O Hub processa entregas rápido; não consome energia.
 	TierSpecs[0].CycleTime = 0.5f;
 	TierSpecs[0].PowerConsumptionMW = 0.0f;
 
-	ShipMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
-	ShipMesh->SetupAttachment(RootComponent);
-	ShipMesh->SetRelativeLocation(FVector(2000.0f, 0.0f, 0.0f)); // plataforma ao lado
+	// Visual: plataforma de entrega + terminal + plataforma de lançamento.
+	Mesh->SetStaticMesh(nullptr);
+	CreatePart("Platform", CubeMeshAsset, FVector(0, 0, 25), FVector(4.0f, 4.0f, 0.5f),
+		FRotator::ZeroRotator, /*bAccent*/ false);
+	CreatePart("Terminal", CubeMeshAsset, FVector(-140, -140, 130),
+		FVector(0.9f, 0.9f, 1.6f));
+	CreatePart("LaunchPad", CylinderMeshAsset, FVector(500, 0, 15),
+		FVector(3.2f, 3.2f, 0.3f));
+
+	// Foguete do Projeto Êxodo: cada tier concluído revela um estágio.
+	const FLinearColor White(0.9f, 0.9f, 0.95f);
+	AddShipPart("ShipEngines", CylinderMeshAsset, FVector(500, 0, 110),
+		FVector(1.6f, 1.6f, 1.6f), FRotator::ZeroRotator, /*Stage*/ 1, /*bAccent*/ true);
+	AddShipPart("ShipBodyLower", CylinderMeshAsset, FVector(500, 0, 330),
+		FVector(1.25f, 1.25f, 2.8f), FRotator::ZeroRotator, 2, false);
+	AddShipPart("ShipBodyUpper", CylinderMeshAsset, FVector(500, 0, 610),
+		FVector(1.1f, 1.1f, 2.8f), FRotator::ZeroRotator, 3, false);
+	AddShipPart("ShipNose", SphereMeshAsset, FVector(500, 0, 800),
+		FVector(1.05f, 1.05f, 1.6f), FRotator::ZeroRotator, 4, false);
+	for (int32 i = 0; i < 3; ++i)
+	{
+		const float Yaw = i * 120.0f;
+		const FVector FinOffset =
+			FRotator(0.0f, Yaw, 0.0f).RotateVector(FVector(105, 0, 0));
+		AddShipPart(*FString::Printf(TEXT("ShipFin%d"), i), CubeMeshAsset,
+			FVector(500, 0, 120) + FinOffset, FVector(0.9f, 0.12f, 1.8f),
+			FRotator(0.0f, Yaw, 0.0f), 5, true);
+	}
+}
+
+void AExodusHub::AddShipPart(FName PartName, UStaticMesh* PartMesh,
+	const FVector& RelLocation, const FVector& RelScale, const FRotator& RelRotation,
+	int32 Stage, bool bAccent)
+{
+	UStaticMeshComponent* Part =
+		CreatePart(PartName, PartMesh, RelLocation, RelScale, RelRotation, bAccent);
+	Part->SetVisibility(false);
+	Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ShipParts.Add(Part);
+	ShipPartStage.Add(Stage);
 }
 
 void AExodusHub::BeginPlay()
@@ -30,7 +66,7 @@ void AExodusHub::BeginPlay()
 	if (Progression)
 	{
 		Progression->OnTierAdvanced.AddDynamic(this, &AExodusHub::HandleTierAdvanced);
-		HandleTierAdvanced(Progression->CurrentTier); // sincroniza visual ao carregar
+		UpdateShipVisual(Progression->CurrentTier); // sincroniza visual ao carregar
 	}
 }
 
@@ -77,17 +113,24 @@ void AExodusHub::ProduceCycle()
 	}
 }
 
-void AExodusHub::HandleTierAdvanced(int32 NewTier)
+void AExodusHub::UpdateShipVisual(int32 CurrentTier)
 {
-	// Tier N concluído => estágio N-1 da nave visível.
-	const int32 StageIndex = NewTier - 1;
-	if (ShipStageMeshes.IsValidIndex(StageIndex))
+	for (int32 i = 0; i < ShipParts.Num(); ++i)
 	{
-		if (UStaticMesh* StageMesh = ShipStageMeshes[StageIndex].LoadSynchronous())
+		const bool bVisible = ShipPartStage.IsValidIndex(i)
+			&& CurrentTier >= ShipPartStage[i];
+		if (ShipParts[i])
 		{
-			ShipMesh->SetStaticMesh(StageMesh);
+			ShipParts[i]->SetVisibility(bVisible);
+			ShipParts[i]->SetCollisionEnabled(
+				bVisible ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 		}
 	}
+}
+
+void AExodusHub::HandleTierAdvanced(int32 NewTier)
+{
+	UpdateShipVisual(NewTier);
 
 	UE_LOG(LogTerraForge, Log, TEXT("Projeto Êxodo: módulo %d — progresso %.0f%%"),
 		NewTier, GetShipProgress() * 100.0f);

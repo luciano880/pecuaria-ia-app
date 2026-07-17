@@ -67,9 +67,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
 	FText MachineName;
 
-	/** Cor do placeholder (aplicada como material dinâmico no BeginPlay). */
+	/** Cor principal da máquina (aplicada como material dinâmico no BeginPlay). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
 	FLinearColor MachineTint = FLinearColor(0.4f, 0.4f, 0.45f);
+
+	/** Cor das peças de detalhe (chaminés, torres, tubos). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
+	FLinearColor AccentTint = FLinearColor(0.13f, 0.13f, 0.16f);
 
 	/** Specs por tier; índice 0 = Mk1. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
@@ -134,6 +138,31 @@ protected:
 	/** Cache do sistema ambiental (poluição/penalidade), setado no BeginPlay. */
 	UPROPERTY(Transient)
 	TObjectPtr<UEnvironmentSubsystem> EnvSubsystem;
+
+	// --- Visual procedural (peças montadas de primitivas do engine) ---
+
+	/** Malhas básicas do engine, carregadas no construtor da base. */
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> CubeMeshAsset;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> CylinderMeshAsset;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMesh> SphereMeshAsset;
+
+	/** Peças que recebem AccentTint em vez de MachineTint. */
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> AccentParts;
+
+	/**
+	 * Cria uma peça visual (só chamável em construtores). As máquinas
+	 * multi-peça mantêm o root com escala 1 e Mesh->SetStaticMesh(nullptr),
+	 * montando o corpo inteiro com CreatePart.
+	 */
+	UStaticMeshComponent* CreatePart(FName PartName, UStaticMesh* PartMesh,
+		const FVector& RelLocation, const FVector& RelScale,
+		const FRotator& RelRotation = FRotator::ZeroRotator, bool bAccent = true);
 
 	/** Retorna true se a máquina tem insumos/condições para produzir agora. */
 	virtual bool CanProduce() const { return true; }

@@ -72,8 +72,12 @@ private:
 	UPROPERTY()
 	TSubclassOf<AMachineBase> PendingClass;
 
+	/** Raiz do fantasma; as cópias das peças da máquina ficam penduradas nela. */
 	UPROPERTY()
-	TObjectPtr<UStaticMeshComponent> PreviewMesh;
+	TObjectPtr<USceneComponent> PreviewRoot;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> PreviewMeshes;
 
 	bool bPlacementValid = false;
 	float PreviewYaw = 0.0f;

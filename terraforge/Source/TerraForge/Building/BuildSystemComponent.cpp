@@ -17,7 +17,7 @@ void UBuildSystemComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!IsPlacing() || !PreviewMesh)
+	if (!IsPlacing() || !PreviewRoot)
 	{
 		return;
 	}
@@ -25,22 +25,33 @@ void UBuildSystemComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FTransform Desired;
 	const bool bHitGround = ComputePlacementTransform(Desired);
 
-	PreviewMesh->SetWorldTransform(Desired);
+	PreviewRoot->SetWorldTransform(Desired);
 	PreviewTransform = Desired;
 
 	// Válido se achou chão e não há nada bloqueando o volume da máquina.
 	bool bBlocked = false;
 	if (bHitGround)
 	{
-		const FBoxSphereBounds Bounds = PreviewMesh->CalcBounds(Desired);
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(GetOwner());
-		bBlocked = GetWorld()->OverlapBlockingTestByChannel(
-			Bounds.Origin + FVector(0, 0, 10.0f), // levemente acima para ignorar o chão
-			Desired.GetRotation(),
-			ECC_WorldDynamic,
-			FCollisionShape::MakeBox(Bounds.BoxExtent * 0.9f),
-			Params);
+		FBox CombinedBox(EForceInit::ForceInit);
+		for (const UStaticMeshComponent* Preview : PreviewMeshes)
+		{
+			if (Preview)
+			{
+				CombinedBox += Preview->Bounds.GetBox();
+			}
+		}
+
+		if (CombinedBox.IsValid)
+		{
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(GetOwner());
+			bBlocked = GetWorld()->OverlapBlockingTestByChannel(
+				CombinedBox.GetCenter() + FVector(0, 0, 10.0f), // ignora o chão
+				FQuat::Identity,
+				ECC_WorldDynamic,
+				FCollisionShape::MakeBox(CombinedBox.GetExtent() * 0.9f),
+				Params);
+		}
 	}
 
 	bPlacementValid = bHitGround && !bBlocked;
@@ -86,16 +97,39 @@ void UBuildSystemComponent::StartPlacement(TSubclassOf<AMachineBase> MachineClas
 	PendingClass = MachineClass;
 	PreviewYaw = 0.0f;
 
-	// O preview usa a malha do CDO da máquina — nada é spawnado de verdade
-	// (evita efeitos colaterais de BeginPlay, como registrar na rede elétrica).
+	// O fantasma replica as peças visuais do CDO da máquina — nada é spawnado
+	// de verdade (evita efeitos colaterais de BeginPlay, como registrar na rede).
 	const AMachineBase* CDO = MachineClass->GetDefaultObject<AMachineBase>();
-	UStaticMesh* SourceMesh =
-		CDO && CDO->GetMachineMesh() ? CDO->GetMachineMesh()->GetStaticMesh() : nullptr;
 
-	PreviewMesh = NewObject<UStaticMeshComponent>(GetOwner());
-	PreviewMesh->SetStaticMesh(SourceMesh);
-	PreviewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PreviewMesh->RegisterComponent();
+	PreviewRoot = NewObject<USceneComponent>(GetOwner());
+	PreviewRoot->RegisterComponent();
+
+	TInlineComponentArray<UStaticMeshComponent*> CDOParts(CDO);
+	for (const UStaticMeshComponent* Part : CDOParts)
+	{
+		if (!Part || !Part->GetStaticMesh() || !Part->IsVisible())
+		{
+			continue;
+		}
+
+		// Transform da peça relativo ao root do CDO (acumula a cadeia de attach).
+		FTransform RelativeToActor = Part->GetRelativeTransform();
+		for (const USceneComponent* Parent = Part->GetAttachParent();
+			Parent; Parent = Parent->GetAttachParent())
+		{
+			RelativeToActor *= Parent->GetRelativeTransform();
+		}
+
+		UStaticMeshComponent* Preview = NewObject<UStaticMeshComponent>(GetOwner());
+		Preview->SetStaticMesh(Part->GetStaticMesh());
+		Preview->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Preview->AttachToComponent(PreviewRoot,
+			FAttachmentTransformRules::KeepRelativeTransform);
+		Preview->SetRelativeTransform(RelativeToActor);
+		Preview->RegisterComponent();
+		PreviewMeshes.Add(Preview);
+	}
+
 	UpdatePreviewMaterial();
 }
 
@@ -143,26 +177,38 @@ void UBuildSystemComponent::RotatePreview(float DegreeStep)
 
 void UBuildSystemComponent::UpdatePreviewMaterial()
 {
-	if (!PreviewMesh)
+	UMaterialInterface* Material = bPlacementValid ? ValidPreviewMaterial : InvalidPreviewMaterial;
+	if (!Material)
 	{
 		return;
 	}
 
-	UMaterialInterface* Material = bPlacementValid ? ValidPreviewMaterial : InvalidPreviewMaterial;
-	if (Material)
+	for (UStaticMeshComponent* Preview : PreviewMeshes)
 	{
-		for (int32 i = 0; i < PreviewMesh->GetNumMaterials(); ++i)
+		if (Preview)
 		{
-			PreviewMesh->SetMaterial(i, Material);
+			for (int32 i = 0; i < Preview->GetNumMaterials(); ++i)
+			{
+				Preview->SetMaterial(i, Material);
+			}
 		}
 	}
 }
 
 void UBuildSystemComponent::DestroyPreview()
 {
-	if (PreviewMesh)
+	for (UStaticMeshComponent* Preview : PreviewMeshes)
 	{
-		PreviewMesh->DestroyComponent();
-		PreviewMesh = nullptr;
+		if (Preview)
+		{
+			Preview->DestroyComponent();
+		}
+	}
+	PreviewMeshes.Reset();
+
+	if (PreviewRoot)
+	{
+		PreviewRoot->DestroyComponent();
+		PreviewRoot = nullptr;
 	}
 }

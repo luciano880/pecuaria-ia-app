@@ -7,7 +7,15 @@ AGeneratorMachine::AGeneratorMachine()
 {
 	MachineName = NSLOCTEXT("TerraForge", "GeneratorName", "Gerador");
 	MachineTint = FLinearColor(0.6f, 0.1f, 0.1f); // vermelho usina
-	Mesh->SetRelativeScale3D(FVector(2.0f, 2.0f, 3.0f));
+
+	// Visual: casa de máquinas + torre de resfriamento + escapes.
+	Mesh->SetStaticMesh(nullptr);
+	CreatePart("Body", CubeMeshAsset, FVector(0, 0, 110), FVector(2.4f, 2.2f, 2.2f),
+		FRotator::ZeroRotator, /*bAccent*/ false);
+	CreatePart("CoolingTower", CylinderMeshAsset, FVector(-40, 0, 350),
+		FVector(1.5f, 1.5f, 2.6f));
+	CreatePart("ExhaustA", CylinderMeshAsset, FVector(90, 70, 300), FVector(0.22f, 0.22f, 1.8f));
+	CreatePart("ExhaustB", CylinderMeshAsset, FVector(90, -70, 300), FVector(0.22f, 0.22f, 1.8f));
 
 	TierSpecs[0].PollutionPerMinute = 2.0f; // biomassa padrão
 }

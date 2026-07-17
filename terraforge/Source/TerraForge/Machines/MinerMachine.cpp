@@ -9,13 +9,35 @@ AMinerMachine::AMinerMachine()
 {
 	MachineName = NSLOCTEXT("TerraForge", "MinerName", "Mineradora");
 	MachineTint = FLinearColor(0.15f, 0.35f, 0.8f); // azul aço
-	Mesh->SetRelativeScale3D(FVector(2.0f, 2.0f, 1.5f));
+
+	// Visual: base larga + torre de perfuração + broca central que gira.
+	Mesh->SetStaticMesh(nullptr);
+	CreatePart("Body", CubeMeshAsset, FVector(0, 0, 60), FVector(2.2f, 2.2f, 1.2f),
+		FRotator::ZeroRotator, /*bAccent*/ false);
+	CreatePart("TowerLegA", CubeMeshAsset, FVector(70, 70, 200), FVector(0.18f, 0.18f, 2.2f));
+	CreatePart("TowerLegB", CubeMeshAsset, FVector(-70, 70, 200), FVector(0.18f, 0.18f, 2.2f));
+	CreatePart("TowerLegC", CubeMeshAsset, FVector(70, -70, 200), FVector(0.18f, 0.18f, 2.2f));
+	CreatePart("TowerLegD", CubeMeshAsset, FVector(-70, -70, 200), FVector(0.18f, 0.18f, 2.2f));
+	CreatePart("TowerTop", CubeMeshAsset, FVector(0, 0, 315), FVector(1.8f, 1.8f, 0.3f));
+	Drill = CreatePart("Drill", CylinderMeshAsset, FVector(0, 0, 170),
+		FVector(0.35f, 0.35f, 3.0f));
 
 	// Mk1 padrão: 1 minério a cada 2 s, 5 MW, poluição leve.
 	TierSpecs[0].CycleTime = 2.0f;
 	TierSpecs[0].ItemsPerCycle = 1;
 	TierSpecs[0].PowerConsumptionMW = 5.0f;
 	TierSpecs[0].PollutionPerMinute = 1.0f;
+}
+
+void AMinerMachine::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	// Broca gira enquanto minera (velocidade acompanha a energia disponível).
+	if (Drill && CanProduce() && GridEfficiency > 0.0f)
+	{
+		Drill->AddLocalRotation(FRotator(0.0f, 240.0f * DeltaSeconds * GridEfficiency, 0.0f));
+	}
 }
 
 void AMinerMachine::BeginPlay()

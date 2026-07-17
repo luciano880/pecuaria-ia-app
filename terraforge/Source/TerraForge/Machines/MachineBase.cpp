@@ -13,16 +13,39 @@ AMachineBase::AMachineBase()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
 
-	// Placeholder padrão: cubo do engine — o jogo funciona sem nenhum asset.
+	// Malhas básicas do engine para os visuais procedurais.
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(
 		TEXT("/Engine/BasicShapes/Cube.Cube"));
-	if (CubeMesh.Succeeded())
-	{
-		Mesh->SetStaticMesh(CubeMesh.Object);
-	}
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMesh(
+		TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(
+		TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	CubeMeshAsset = CubeMesh.Succeeded() ? CubeMesh.Object : nullptr;
+	CylinderMeshAsset = CylinderMesh.Succeeded() ? CylinderMesh.Object : nullptr;
+	SphereMeshAsset = SphereMesh.Succeeded() ? SphereMesh.Object : nullptr;
+
+	// Corpo fallback: cubo simples (máquinas multi-peça anulam e usam CreatePart).
+	Mesh->SetStaticMesh(CubeMeshAsset);
 
 	// Spec padrão para a máquina não iniciar sem dados.
 	TierSpecs.Add(FMachineTierSpec());
+}
+
+UStaticMeshComponent* AMachineBase::CreatePart(FName PartName, UStaticMesh* PartMesh,
+	const FVector& RelLocation, const FVector& RelScale,
+	const FRotator& RelRotation, bool bAccent)
+{
+	UStaticMeshComponent* Part = CreateDefaultSubobject<UStaticMeshComponent>(PartName);
+	Part->SetupAttachment(Mesh);
+	Part->SetStaticMesh(PartMesh);
+	Part->SetRelativeLocation(RelLocation);
+	Part->SetRelativeRotation(RelRotation);
+	Part->SetRelativeScale3D(RelScale);
+	if (bAccent)
+	{
+		AccentParts.Add(Part);
+	}
+	return Part;
 }
 
 void AMachineBase::BeginPlay()
@@ -36,12 +59,18 @@ void AMachineBase::BeginPlay()
 
 	EnvSubsystem = GetWorld()->GetSubsystem<UEnvironmentSubsystem>();
 
-	// Aplica a cor de identificação no placeholder.
-	if (Mesh->GetStaticMesh())
+	// Aplica as cores em todas as peças (corpo = MachineTint, detalhes = AccentTint).
+	TInlineComponentArray<UStaticMeshComponent*> MeshParts(this);
+	for (UStaticMeshComponent* Part : MeshParts)
 	{
-		if (UMaterialInstanceDynamic* MID = Mesh->CreateAndSetMaterialInstanceDynamic(0))
+		if (!Part->GetStaticMesh())
 		{
-			MID->SetVectorParameterValue(TEXT("Color"), MachineTint);
+			continue;
+		}
+		if (UMaterialInstanceDynamic* MID = Part->CreateAndSetMaterialInstanceDynamic(0))
+		{
+			const bool bAccent = AccentParts.Contains(Part);
+			MID->SetVectorParameterValue(TEXT("Color"), bAccent ? AccentTint : MachineTint);
 		}
 	}
 }

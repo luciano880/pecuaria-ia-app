@@ -10,7 +10,10 @@ void UGameDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	CreateItem("MinerioFerro", TEXT("Minério de Ferro"), true);
 	CreateItem("LingoteFerro", TEXT("Lingote de Ferro"), false);
 	CreateItem("PlacaAco", TEXT("Placa de Aço"), false);
+	CreateItem("MinerioCobre", TEXT("Minério de Cobre"), true);
+	CreateItem("LingoteCobre", TEXT("Lingote de Cobre"), false);
 	CreateItem("Carvao", TEXT("Carvão"), true);
+	CreateItem("Calcario", TEXT("Calcário"), true);
 	CreateItem("Biomassa", TEXT("Biomassa"), false);
 	CreateItem("OleoCombustivel", TEXT("Óleo Combustível"), false);
 	CreateItem("BarraUranio", TEXT("Barra de Urânio"), false);

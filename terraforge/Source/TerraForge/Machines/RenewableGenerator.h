@@ -27,6 +27,7 @@ class TERRAFORGE_API ARenewableGenerator : public AMachineBase
 public:
 	ARenewableGenerator();
 
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -64,4 +65,19 @@ public:
 private:
 	float ComputeCapacityFactor(float WorldTimeSeconds) const;
 	void SetGridOutput(float NewOutputMW);
+
+	/** Mostra só as peças do tipo escolhido (eólica/solar/geotérmica). */
+	void ApplySourceTypeVisual();
+
+	UPROPERTY()
+	TObjectPtr<USceneComponent> Rotor; // eixo das pás da eólica
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> WindParts;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> SolarParts;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> GeoParts;
 };

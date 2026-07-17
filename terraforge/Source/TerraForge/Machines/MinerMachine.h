@@ -19,6 +19,7 @@ public:
 	AMinerMachine();
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	/** Jazida sob a mineradora. Se nulo, é detectada por overlap no BeginPlay. */
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Miner")
@@ -34,4 +35,8 @@ protected:
 
 private:
 	void FindTargetNode();
+
+	/** Broca que gira quando a máquina está produzindo. */
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Drill;
 };

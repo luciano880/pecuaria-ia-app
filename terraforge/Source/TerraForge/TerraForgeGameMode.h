@@ -28,8 +28,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
 	FVector DemoOrigin = FVector(1500.0f, 0.0f, 0.0f);
 
+	/** Gera veios de minério em clusters pelo mapa (ferro, cobre, carvão...). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
+	bool bGenerateResourceVeins = true;
+
+	/** Semente do gerador (mesma semente = mesmo mapa). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
+	int32 WorldSeed = 1337;
+
 private:
 	void SpawnDemoFactory();
+
+	/** Espalha clusters de jazidas, gêiseres e rochas decorativas pelo mapa. */
+	void GenerateResourceVeins();
 
 	/**
 	 * Se o mapa estiver vazio (sem chão), cria chão e iluminação básicos por
