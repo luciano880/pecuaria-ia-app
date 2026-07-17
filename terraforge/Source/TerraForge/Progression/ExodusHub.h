@@ -59,5 +59,5 @@ protected:
 private:
 	void AddShipPart(FName PartName, UStaticMesh* PartMesh, const FVector& RelLocation,
 		const FVector& RelScale, const FRotator& RelRotation, int32 Stage, bool bAccent);
-	void UpdateShipVisual(int32 CurrentTier);
+	void UpdateShipVisual(int32 ProgressTier);
 };

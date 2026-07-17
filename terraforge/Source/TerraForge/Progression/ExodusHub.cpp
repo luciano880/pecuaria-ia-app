@@ -113,12 +113,12 @@ void AExodusHub::ProduceCycle()
 	}
 }
 
-void AExodusHub::UpdateShipVisual(int32 CurrentTier)
+void AExodusHub::UpdateShipVisual(int32 ProgressTier)
 {
 	for (int32 i = 0; i < ShipParts.Num(); ++i)
 	{
 		const bool bVisible = ShipPartStage.IsValidIndex(i)
-			&& CurrentTier >= ShipPartStage[i];
+			&& ProgressTier >= ShipPartStage[i];
 		if (ShipParts[i])
 		{
 			ShipParts[i]->SetVisibility(bVisible);
