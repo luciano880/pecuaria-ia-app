@@ -6,6 +6,8 @@
 AExodusHub::AExodusHub()
 {
 	MachineName = NSLOCTEXT("TerraForge", "HubName", "Hub Êxodo");
+	MachineTint = FLinearColor(0.85f, 0.7f, 0.15f); // dourado
+	Mesh->SetRelativeScale3D(FVector(4.0f, 4.0f, 1.0f));
 
 	// O Hub processa entregas rápido; não consome energia.
 	TierSpecs[0].CycleTime = 0.5f;

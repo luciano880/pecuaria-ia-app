@@ -1,4 +1,5 @@
 #include "Machines/MinerMachine.h"
+#include "Components/StaticMeshComponent.h"
 #include "Resources/ResourceNode.h"
 #include "Items/ItemData.h"
 #include "EngineUtils.h"
@@ -7,6 +8,14 @@
 AMinerMachine::AMinerMachine()
 {
 	MachineName = NSLOCTEXT("TerraForge", "MinerName", "Mineradora");
+	MachineTint = FLinearColor(0.15f, 0.35f, 0.8f); // azul aço
+	Mesh->SetRelativeScale3D(FVector(2.0f, 2.0f, 1.5f));
+
+	// Mk1 padrão: 1 minério a cada 2 s, 5 MW, poluição leve.
+	TierSpecs[0].CycleTime = 2.0f;
+	TierSpecs[0].ItemsPerCycle = 1;
+	TierSpecs[0].PowerConsumptionMW = 5.0f;
+	TierSpecs[0].PollutionPerMinute = 1.0f;
 }
 
 void AMinerMachine::BeginPlay()

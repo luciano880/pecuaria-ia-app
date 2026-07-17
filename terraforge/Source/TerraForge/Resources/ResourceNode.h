@@ -26,6 +26,12 @@ class TERRAFORGE_API AResourceNode : public AActor
 public:
 	AResourceNode();
 
+	virtual void BeginPlay() override;
+
+	/** Cor do placeholder (ferro = ferrugem, carvão = escuro, gêiser = ciano...). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Resource")
+	FLinearColor NodeTint = FLinearColor(0.55f, 0.3f, 0.2f);
+
 	/** Tipo de minério desta jazida. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Resource")
 	TObjectPtr<UItemData> OreType;

@@ -1,114 +1,76 @@
 # TerraForge — Guia de Setup no Editor UE5
 
-Passo-a-passo para sair do código C++ e chegar no **primeiro teste jogável**:
-minerar → fundir → entregar no Hub. Tempo estimado: 1–2 horas.
+## Início rápido (ZERO configuração no editor)
 
-> **Importante:** NÃO crie um projeto novo do template First Person.
-> Abra direto o `TerraForge.uproject` — o personagem em primeira pessoa
-> já existe no código (`ATerraForgeCharacter`).
+O projeto agora se monta sozinho — inputs, malhas placeholder, itens, metas e
+uma fábrica demo são todos criados por código. O caminho até jogar é:
 
-## 1. Compilar e abrir
-
-1. Instale **UE 5.4+** e **Visual Studio 2022** (workload "Game development with C++").
+1. Instale **UE 5.4+** e **Visual Studio 2022** (workload *Game development with C++*).
 2. Botão direito em `TerraForge.uproject` → **Generate Visual Studio project files**.
 3. Abra `TerraForge.sln`, selecione **Development Editor | Win64**, compile (Ctrl+Shift+B).
-4. Abra o `TerraForge.uproject`. Se pedir para recompilar módulos, aceite.
-5. Crie a pasta `Content/Maps` e um level novo (Basic) chamado **L_Cerrado**
-   (é o mapa padrão configurado em `Config/DefaultEngine.ini`). Salve.
+4. Abra o `TerraForge.uproject` (ele abre num mapa template do engine com chão e luz).
+5. Aperte **Play**. Pronto:
+   - Uma **fábrica demo** nasce montada perto do spawn: jazida de ferro →
+     mineradora (azul) → esteira → fundição (laranja) → esteira → **Hub Êxodo**
+     (dourado), com uma **usina de biomassa** (vermelha) já abastecida.
+   - O minério flui sozinho; quando 50 unidades chegarem ao Hub, o Output Log
+     mostra `Tier avançado para 1`.
 
-## 2. Enhanced Input (Content/Input/)
+### Controles (criados por código)
 
-Crie os assets (botão direito → Input):
+| Tecla | Ação |
+|---|---|
+| **WASD + mouse + Espaço** | mover / olhar / pular |
+| **E** | interagir: coleta o buffer de saída da máquina na mira |
+| **B** | modo construção: cicla mineradora → fundição → gerador |
+| **Clique esq.** | construir no local do preview |
+| **Q** | cancelar construção |
+| **R** | girar o preview |
 
-| Asset | Tipo | Value Type |
-|---|---|---|
-| `IA_Move` | Input Action | Axis2D (Vector2D) |
-| `IA_Look` | Input Action | Axis2D (Vector2D) |
-| `IA_Jump` | Input Action | Digital (bool) |
-| `IA_Interact` | Input Action | Digital |
-| `IA_BuildConfirm` | Input Action | Digital |
-| `IA_BuildCancel` | Input Action | Digital |
-| `IA_BuildRotate` | Input Action | Digital |
-| `IMC_Default` | Input Mapping Context | — |
+> O preview de construção fica branco (sem os materiais verde/vermelho, que são
+> assets). A posição ainda é validada — se não construir, o local é inválido.
 
-No `IMC_Default`, mapeie:
-- `IA_Move`: **W** (Swizzle YXZ), **S** (Swizzle YXZ + Negate), **D**, **A** (Negate)
-- `IA_Look`: **Mouse XY 2D-Axis** (Negate no Y)
-- `IA_Jump`: **Espaço** | `IA_Interact`: **E** | `IA_BuildConfirm`: **Botão esq. do mouse**
-- `IA_BuildCancel`: **Q** | `IA_BuildRotate`: **R**
+### O que observar no primeiro Play
 
-## 3. Personagem e GameMode (Content/Player/)
+- Esferas pequenas viajando nas esteiras = itens em trânsito.
+- `Window → Output Log`, filtro `LogTerraForge`: tier, energia, construção.
+- A usina de biomassa tem 100 de combustível; quando acabar, as máquinas
+  entram em brownout. Interaja com máquinas para coletar itens (o personagem
+  começa com 50 de biomassa para reabastecer — deposite via UI futuramente).
 
-1. Blueprint **BP_Character** herdando de `ATerraForgeCharacter`.
-   - Em *Input*: preencha `Default Mapping Context = IMC_Default` e todas as Input Actions.
-2. Blueprint **BP_GameMode** herdando de `ATerraForgeGameMode`.
-   - `Default Pawn Class = BP_Character`.
-3. No **World Settings** do L_Cerrado: `GameMode Override = BP_GameMode`.
-4. Arraste um **Player Start** para o mapa.
+---
 
-Teste (Play): andar/olhar/pular já devem funcionar.
+## Personalização no editor (opcional, quando quiser evoluir o visual)
 
-## 4. Materiais de preview (Content/Building/)
+Tudo abaixo é OPCIONAL — os padrões em C++ continuam valendo até você substituí-los.
 
-1. `M_BuildValid`: material **Translucent**, Base Color verde, Opacity 0.4.
-2. `M_BuildInvalid`: igual, vermelho.
-3. No BP_Character → componente **BuildSystem**: atribua os dois materiais.
+### Mapa próprio
+Crie um level (Basic), salve como `Content/Maps/L_Cerrado` e atualize
+`Config/DefaultEngine.ini` (`GameDefaultMap`/`EditorStartupMap`). Espalhe
+`AResourceNode` (defina `OreType`) e desligue `bSpawnDemoFactory` num
+Blueprint filho do GameMode para montar a fábrica você mesmo.
 
-## 5. Itens (Content/Items/) — Data Assets de `UItemData`
+### Input com assets
+Crie Input Actions/IMC próprios e atribua no Blueprint filho do personagem —
+quando `DefaultMappingContext` está preenchido, o input por código é ignorado.
 
-Botão direito → Miscellaneous → Data Asset → `ItemData`:
+### Visual
+- Blueprints filhos das máquinas: troque a malha do componente `Mesh` por
+  modelos reais; `MachineTint` deixa de importar quando o material não tem
+  parâmetro `Color`.
+- Materiais translúcidos verde/vermelho no componente `BuildSystem`
+  (`ValidPreviewMaterial` / `InvalidPreviewMaterial`).
+- `BP_Hub`: preencha `ShipStageMeshes` com os 5 estágios da nave.
 
-`DA_MinerioFerro` (bIsRawOre ✔), `DA_LingoteFerro`, `DA_Carvao` (bIsRawOre ✔),
-`DA_Biomassa`, `DA_PlacaAco`. Preencha só o DisplayName por enquanto.
-
-## 6. Máquinas (Content/Machines/) — Blueprints
-
-Use malhas placeholder do engine (Cube/Cylinder) redimensionadas no componente Mesh.
-
-| Blueprint | Classe pai | Configurar |
-|---|---|---|
-| `BP_NoFerro` | `AResourceNode` | `OreType = DA_MinerioFerro`, mesh esfera achatada |
-| `BP_NoCarvao` | `AResourceNode` | `OreType = DA_Carvao` |
-| `BP_Geiser` | `AResourceNode` | `bIsGeyser ✔`, sem OreType |
-| `BP_Miner` | `AMinerMachine` | TierSpecs[0]: CycleTime 2.0, ItemsPerCycle 1, Power 5 MW, Pollution 1/min. BuildCost: 10x DA_LingoteFerro (deixe vazio no primeiro teste) |
-| `BP_Fundicao` | `ASmelterMachine` | ActiveRecipe: 1x DA_MinerioFerro → 1x DA_LingoteFerro. CycleTime 3.0, Power 8 MW |
-| `BP_UsinaBiomassa` | `AGeneratorMachine` | `FuelItem = DA_Biomassa`, `PowerOutputMW = 20`, `SecondsPerFuelUnit = 8`, Pollution 2/min |
-| `BP_Esteira` | `AConveyorBelt` | Edite os pontos do **Spline** no mapa ligando origem→destino |
-| `BP_Hub` | `AExodusHub` | Ver passo 7 |
-
-## 7. Metas de tier (no BP_Hub)
-
-O `UTierProgressionSubsystem` começa vazio; popule no **BeginPlay do BP_Hub**:
-
-1. `Get Game Instance → Get Subsystem (TierProgressionSubsystem)`.
-2. `Set Tiers` com um array:
-   - Tier 0 "Instalação Inicial": Goal { Item = DA_MinerioFerro, Required = 50 }
-   - Tier 1 "Mecanização": Goal { Item = DA_LingoteFerro, Required = 100 }
-3. (Depois chame o `Parent: BeginPlay` — mantenha o nó pai ligado.)
-
-## 8. Montar o mapa e testar o loop
-
-1. Coloque no L_Cerrado: 2x `BP_NoFerro`, 1x `BP_NoCarvao`, `BP_Hub`, Player Start.
-2. Coloque um `BP_Miner` **em cima** de um nó de ferro (ele acha o nó em até 4 m).
-3. Coloque uma `BP_Fundicao` ao lado e um `BP_Esteira`:
-   - Selecione a esteira → Details: `SourceMachine = BP_Miner`, `TargetMachine = BP_Fundicao`.
-   - Outra esteira: `SourceMachine = BP_Fundicao`, `TargetMachine = BP_Hub`.
-4. **Play**: o minério deve fluir sozinho e o Output Log mostrar
-   `LogTerraForge: Tier avançado para 1` quando as 50 unidades chegarem.
-5. Interaja (**E**) com uma máquina para coletar o buffer dela para o inventário.
-
-## 9. Energia (segundo teste)
-
-1. Coloque uma `BP_UsinaBiomassa` e, via Details do ator, adicione `DA_Biomassa`
-   no InputBuffer dela (ou deposite com uma esteira).
-2. Com Power > 0 nas máquinas, sem usina ligada elas param (brownout total).
-3. Console (`~`): não há comando pronto ainda — acompanhe pelo Output Log.
+### Itens e receitas com Data Assets
+Crie Data Assets de `UItemData` e configure receitas/metas em Blueprints.
+O `UGameDataSubsystem` só cria os itens padrão como fallback — Data Assets
+seus têm prioridade onde forem atribuídos.
 
 ## Problemas comuns
 
-- **Máquina não produz**: veja se `TierSpecs[0]` tem CycleTime > 0 e, se Power > 0,
-  se há usina ligada com combustível.
-- **Esteira não move**: confira Source/Target no Details e se o spline tem comprimento.
-- **Preview não aparece**: o BP da máquina precisa ter uma malha no componente Mesh
-  (o preview copia a malha do Blueprint).
-- **Logs**: Window → Output Log, filtre por `LogTerraForge`.
+- **Nada acontece no Play**: veja o Output Log (filtro `LogTerraForge`).
+  A fábrica demo loga a posição onde nasceu — ela fica a ~15 m do spawn.
+- **Máquinas pararam**: combustível da usina acabou (brownout). 
+- **Esteira sem itens**: confira se a mineradora está sobre a jazida
+  (a demo já nasce correta; construções manuais usam raio de busca de 4 m).

@@ -66,6 +66,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
 	FText MachineName;
 
+	/** Cor do placeholder (aplicada como material dinâmico no BeginPlay). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
+	FLinearColor MachineTint = FLinearColor(0.4f, 0.4f, 0.45f);
+
 	/** Specs por tier; índice 0 = Mk1. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Machine")
 	TArray<FMachineTierSpec> TierSpecs;

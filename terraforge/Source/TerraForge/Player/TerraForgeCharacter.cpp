@@ -4,11 +4,18 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
+#include "InputAction.h"
 #include "InputActionValue.h"
+#include "InputMappingContext.h"
+#include "InputModifiers.h"
 #include "GameFramework/PlayerController.h"
 #include "Items/InventoryComponent.h"
+#include "Items/GameDataSubsystem.h"
 #include "Building/BuildSystemComponent.h"
 #include "Machines/MachineBase.h"
+#include "Machines/MinerMachine.h"
+#include "Machines/SmelterMachine.h"
+#include "Machines/GeneratorMachine.h"
 #include "TerraForge.h"
 
 ATerraForgeCharacter::ATerraForgeCharacter()
@@ -22,11 +29,83 @@ ATerraForgeCharacter::ATerraForgeCharacter()
 
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	BuildSystem = CreateDefaultSubobject<UBuildSystemComponent>(TEXT("BuildSystem"));
+
+	// Máquinas da tecla B (Blueprints podem substituir esta lista).
+	Buildables = {
+		AMinerMachine::StaticClass(),
+		ASmelterMachine::StaticClass(),
+		AGeneratorMachine::StaticClass()
+	};
+}
+
+void ATerraForgeCharacter::EnsureRuntimeInput()
+{
+	if (DefaultMappingContext)
+	{
+		return; // assets do editor têm prioridade
+	}
+
+	DefaultMappingContext = NewObject<UInputMappingContext>(this);
+
+	auto MakeAction = [this](EInputActionValueType ValueType)
+	{
+		UInputAction* Action = NewObject<UInputAction>(this);
+		Action->ValueType = ValueType;
+		return Action;
+	};
+
+	MoveAction = MakeAction(EInputActionValueType::Axis2D);
+	LookAction = MakeAction(EInputActionValueType::Axis2D);
+	JumpAction = MakeAction(EInputActionValueType::Boolean);
+	InteractAction = MakeAction(EInputActionValueType::Boolean);
+	BuildConfirmAction = MakeAction(EInputActionValueType::Boolean);
+	BuildCancelAction = MakeAction(EInputActionValueType::Boolean);
+	BuildRotateAction = MakeAction(EInputActionValueType::Boolean);
+	BuildMenuAction = MakeAction(EInputActionValueType::Boolean);
+
+	auto MapMoveKey = [this](const FKey& Key, bool bSwizzle, bool bNegate)
+	{
+		FEnhancedActionKeyMapping& Mapping = DefaultMappingContext->MapKey(MoveAction, Key);
+		if (bSwizzle)
+		{
+			Mapping.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>(this)); // YXZ
+		}
+		if (bNegate)
+		{
+			Mapping.Modifiers.Add(NewObject<UInputModifierNegate>(this));
+		}
+	};
+
+	MapMoveKey(EKeys::W, true, false);
+	MapMoveKey(EKeys::S, true, true);
+	MapMoveKey(EKeys::D, false, false);
+	MapMoveKey(EKeys::A, false, true);
+
+	{
+		FEnhancedActionKeyMapping& Mapping =
+			DefaultMappingContext->MapKey(LookAction, EKeys::Mouse2D);
+		UInputModifierNegate* NegateY = NewObject<UInputModifierNegate>(this);
+		NegateY->bX = false;
+		NegateY->bY = true;
+		NegateY->bZ = false;
+		Mapping.Modifiers.Add(NegateY);
+	}
+
+	DefaultMappingContext->MapKey(JumpAction, EKeys::SpaceBar);
+	DefaultMappingContext->MapKey(InteractAction, EKeys::E);
+	DefaultMappingContext->MapKey(BuildConfirmAction, EKeys::LeftMouseButton);
+	DefaultMappingContext->MapKey(BuildCancelAction, EKeys::Q);
+	DefaultMappingContext->MapKey(BuildRotateAction, EKeys::R);
+	DefaultMappingContext->MapKey(BuildMenuAction, EKeys::B);
+
+	UE_LOG(LogTerraForge, Log, TEXT("Input padrão criado por código (sem assets)"));
 }
 
 void ATerraForgeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	EnsureRuntimeInput();
 
 	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
@@ -37,6 +116,15 @@ void ATerraForgeCharacter::BeginPlay()
 			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
+		}
+	}
+
+	// Kit inicial do engenheiro: biomassa para reabastecer a usina.
+	if (const UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UGameDataSubsystem* Data = GameInstance->GetSubsystem<UGameDataSubsystem>())
+		{
+			Inventory->AddItem(Data->GetItem("Biomassa"), 50);
 		}
 	}
 }
@@ -50,6 +138,9 @@ void ATerraForgeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		return;
 	}
+
+	// Garante que as actions existem mesmo se este método rodar antes do BeginPlay.
+	EnsureRuntimeInput();
 
 	if (MoveAction)
 	{
@@ -83,6 +174,11 @@ void ATerraForgeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		Input->BindAction(BuildRotateAction, ETriggerEvent::Started, this,
 			&ATerraForgeCharacter::RotateBuildPreview);
+	}
+	if (BuildMenuAction)
+	{
+		Input->BindAction(BuildMenuAction, ETriggerEvent::Started, this,
+			&ATerraForgeCharacter::CycleBuildable);
 	}
 }
 
@@ -154,4 +250,20 @@ void ATerraForgeCharacter::CancelBuild()
 void ATerraForgeCharacter::RotateBuildPreview()
 {
 	BuildSystem->RotatePreview();
+}
+
+void ATerraForgeCharacter::CycleBuildable()
+{
+	if (Buildables.Num() == 0)
+	{
+		return;
+	}
+
+	BuildableIndex = (BuildableIndex + 1) % Buildables.Num();
+	if (Buildables[BuildableIndex])
+	{
+		BuildSystem->StartPlacement(Buildables[BuildableIndex]);
+		UE_LOG(LogTerraForge, Log, TEXT("Modo construção: %s"),
+			*Buildables[BuildableIndex]->GetName());
+	}
 }

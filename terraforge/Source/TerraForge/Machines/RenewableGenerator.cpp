@@ -1,9 +1,12 @@
 #include "Machines/RenewableGenerator.h"
+#include "Components/StaticMeshComponent.h"
 #include "Power/PowerGridSubsystem.h"
 
 ARenewableGenerator::ARenewableGenerator()
 {
 	MachineName = NSLOCTEXT("TerraForge", "RenewableName", "Gerador Renovável");
+	MachineTint = FLinearColor(0.9f, 0.9f, 0.95f); // branco turbina
+	Mesh->SetRelativeScale3D(FVector(1.0f, 1.0f, 5.0f));
 }
 
 void ARenewableGenerator::Tick(float DeltaSeconds)

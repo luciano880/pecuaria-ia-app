@@ -46,7 +46,9 @@ completa — **biomassa, carvão, petróleo e nuclear** como fontes principais, 
 - [x] Sistema de construção (preview/snap de máquinas, custo em itens)
 - [x] Personagem jogável, inventário e Hub Êxodo (narrativa)
 - [x] Índice ambiental (poluição, penalidade, base do Final B)
-- [ ] Blueprints, malhas placeholder e assets de Enhanced Input no editor
+- [x] **Modo zero-configuração**: compile → Play (inputs por código, malhas
+  placeholder automáticas, itens/metas padrão e fábrica demo auto-montada)
+- [ ] Blueprints e malhas definitivas no editor (opcional, substituem os padrões)
 - [ ] UI (inventário, metas do tier, medidor ambiental, energia)
 - [ ] Mapa Terra com World Partition + biomas
 - [ ] Save/Load e os dois finais jogáveis

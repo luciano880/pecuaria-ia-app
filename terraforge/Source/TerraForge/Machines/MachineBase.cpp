@@ -1,5 +1,7 @@
 #include "Machines/MachineBase.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Power/PowerGridSubsystem.h"
 #include "Environment/EnvironmentSubsystem.h"
 #include "TerraForge.h"
@@ -10,6 +12,14 @@ AMachineBase::AMachineBase()
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
+
+	// Placeholder padrão: cubo do engine — o jogo funciona sem nenhum asset.
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(
+		TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (CubeMesh.Succeeded())
+	{
+		Mesh->SetStaticMesh(CubeMesh.Object);
+	}
 
 	// Spec padrão para a máquina não iniciar sem dados.
 	TierSpecs.Add(FMachineTierSpec());
@@ -25,6 +35,15 @@ void AMachineBase::BeginPlay()
 	}
 
 	EnvSubsystem = GetWorld()->GetSubsystem<UEnvironmentSubsystem>();
+
+	// Aplica a cor de identificação no placeholder.
+	if (Mesh->GetStaticMesh())
+	{
+		if (UMaterialInstanceDynamic* MID = Mesh->CreateAndSetMaterialInstanceDynamic(0))
+		{
+			MID->SetVectorParameterValue(TEXT("Color"), MachineTint);
+		}
+	}
 }
 
 void AMachineBase::EndPlay(const EEndPlayReason::Type EndPlayReason)

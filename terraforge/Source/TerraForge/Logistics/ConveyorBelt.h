@@ -7,6 +7,8 @@
 
 class AMachineBase;
 class USplineComponent;
+class USplineMeshComponent;
+class UInstancedStaticMeshComponent;
 
 /** Item em trânsito na esteira. */
 USTRUCT()
@@ -52,15 +54,43 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Conveyor")
 	int32 GetItemsInTransit() const { return ItemsInTransit.Num(); }
 
+	/**
+	 * Configura a esteira como uma linha reta entre duas máquinas e
+	 * reconstrói o visual. Usada pelo spawn por código (fábrica demo).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Conveyor")
+	void InitializeStraightBelt(AMachineBase* Source, AMachineBase* Target);
+
+	/** Recria os segmentos visuais da esteira a partir do spline atual. */
+	UFUNCTION(BlueprintCallable, Category = "Conveyor")
+	void RebuildVisuals();
+
+	UFUNCTION(BlueprintPure, Category = "Conveyor")
+	USplineComponent* GetSpline() const { return Spline; }
+
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, Category = "Conveyor")
 	TObjectPtr<USplineComponent> Spline;
 
+	/** Instâncias que mostram os itens viajando na esteira. */
+	UPROPERTY(VisibleAnywhere, Category = "Conveyor")
+	TObjectPtr<UInstancedStaticMeshComponent> ItemsVisual;
+
+	/** Malha usada nos segmentos da esteira (cubo do engine por padrão). */
+	UPROPERTY(EditDefaultsOnly, Category = "Conveyor")
+	TObjectPtr<UStaticMesh> SegmentMesh;
+
 	UPROPERTY()
 	TArray<FConveyorItem> ItemsInTransit;
+
+	UPROPERTY()
+	TArray<TObjectPtr<USplineMeshComponent>> SegmentMeshes;
 
 private:
 	void TryPickupFromSource();
 	void MoveItems(float DeltaSeconds);
 	void TryDeliverToTarget();
+	void UpdateItemsVisual();
 };

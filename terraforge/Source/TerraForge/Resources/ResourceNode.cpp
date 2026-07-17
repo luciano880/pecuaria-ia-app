@@ -1,5 +1,7 @@
 #include "Resources/ResourceNode.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "UObject/ConstructorHelpers.h"
 
 AResourceNode::AResourceNode()
 {
@@ -8,6 +10,30 @@ AResourceNode::AResourceNode()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
 	Mesh->SetMobility(EComponentMobility::Static);
+
+	// Placeholder: esfera achatada do engine, colorida por tipo de recurso.
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(
+		TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	if (SphereMesh.Succeeded())
+	{
+		Mesh->SetStaticMesh(SphereMesh.Object);
+	}
+	Mesh->SetRelativeScale3D(FVector(3.0f, 3.0f, 1.0f));
+}
+
+void AResourceNode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (Mesh->GetStaticMesh())
+	{
+		if (UMaterialInstanceDynamic* MID = Mesh->CreateAndSetMaterialInstanceDynamic(0))
+		{
+			MID->SetVectorParameterValue(TEXT("Color"), bIsGeyser
+				? FLinearColor(0.2f, 0.8f, 0.9f) // gêiser sempre ciano
+				: NodeTint);
+		}
+	}
 }
 
 float AResourceNode::GetPurityMultiplier() const

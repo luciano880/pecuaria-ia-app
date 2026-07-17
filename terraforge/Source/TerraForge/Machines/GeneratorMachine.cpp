@@ -1,10 +1,15 @@
 #include "Machines/GeneratorMachine.h"
+#include "Components/StaticMeshComponent.h"
 #include "Power/PowerGridSubsystem.h"
 #include "Environment/EnvironmentSubsystem.h"
 
 AGeneratorMachine::AGeneratorMachine()
 {
 	MachineName = NSLOCTEXT("TerraForge", "GeneratorName", "Gerador");
+	MachineTint = FLinearColor(0.6f, 0.1f, 0.1f); // vermelho usina
+	Mesh->SetRelativeScale3D(FVector(2.0f, 2.0f, 3.0f));
+
+	TierSpecs[0].PollutionPerMinute = 2.0f; // biomassa padrão
 }
 
 void AGeneratorMachine::Tick(float DeltaSeconds)

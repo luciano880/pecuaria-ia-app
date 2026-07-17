@@ -1,8 +1,15 @@
 #include "Machines/RefineryMachine.h"
+#include "Components/StaticMeshComponent.h"
 
 ARefineryMachine::ARefineryMachine()
 {
 	MachineName = NSLOCTEXT("TerraForge", "RefineryName", "Processadora Industrial");
+	MachineTint = FLinearColor(0.5f, 0.2f, 0.7f); // roxo química
+	Mesh->SetRelativeScale3D(FVector(3.0f, 2.5f, 2.5f));
+
+	TierSpecs[0].CycleTime = 4.0f;
+	TierSpecs[0].PowerConsumptionMW = 15.0f;
+	TierSpecs[0].PollutionPerMinute = 4.0f;
 }
 
 bool ARefineryMachine::SetActiveRecipe(int32 RecipeIndex)
