@@ -29,31 +29,49 @@ def warn(msg):
 
 # ---------------------------------------------------------------- texturas --
 
+# Texturas técnicas que NUNCA devem ir no Base Color.
+BAD_WORDS = ["_orm", "_mask", "rough", "_ao", "height", "disp", "opacity",
+             "billboard", "_mt", "_ms", "_rma", "cavity", "spec"]
+
+# Pastas preferidas (texturas de chão ficam no Landscape Pro, não no Megaplant).
+PREFERRED = ["pack03", "landscapepro", "landscape"]
+
+
 def all_assets():
     return unreal.EditorAssetLibrary.list_assets("/Game", recursive=True,
                                                  include_folder=False)
 
 
-def is_normal_name(name):
-    n = name.lower()
-    return n.endswith("_n") or n.endswith("_normal") or "_n_" in n or \
-        n.endswith("_nrm") or "normal" in n
-
-
 def find_texture(keywords, want_normal, assets):
-    """Acha a primeira Texture2D cujo nome contém uma das palavras-chave."""
-    for path in assets:
-        name = path.split("/")[-1].split(".")[0].lower()
+    """Acha uma Texture2D pelo nome, validando o TIPO real no engine:
+    normal maps têm compressão TC_Normalmap — infalível, independe do nome."""
+    ranked = sorted(assets,
+                    key=lambda p: 0 if any(f in p.lower() for f in PREFERRED)
+                    else 1)
+    for path in ranked:
+        low = path.lower()
+        name = low.split("/")[-1].split(".")[0]
         if not any(k in name for k in keywords):
             continue
-        if is_normal_name(name) != want_normal:
+        if any(b in name for b in BAD_WORDS):
             continue
         data = unreal.EditorAssetLibrary.find_asset_data(path)
         if data.asset_class_path.asset_name != "Texture2D":
             continue
         tex = unreal.EditorAssetLibrary.load_asset(path)
-        if tex:
-            return tex
+        if not tex:
+            continue
+
+        # Tipo REAL da textura, direto do asset:
+        comp = tex.get_editor_property("compression_settings")
+        is_normal = comp == unreal.TextureCompressionSettings.TC_NORMALMAP
+        if is_normal != want_normal:
+            continue
+        if not want_normal:
+            # Cor de verdade é sRGB; máscaras/dados técnicos são lineares.
+            if not tex.get_editor_property("srgb"):
+                continue
+        return tex
     return None
 
 
@@ -99,12 +117,12 @@ def smoothstep_chain(material, source, source_out, vmin, vmax, x, y):
 def create_terrain_material(assets):
     path = DEST + "/M_Terrain"
     if unreal.EditorAssetLibrary.does_asset_exist(path):
-        warn("M_Terrain já existe — apague-o se quiser recriar. Pulando.")
-        return
+        log("M_Terrain existente será recriado com a nova seleção de texturas.")
+        unreal.EditorAssetLibrary.delete_asset(path)
 
-    grass_d = find_texture(["grass", "meadow", "ground_grass"], False, assets)
-    grass_n = find_texture(["grass", "meadow", "ground_grass"], True, assets)
-    rock_d = find_texture(["cliff", "rock", "stone"], False, assets)
+    grass_d = find_texture(["grass", "meadow", "ground"], False, assets)
+    grass_n = find_texture(["grass", "meadow", "ground"], True, assets)
+    rock_d = find_texture(["cliff", "rock", "stone", "slope"], False, assets)
     snow_d = find_texture(["snow"], False, assets)
 
     if not grass_d:
