@@ -304,12 +304,20 @@ void ATerraForgeGameMode::SpawnDemoFactory()
 		Generator->AddToBuffer(Generator->InputBuffer, Biomass, 100);
 	}
 
-	// Esteiras ligando tudo.
+	// Esteiras ligando tudo. A mineradora alimenta a fundição E o Hub:
+	// o Tier 0 pede minério bruto, então parte da produção vai direto.
 	if (Miner && Smelter)
 	{
 		if (AConveyorBelt* Belt = GetWorld()->SpawnActor<AConveyorBelt>())
 		{
 			Belt->InitializeStraightBelt(Miner, Smelter);
+		}
+	}
+	if (Miner && Hub)
+	{
+		if (AConveyorBelt* Belt = GetWorld()->SpawnActor<AConveyorBelt>())
+		{
+			Belt->InitializeStraightBelt(Miner, Hub);
 		}
 	}
 	if (Smelter && Hub)

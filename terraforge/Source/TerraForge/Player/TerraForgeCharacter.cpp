@@ -16,6 +16,7 @@
 #include "Machines/MinerMachine.h"
 #include "Machines/SmelterMachine.h"
 #include "Machines/GeneratorMachine.h"
+#include "Progression/ExodusHub.h"
 #include "TerraForge.h"
 
 ATerraForgeCharacter::ATerraForgeCharacter()
@@ -215,6 +216,22 @@ void ATerraForgeCharacter::Interact()
 	AMachineBase* Machine = Cast<AMachineBase>(Hit.GetActor());
 	if (!Machine)
 	{
+		return;
+	}
+
+	// Hub Êxodo: deposita TODO o inventário nas metas do projeto.
+	if (AExodusHub* Hub = Cast<AExodusHub>(Machine))
+	{
+		for (int32 i = Inventory->Items.Num() - 1; i >= 0; --i)
+		{
+			const FItemStack Stack = Inventory->Items[i];
+			const int32 Accepted = Hub->DepositItem(Stack.Item, Stack.Count);
+			if (Accepted > 0)
+			{
+				Inventory->RemoveItem(Stack.Item, Accepted);
+			}
+		}
+		UE_LOG(LogTerraForge, Log, TEXT("Inventário entregue ao Hub Êxodo"));
 		return;
 	}
 

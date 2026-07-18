@@ -79,10 +79,10 @@ FLinearColor AResourceNode::ResolveTint() const
 	if (OreType)
 	{
 		const FName Id = OreType->GetFName();
-		if (Id == "MinerioFerro")  return FLinearColor(0.55f, 0.3f, 0.2f);
-		if (Id == "MinerioCobre")  return FLinearColor(0.15f, 0.5f, 0.42f);
-		if (Id == "Carvao")        return FLinearColor(0.06f, 0.06f, 0.07f);
-		if (Id == "Calcario")      return FLinearColor(0.75f, 0.75f, 0.68f);
+		if (Id == "MinerioFerro")  return FLinearColor(0.32f, 0.14f, 0.08f); // ferrugem escura
+		if (Id == "MinerioCobre")  return FLinearColor(0.08f, 0.35f, 0.28f);
+		if (Id == "Carvao")        return FLinearColor(0.04f, 0.04f, 0.05f);
+		if (Id == "Calcario")      return FLinearColor(0.62f, 0.6f, 0.52f);
 	}
 	return NodeTint;
 }
@@ -103,7 +103,7 @@ void AResourceNode::BeginPlay()
 	Paint(Mesh, Tint);
 	for (UStaticMeshComponent* Chunk : Chunks)
 	{
-		Paint(Chunk, Tint * 1.3f); // pedaços um pouco mais claros
+		Paint(Chunk, Tint * 0.7f); // pedaços mais escuros (minério exposto)
 	}
 
 	if (bIsGeyser)
