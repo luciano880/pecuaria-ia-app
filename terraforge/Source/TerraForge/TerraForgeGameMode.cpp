@@ -1,5 +1,6 @@
 #include "TerraForgeGameMode.h"
 #include "Player/TerraForgeCharacter.h"
+#include "Player/TerraForgeHUD.h"
 #include "Items/GameDataSubsystem.h"
 #include "Items/ItemData.h"
 #include "Resources/ResourceNode.h"
@@ -38,6 +39,7 @@ ATerraForgeGameMode::ATerraForgeGameMode()
 	// O Blueprint filho (BP_TerraForgeGameMode) pode trocar pelo BP_Character
 	// com os assets de input e malhas configurados.
 	DefaultPawnClass = ATerraForgeCharacter::StaticClass();
+	HUDClass = ATerraForgeHUD::StaticClass();
 }
 
 void ATerraForgeGameMode::BeginPlay()

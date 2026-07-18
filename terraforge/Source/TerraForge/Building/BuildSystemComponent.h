@@ -65,6 +65,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Build")
 	bool IsPlacementValid() const { return bPlacementValid; }
 
+	/** Nome amigável da máquina sendo construída (para o HUD). */
+	UFUNCTION(BlueprintPure, Category = "Build")
+	FString GetPendingMachineName() const;
+
 	UPROPERTY(BlueprintAssignable, Category = "Build")
 	FOnMachinePlaced OnMachinePlaced;
 

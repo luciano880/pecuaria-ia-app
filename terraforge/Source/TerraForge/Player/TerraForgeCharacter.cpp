@@ -218,8 +218,22 @@ void ATerraForgeCharacter::Interact()
 		return;
 	}
 
-	// MVP: coleta tudo do buffer de saída da máquina para o inventário.
-	// (A UI de interação/upgrade substitui isso depois.)
+	// Geradores: reabastece com o combustível do inventário (até 20 por vez).
+	if (AGeneratorMachine* Generator = Cast<AGeneratorMachine>(Machine))
+	{
+		if (Generator->FuelItem && Inventory->CountItem(Generator->FuelItem) > 0)
+		{
+			const int32 ToLoad = FMath::Min(20, Inventory->CountItem(Generator->FuelItem));
+			const int32 Loaded =
+				Generator->AddToBuffer(Generator->InputBuffer, Generator->FuelItem, ToLoad);
+			Inventory->RemoveItem(Generator->FuelItem, Loaded);
+			UE_LOG(LogTerraForge, Log, TEXT("Reabasteceu %s com %d combustível"),
+				*Generator->GetName(), Loaded);
+			return;
+		}
+	}
+
+	// Demais máquinas: coleta o buffer de saída para o inventário.
 	while (Machine->OutputBuffer.Num() > 0)
 	{
 		FItemStack Stack = Machine->OutputBuffer[0];

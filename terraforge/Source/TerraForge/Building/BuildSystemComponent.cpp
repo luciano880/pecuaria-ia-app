@@ -170,6 +170,16 @@ bool UBuildSystemComponent::ConfirmPlacement(UInventoryComponent* Payer)
 	return NewMachine != nullptr;
 }
 
+FString UBuildSystemComponent::GetPendingMachineName() const
+{
+	if (!PendingClass)
+	{
+		return FString();
+	}
+	const AMachineBase* CDO = PendingClass->GetDefaultObject<AMachineBase>();
+	return CDO ? CDO->MachineName.ToString() : PendingClass->GetName();
+}
+
 void UBuildSystemComponent::RotatePreview(float DegreeStep)
 {
 	PreviewYaw = FMath::Fmod(PreviewYaw + DegreeStep, 360.0f);
