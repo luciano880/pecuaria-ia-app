@@ -66,6 +66,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Terrain")
 	TSoftObjectPtr<UMaterialInterface> TerrainMaterial;
 
+	/**
+	 * Malha de árvore real (ex.: uma árvore da Megaplant Library duplicada
+	 * para /Game/TerraForge/SM_Tree). Se vazio, procura nesse caminho; sem
+	 * nada, usa as árvores procedurais (tronco + copa).
+	 */
+	UPROPERTY(EditAnywhere, Category = "Terrain")
+	TSoftObjectPtr<UStaticMesh> TreeMesh;
+
 	/** Tamanho do tile das texturas em uu (1000 = repete a cada 10 m). */
 	UPROPERTY(EditAnywhere, Category = "Terrain", meta = (ClampMin = 100))
 	float TextureTileSize = 1000.0f;

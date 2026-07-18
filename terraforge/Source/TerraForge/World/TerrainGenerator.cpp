@@ -206,6 +206,21 @@ void ATerrainGenerator::ScatterTrees()
 	TreeTrunks->ClearInstances();
 	TreeCanopies->ClearInstances();
 
+	// Árvore real (Fab/Megaplants): propriedade ou convenção
+	// /Game/TerraForge/SM_Tree. Sem ela, árvores procedurais tronco+copa.
+	UStaticMesh* RealTree = TreeMesh.LoadSynchronous();
+	if (!RealTree)
+	{
+		RealTree = LoadObject<UStaticMesh>(nullptr,
+			TEXT("/Game/TerraForge/SM_Tree.SM_Tree"));
+	}
+	if (RealTree)
+	{
+		TreeTrunks->SetStaticMesh(RealTree);
+		UE_LOG(LogTerraForge, Log, TEXT("Florestas usando árvore real: %s"),
+			*RealTree->GetName());
+	}
+
 	FRandomStream Rand(Seed * 7 + 1);
 	const float Half = WorldSize * 0.5f - 500.0f;
 
@@ -231,14 +246,23 @@ void ATerrainGenerator::ScatterTrees()
 		}
 
 		const float Size = Rand.FRandRange(0.8f, 1.4f);
-		TreeTrunks->AddInstance(FTransform(
-			FRotator(0, Rand.FRandRange(0, 360), 0),
-			FVector(X, Y, H),
-			FVector(0.28f * Size, 0.28f * Size, 2.8f * Size)));
-		TreeCanopies->AddInstance(FTransform(
-			FRotator::ZeroRotator,
-			FVector(X, Y, H + 300.0f * Size),
-			FVector(2.0f * Size, 2.0f * Size, 1.7f * Size)));
+		const FRotator Facing(0, Rand.FRandRange(0, 360), 0);
+
+		if (RealTree)
+		{
+			// Árvores da Megaplant já vêm em escala real: só varia o tamanho.
+			TreeTrunks->AddInstance(FTransform(Facing, FVector(X, Y, H),
+				FVector(Size)));
+		}
+		else
+		{
+			TreeTrunks->AddInstance(FTransform(Facing, FVector(X, Y, H),
+				FVector(0.28f * Size, 0.28f * Size, 2.8f * Size)));
+			TreeCanopies->AddInstance(FTransform(
+				FRotator::ZeroRotator,
+				FVector(X, Y, H + 300.0f * Size),
+				FVector(2.0f * Size, 2.0f * Size, 1.7f * Size)));
+		}
 		++Planted;
 	}
 }
@@ -287,7 +311,13 @@ void ATerrainGenerator::ApplyMaterials()
 		}
 	};
 
-	Tint(WaterPlane, FLinearColor(0.03f, 0.18f, 0.42f));  // azul oceano
-	Tint(TreeTrunks, FLinearColor(0.28f, 0.18f, 0.10f));  // tronco marrom
-	Tint(TreeCanopies, FLinearColor(0.10f, 0.38f, 0.14f)); // copa verde
+	Tint(WaterPlane, FLinearColor(0.03f, 0.18f, 0.42f)); // azul oceano
+
+	// Só pinta as árvores procedurais; árvores reais (Megaplants) mantêm o
+	// material próprio (o caminho real deixa as copas sem instâncias).
+	if (TreeCanopies->GetInstanceCount() > 0)
+	{
+		Tint(TreeTrunks, FLinearColor(0.28f, 0.18f, 0.10f));   // tronco marrom
+		Tint(TreeCanopies, FLinearColor(0.10f, 0.38f, 0.14f)); // copa verde
+	}
 }
