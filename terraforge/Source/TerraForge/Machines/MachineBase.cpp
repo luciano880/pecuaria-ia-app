@@ -1,6 +1,6 @@
 #include "Machines/MachineBase.h"
 #include "Components/StaticMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
+#include "Utils/Tinting.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Power/PowerGridSubsystem.h"
 #include "Environment/EnvironmentSubsystem.h"
@@ -67,11 +67,8 @@ void AMachineBase::BeginPlay()
 		{
 			continue;
 		}
-		if (UMaterialInstanceDynamic* MID = Part->CreateAndSetMaterialInstanceDynamic(0))
-		{
-			const bool bAccent = AccentParts.Contains(Part);
-			MID->SetVectorParameterValue(TEXT("Color"), bAccent ? AccentTint : MachineTint);
-		}
+		const bool bAccent = AccentParts.Contains(Part);
+		TerraForgeTint::Tint(Part, bAccent ? AccentTint : MachineTint);
 	}
 }
 

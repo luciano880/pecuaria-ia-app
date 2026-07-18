@@ -1,7 +1,7 @@
 #include "Resources/ResourceNode.h"
 #include "Items/ItemData.h"
 #include "Components/StaticMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
+#include "Utils/Tinting.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
@@ -96,11 +96,7 @@ void AResourceNode::BeginPlay()
 	{
 		if (Component && Component->GetStaticMesh())
 		{
-			if (UMaterialInstanceDynamic* MID =
-				Component->CreateAndSetMaterialInstanceDynamic(0))
-			{
-				MID->SetVectorParameterValue(TEXT("Color"), Color);
-			}
+			TerraForgeTint::Tint(Component, Color);
 		}
 	};
 

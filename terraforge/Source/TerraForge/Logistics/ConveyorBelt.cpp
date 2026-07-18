@@ -3,6 +3,7 @@
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Utils/Tinting.h"
 #include "UObject/ConstructorHelpers.h"
 
 AConveyorBelt::AConveyorBelt()
@@ -34,6 +35,9 @@ void AConveyorBelt::BeginPlay()
 {
 	Super::BeginPlay();
 	RebuildVisuals();
+
+	// Itens em trânsito: esferas claras, visíveis sobre a esteira escura.
+	TerraForgeTint::Tint(ItemsVisual, FLinearColor(0.85f, 0.8f, 0.7f));
 }
 
 void AConveyorBelt::Tick(float DeltaSeconds)
@@ -121,6 +125,7 @@ void AConveyorBelt::RebuildVisuals()
 
 		Segment->SetStartAndEnd(StartPos, StartTangent, EndPos, EndTangent, true);
 		Segment->RegisterComponent();
+		TerraForgeTint::Tint(Segment, FLinearColor(0.12f, 0.12f, 0.14f)); // borracha
 		SegmentMeshes.Add(Segment);
 	}
 }

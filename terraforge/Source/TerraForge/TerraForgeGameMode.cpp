@@ -17,7 +17,7 @@
 #include "Engine/DirectionalLight.h"
 #include "Components/LightComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
+#include "Utils/Tinting.h"
 #include "TerraForge.h"
 
 namespace
@@ -177,12 +177,9 @@ void ATerraForgeGameMode::GenerateResourceVeins()
 			const float Size = Rand.FRandRange(0.6f, 2.2f);
 			Rock->SetActorScale3D(FVector(Size, Size * Rand.FRandRange(0.7f, 1.3f), Size * 0.6f));
 			Rock->SetActorLocation(FVector(X, Y, GetGroundZ(X, Y) + 20.0f));
-			if (UMaterialInstanceDynamic* MID =
-				Rock->GetStaticMeshComponent()->CreateAndSetMaterialInstanceDynamic(0))
-			{
-				const float Gray = Rand.FRandRange(0.25f, 0.5f);
-				MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(Gray, Gray, Gray));
-			}
+			const float Gray = Rand.FRandRange(0.25f, 0.5f);
+			TerraForgeTint::Tint(Rock->GetStaticMeshComponent(),
+				FLinearColor(Gray, Gray, Gray));
 		}
 	}
 

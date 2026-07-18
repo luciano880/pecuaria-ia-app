@@ -2,7 +2,7 @@
 #include "ProceduralMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
+#include "Utils/Tinting.h"
 #include "UObject/ConstructorHelpers.h"
 #include "TerraForge.h"
 
@@ -303,11 +303,7 @@ void ATerrainGenerator::ApplyMaterials()
 	{
 		if (Component && Component->GetStaticMesh())
 		{
-			if (UMaterialInstanceDynamic* MID =
-				Component->CreateAndSetMaterialInstanceDynamic(0))
-			{
-				MID->SetVectorParameterValue(TEXT("Color"), Color);
-			}
+			TerraForgeTint::Tint(Component, Color);
 		}
 	};
 
