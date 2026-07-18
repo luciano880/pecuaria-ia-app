@@ -10,6 +10,7 @@
 #include "Logistics/ConveyorBelt.h"
 #include "Progression/ExodusHub.h"
 #include "World/TerrainGenerator.h"
+#include "World/DayNightCycle.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
 #include "Engine/StaticMeshActor.h"
@@ -57,6 +58,11 @@ void ATerraForgeGameMode::BeginPlay()
 	}
 
 	EnsureWorldEnvironment();
+
+	if (bDayNightCycle)
+	{
+		GetWorld()->SpawnActor<ADayNightCycle>();
+	}
 
 	if (bGenerateResourceVeins)
 	{

@@ -39,6 +39,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
 	bool bGenerateTerrain = true;
 
+	/** Ciclo dia/noite (sol gira; noite tem luar mínimo). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
+	bool bDayNightCycle = true;
+
 	/** Semente do gerador (mesma semente = mesmo mapa). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo")
 	int32 WorldSeed = 1337;
