@@ -58,6 +58,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Terrain", meta = (ClampMin = 0))
 	int32 MaxTrees = 500;
 
+	/**
+	 * Material com texturas reais para o terreno (criado no editor com assets
+	 * da Fab — ver docs/TEXTURAS_FAB.md). Se vazio, o gerador procura por
+	 * /Game/TerraForge/M_Terrain e, em último caso, usa cores por vértice.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Terrain")
+	TSoftObjectPtr<UMaterialInterface> TerrainMaterial;
+
+	/** Tamanho do tile das texturas em uu (1000 = repete a cada 10 m). */
+	UPROPERTY(EditAnywhere, Category = "Terrain", meta = (ClampMin = 100))
+	float TextureTileSize = 1000.0f;
+
 	/** (Re)gera a malha do terreno, água e florestas. */
 	UFUNCTION(BlueprintCallable, Category = "Terrain")
 	void Generate();

@@ -164,7 +164,9 @@ void ATerrainGenerator::Generate()
 
 			Vertices.Add(FVector(X, Y, H));
 			Normals.Add(Normal);
-			UVs.Add(FVector2D(GX / float(N - 1), GY / float(N - 1)));
+			// UVs em espaço de mundo tilado: qualquer material com textura
+			// repete naturalmente a cada TextureTileSize uu.
+			UVs.Add(FVector2D(X, Y) / TextureTileSize);
 			Colors.Add(BiomeColor(X, Y, H, Slope));
 		}
 	}
@@ -243,19 +245,34 @@ void ATerrainGenerator::ScatterTrees()
 
 void ATerrainGenerator::ApplyMaterials()
 {
-	// Material que mostra as cores por vértice (biomas). Fallbacks garantem
-	// que o terreno sempre renderize, mesmo se o engine mudar os caminhos.
-	UMaterialInterface* VertexColorMaterial =
-		LoadObject<UMaterialInterface>(nullptr,
-			TEXT("/Engine/EngineDebugMaterials/VertexColorMaterial.VertexColorMaterial"));
-	if (!VertexColorMaterial)
+	// Prioridade: 1) material com texturas definido na propriedade;
+	// 2) material por convenção em /Game/TerraForge/M_Terrain (criado no
+	//    editor com texturas da Fab — ver docs/TEXTURAS_FAB.md);
+	// 3) fallback: cores por vértice (biomas em low-poly).
+	UMaterialInterface* Material = TerrainMaterial.LoadSynchronous();
+	if (!Material)
 	{
-		VertexColorMaterial = LoadObject<UMaterialInterface>(nullptr,
-			TEXT("/Engine/EngineDebugMaterials/VertexColorViewMode_ColorOnly.VertexColorViewMode_ColorOnly"));
+		Material = LoadObject<UMaterialInterface>(nullptr,
+			TEXT("/Game/TerraForge/M_Terrain.M_Terrain"));
 	}
-	if (VertexColorMaterial)
+	if (Material)
 	{
-		TerrainMesh->SetMaterial(0, VertexColorMaterial);
+		UE_LOG(LogTerraForge, Log, TEXT("Terreno usando material com texturas: %s"),
+			*Material->GetName());
+	}
+	else
+	{
+		Material = LoadObject<UMaterialInterface>(nullptr,
+			TEXT("/Engine/EngineDebugMaterials/VertexColorMaterial.VertexColorMaterial"));
+		if (!Material)
+		{
+			Material = LoadObject<UMaterialInterface>(nullptr,
+				TEXT("/Engine/EngineDebugMaterials/VertexColorViewMode_ColorOnly.VertexColorViewMode_ColorOnly"));
+		}
+	}
+	if (Material)
+	{
+		TerrainMesh->SetMaterial(0, Material);
 	}
 
 	auto Tint = [](UStaticMeshComponent* Component, const FLinearColor& Color)
