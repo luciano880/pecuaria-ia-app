@@ -90,8 +90,34 @@ export default function Sanidade() {
 
   async function salvarVac() {
     if (!fVac.vacina) { toast('Nome da vacina obrigatório', 'erro'); return }
-    try { await inserirVac(fVac); toast('Vacinação registrada!'); setModalVac(false) }
-    catch (e) { toast(e.message, 'erro') }
+    try {
+      await inserirVac(fVac)
+
+      // Baixa automática no estoque de vacinas
+      const { data: estoqueVac } = await supabase
+        .from('estoque_insumos')
+        .select('id, quantidade')
+        .eq('user_id', user.id)
+        .eq('categoria', 'vacina')
+        .ilike('nome', `%${fVac.vacina}%`)
+        .maybeSingle()
+
+      if (estoqueVac) {
+        const qtdBaixa = parseFloat(fVac.dose || 1)
+        const novaQtd = Math.max(0, parseFloat(estoqueVac.quantidade || 0) - qtdBaixa)
+        await supabase.from('estoque_insumos').update({ quantidade: novaQtd }).eq('id', estoqueVac.id)
+        await supabase.from('movimentacoes_estoque').insert({
+          user_id: user.id, insumo_id: estoqueVac.id,
+          tipo: 'saida', quantidade: qtdBaixa,
+          data: fVac.data_aplicacao || hoje(),
+          motivo: `Vacinação: ${fVac.vacina} — brinco #${fVac.brinco || 'lote'}`,
+        })
+        toast(`Vacinação registrada! Baixa de ${qtdBaixa} dose(s) no estoque.`)
+      } else {
+        toast('Vacinação registrada! ⚠️ Vacina não encontrada no estoque.')
+      }
+      setModalVac(false)
+    } catch(e) { toast(e.message, 'erro') }
   }
 
   // Animais em carência HOJE
