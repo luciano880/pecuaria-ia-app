@@ -11,25 +11,29 @@ export default function Layout() {
   const [open, setOpen] = useState(false)
 
   const navLeite = [
-    { to:'/',               icon:'🏠', label:'Início' },
-    { to:'/animais',        icon:'🏷️', label:'Animais' },
-    { to:'/producao-leite', icon:'🥛', label:'Produção de Leite' },
-    { to:'/reproducao',     icon:'🐄', label:'Reprodução' },
-    { to:'/sanidade',       icon:'💊', label:'Sanidade' },
-    { to:'/estoque',        icon:'🌽', label:'Estoque & Dietas' },
-    { to:'/pesagens',       icon:'⚖️', label:'Pesagens' },
-    { to:'/financeiro',     icon:'💰', label:'Financeiro & IR' },
-    { to:'/analise-ia',     icon:'🤖', label:'Análise IA' },
+    { to:'/',                    icon:'🏠', label:'Início' },
+    { to:'/animais',             icon:'🏷️', label:'Animais' },
+    { to:'/producao-leite',      icon:'🥛', label:'Produção de Leite' },
+    { to:'/reproducao',          icon:'🐄', label:'Reprodução' },
+    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
+    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
+    { to:'/estoque',             icon:'🌽', label:'Estoque & Dietas' },
+    { to:'/pesagens',            icon:'⚖️', label:'Pesagens' },
+    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
+    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
+    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
   ]
   const navCorte = [
-    { to:'/',           icon:'🏠', label:'Início' },
-    { to:'/animais',    icon:'🏷️', label:'Animais' },
-    { to:'/pesagens',   icon:'⚖️', label:'Pesagens & GMD' },
-    { to:'/reproducao', icon:'🐄', label:'Reprodução' },
-    { to:'/sanidade',   icon:'💊', label:'Sanidade' },
-    { to:'/estoque',    icon:'🌽', label:'Estoque & Dietas' },
-    { to:'/financeiro', icon:'💰', label:'Financeiro & IR' },
-    { to:'/analise-ia', icon:'🤖', label:'Análise IA' },
+    { to:'/',                    icon:'🏠', label:'Início' },
+    { to:'/animais',             icon:'🏷️', label:'Animais' },
+    { to:'/pesagens',            icon:'⚖️', label:'Pesagens & GMD' },
+    { to:'/reproducao',          icon:'🐄', label:'Reprodução' },
+    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
+    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
+    { to:'/estoque',             icon:'🌽', label:'Estoque & Dietas' },
+    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
+    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
+    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
   ]
   const nav = seg === 'leite' ? navLeite : navCorte
 
