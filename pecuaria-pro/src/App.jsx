@@ -4,6 +4,7 @@ import AuthPage           from './pages/AuthPage.jsx'
 import Layout             from './components/Layout.jsx'
 import Dashboard          from './pages/Dashboard.jsx'
 import Animais            from './pages/Animais.jsx'
+import FichaAnimal        from './pages/FichaAnimal.jsx'
 import ProducaoLeite      from './pages/ProducaoLeite.jsx'
 import Reproducao         from './pages/Reproducao.jsx'
 import Sanidade           from './pages/Sanidade.jsx'
@@ -12,9 +13,9 @@ import Pesagens           from './pages/Pesagens.jsx'
 import AnaliseIA          from './pages/AnaliseIA.jsx'
 import Financeiro         from './pages/Financeiro.jsx'
 import FinanceiroPessoal  from './pages/FinanceiroPessoal.jsx'
+import DeclaracaoIR       from './pages/DeclaracaoIR.jsx'
 import IndicesZootecnicos from './pages/IndicesZootecnicos.jsx'
 import Configuracoes      from './pages/Configuracoes.jsx'
-import FichaAnimal        from './pages/FichaAnimal.jsx'
 import { C } from './utils/helpers.js'
 
 function Carregando() {
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="analise-ia"            element={<AnaliseIA />} />
         <Route path="financeiro"            element={<Financeiro />} />
         <Route path="financeiro-pessoal"    element={<FinanceiroPessoal />} />
+        <Route path="declaracao-ir"         element={<DeclaracaoIR />} />
         <Route path="indices"               element={<IndicesZootecnicos />} />
         <Route path="configuracoes"         element={<Configuracoes />} />
       </Route>

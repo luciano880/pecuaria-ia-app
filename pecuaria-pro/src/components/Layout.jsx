@@ -21,6 +21,7 @@ export default function Layout() {
     { to:'/pesagens',            icon:'⚖️', label:'Pesagens' },
     { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
     { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
+    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
     { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
   ]
   const navCorte = [
@@ -33,6 +34,7 @@ export default function Layout() {
     { to:'/estoque',             icon:'🌽', label:'Estoque & Dietas' },
     { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
     { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
+    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
     { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
   ]
   const nav = seg === 'leite' ? navLeite : navCorte
