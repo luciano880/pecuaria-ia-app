@@ -1,7 +1,9 @@
 [build]
-  base = "pecuaria-pro"
-  command = "npx vite build"
-  publish = "dist"
+  command = "cd pecuaria-pro && npm install && node ./node_modules/vite/bin/vite.js build"
+  publish = "pecuaria-pro/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/*"
