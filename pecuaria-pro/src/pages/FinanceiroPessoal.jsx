@@ -112,6 +112,16 @@ export default function FinanceiroPessoal() {
         ))}
       </div>
 
+      {/* Banner IR */}
+      <div style={{background:`${C.ambar}18`,border:`1px solid ${C.ambar}`,borderRadius:10,padding:'10px 16px',marginBottom:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div style={{fontSize:13,color:C.ambar}}>
+          📋 Rendimentos e deduções vão automaticamente para a <strong>Declaração IR</strong>
+        </div>
+        <button onClick={()=>window.location.href='/declaracao-ir'} style={{padding:'6px 14px',borderRadius:6,border:`1px solid ${C.ambar}`,background:'transparent',color:C.ambar,fontSize:12,fontWeight:700,cursor:'pointer'}}>
+          Ver IR →
+        </button>
+      </div>
+
       {/* Abas */}
       <div style={{ display:'flex', gap:2, marginBottom:16, borderBottom:`1px solid ${C.border}` }}>
         {abas.map(a => (

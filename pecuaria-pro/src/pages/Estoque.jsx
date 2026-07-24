@@ -127,7 +127,24 @@ export default function Estoque() {
         ? parseFloat(modalMov.quantidade)+parseFloat(fMov.quantidade)
         : Math.max(0, parseFloat(modalMov.quantidade)-parseFloat(fMov.quantidade))
       await atualizar(modalMov.id, { quantidade:delta })
-      toast(fMov.tipo==='entrada' ? 'Entrada registrada!' : 'Baixa registrada!')
+
+      // Lançar despesa automaticamente quando é entrada com preço
+      if (fMov.tipo==='entrada' && modalMov.preco_unitario > 0) {
+        const valorTotal = parseFloat(fMov.quantidade) * parseFloat(modalMov.preco_unitario)
+        await supabase.from('despesas').insert({
+          user_id: user.id,
+          data: fMov.data,
+          categoria: modalMov.categoria==='vacina'||modalMov.categoria==='medicamento' ? 'sanidade' : 'alimentacao',
+          descricao: `Entrada estoque: ${modalMov.nome} (${fMov.quantidade} ${modalMov.unidade})`,
+          valor: valorTotal,
+          fornecedor: modalMov.fornecedor || null,
+          deducivel_ir: true,
+          obs: fMov.motivo || null,
+        })
+        toast(`Entrada registrada! Despesa de ${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(valorTotal)} lançada automaticamente no financeiro.`)
+      } else {
+        toast(fMov.tipo==='entrada' ? 'Entrada registrada!' : 'Baixa registrada!')
+      }
       setModalMov(null)
     } catch(e) { toast(e.message,'erro') }
   }

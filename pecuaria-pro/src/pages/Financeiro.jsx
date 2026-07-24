@@ -169,12 +169,6 @@ export default function Financeiro() {
   const recMes = receitas.filter(r=>r.data?.slice(0,7)===mesAtual).reduce((s,r)=>s+parseFloat(r.valor||0),0)
   const desMes = despesas.filter(r=>r.data?.slice(0,7)===mesAtual).reduce((s,r)=>s+parseFloat(r.valor||0),0)
 
-  const anoAtual = new Date().getFullYear()
-  const recAno = receitas.filter(r=>r.data?.startsWith(String(anoAtual))).reduce((s,r)=>s+parseFloat(r.valor||0),0)
-  const desAno = despesas.filter(r=>r.data?.startsWith(String(anoAtual))&&r.deducivel_ir).reduce((s,r)=>s+parseFloat(r.valor||0),0)
-  const lucTrib = Math.max(0,recAno-desAno)
-  const irEst = calcIR(lucTrib)
-
   const porMes = useMemo(()=>{
     const m={}
     receitas.forEach(r=>{const ms=r.data?.slice(0,7);if(!ms)return;if(!m[ms])m[ms]={mes:ms,receitas:0,despesas:0};m[ms].receitas+=parseFloat(r.valor||0)})
@@ -242,7 +236,6 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
     {id:'receitas',l:'💰 Receitas'},
     {id:'despesas',l:'💸 Despesas'},
     {id:'receber',l:`📬 A Receber ${contasReceber.filter(c=>c.status==='pendente').length > 0 ? `(${contasReceber.filter(c=>c.status==='pendente').length})` : ''}`},
-    {id:'ir',l:'📋 IR Rural'},
   ]
 
   return (
@@ -267,7 +260,6 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
           {l:'Receita total',v:fmtBRL(totalRec),c:C.verdeClaro},
           {l:'Despesa total',v:fmtBRL(totalDes),c:C.critico},
           {l:'Resultado total',v:fmtBRL(lucro),c:lucro>=0?C.verdeVivo:C.critico},
-          {l:`IR estimado ${anoAtual}`,v:fmtBRL(irEst),c:C.ambar},
         ].map((s,i)=>(
           <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderLeft:`3px solid ${s.c}`,borderRadius:10,padding:'12px 14px'}}>
             <div style={{fontSize:10,color:C.textoMuted,textTransform:'uppercase',fontWeight:600}}>{s.l}</div>
