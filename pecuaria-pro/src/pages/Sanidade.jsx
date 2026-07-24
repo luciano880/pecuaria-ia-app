@@ -82,7 +82,7 @@ export default function Sanidade() {
       // Baixar estoque do medicamento
       await supabase.from('medicamentos').update({
         estoque_atual: Math.max(0, (med.estoque_atual || 0) - parseFloat(fApl.dose || 0))
-      }).eq('id', med.id)
+      }).eq('id', med.id).eq('user_id', user.id)
       toast('Aplicação registrada com alerta de carência!')
       setModalApl(false)
     } catch (e) { toast(e.message, 'erro') }

@@ -138,7 +138,7 @@ export default function Dashboard() {
   }
 
   async function marcarLido(id) {
-    await supabase.from('alertas').update({lido:true}).eq('id',id)
+    await supabase.from('alertas').update({lido:true}).eq('id',id).eq('user_id',user.id)
     setStats(s=>({...s,alertas:s.alertas.filter(a=>a.id!==id)}))
   }
 
