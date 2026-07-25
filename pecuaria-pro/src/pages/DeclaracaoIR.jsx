@@ -33,7 +33,7 @@ export default function DeclaracaoIR() {
   const { user, perfil } = useAuth()
   const { toast, ToastContainer } = useToast()
   const anoAtual = new Date().getFullYear()
-  const [anoBase, setAnoBase] = useState(anoAtual - 1)
+  const [anoBase, setAnoBase] = useState(anoAtual)
   const [dados,   setDados]   = useState(null)
   const [loadIA,  setLoadIA]  = useState(false)
   const [relIA,   setRelIA]   = useState(null)
@@ -267,7 +267,7 @@ ${relIA}`
         </div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
           <select value={anoBase} onChange={e=>setAnoBase(parseInt(e.target.value))} style={{padding:'8px 12px',borderRadius:6,border:`1.5px solid ${C.border}`,background:C.bgInput,color:C.texto,fontSize:13}}>
-            {[anoAtual-1,anoAtual-2,anoAtual-3].map(a=><option key={a} value={a}>{a}</option>)}
+            {[anoAtual,anoAtual-1,anoAtual-2,anoAtual-3].map(a=><option key={a} value={a}>{a}{a===anoAtual?' (atual)':''}</option>)}
           </select>
           <Btn cor={C.ambar} onClick={gerarRelatorioIA} disabled={loadIA||!dados}>
             {loadIA?'⏳ Gerando...':'🤖 Relatório IA'}
