@@ -78,15 +78,27 @@ export const diasAte = (dataStr) => {
 }
 
 export async function chamarIA(prompt) {
+  const apiKey = import.meta.env.VITE_ANTHROPIC_KEY
+  if (!apiKey) throw new Error('Chave da IA não configurada. Adicione VITE_ANTHROPIC_KEY nas variáveis de ambiente.')
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-allow-browser': 'true',
+    },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1200,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     }),
   })
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({}))
+    throw new Error(err?.error?.message || `Erro ${res.status}`)
+  }
   const data = await res.json()
   if (data.error) throw new Error(data.error.message)
   return data.content?.map(b => b.text || '').join('') || ''
