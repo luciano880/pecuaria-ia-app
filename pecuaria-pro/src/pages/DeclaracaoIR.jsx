@@ -72,12 +72,24 @@ export default function DeclaracaoIR() {
 
       // ── Pessoal ──
       const totalRecPF = recPF.reduce((s,r)=>s+parseFloat(r.valor||0),0)
-      const totalDesPF = desPF.filter(d=>['saude','educacao','outros_dedutiveis'].includes(d.categoria)).reduce((s,r)=>s+parseFloat(r.valor||0),0)
+      // Despesas dedutíveis no IR PF: saúde, educação, pensão alimentícia
+      const CATS_DED_PF = ['saude','educacao','outros_dedutiveis','pensao']
+      const desPFDedutiveis = desPF.filter(d=>CATS_DED_PF.includes(d.categoria))
+      const totalDesPF = desPFDedutiveis.reduce((s,r)=>s+parseFloat(r.valor||0),0)
+      const totalDesPFTodas = desPF.reduce((s,r)=>s+parseFloat(r.valor||0),0)
       const basePF     = Math.max(0, totalRecPF - totalDesPF)
       const irPF       = calcIRPF(basePF)
 
-      const recPFCat = {}; recPF.forEach(r=>{ recPFCat[r.categoria]=(recPFCat[r.categoria]||0)+parseFloat(r.valor||0) })
-      const desPFCat = {}; desPF.filter(d=>['saude','educacao','outros_dedutiveis'].includes(d.categoria)).forEach(r=>{ desPFCat[r.categoria]=(desPFCat[r.categoria]||0)+parseFloat(r.valor||0) })
+      const recPFCat = {}
+      recPF.forEach(r=>{ recPFCat[r.categoria]=(recPFCat[r.categoria]||0)+parseFloat(r.valor||0) })
+      
+      // Todas as despesas PF agrupadas (para mostrar no relatório)
+      const desPFCat = {}
+      desPF.forEach(r=>{ desPFCat[r.categoria]=(desPFCat[r.categoria]||0)+parseFloat(r.valor||0) })
+      
+      // Só as dedutíveis para cálculo
+      const desPFDedCat = {}
+      desPFDedutiveis.forEach(r=>{ desPFDedCat[r.categoria]=(desPFDedCat[r.categoria]||0)+parseFloat(r.valor||0) })
 
       // ── Total ──
       const baseTotal  = lucroRural + basePF
@@ -85,7 +97,7 @@ export default function DeclaracaoIR() {
       const irJaPago   = 0 // pode ser implementado futuramente
       const irDevido   = Math.max(0, irTotal - irJaPago)
 
-      setDados({ anoBase, recRural, desRural, recPF, desPF, totalRecRural, totalDesRural, lucroRural, irRural, recRuralCat, desRuralCat, totalRecPF, totalDesPF, basePF, irPF, recPFCat, desPFCat, baseTotal, irTotal, irDevido })
+      setDados({ anoBase, recRural, desRural, recPF, desPF, totalRecRural, totalDesRural, lucroRural, irRural, recRuralCat, desRuralCat, totalRecPF, totalDesPF, totalDesPFTodas, basePF, irPF, recPFCat, desPFCat, desPFDedCat, baseTotal, irTotal, irDevido })
     } catch(e) { toast(e.message,'erro') }
     finally { setCarregando(false) }
   }
@@ -361,22 +373,36 @@ ${relIA}`
               </div>
             </div>
             <div>
-              <div style={{fontSize:12,fontWeight:700,color:C.critico,marginBottom:8,textTransform:'uppercase'}}>🏥 Deduções legais PF</div>
-              {Object.entries(dados.desPFCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(
-                <div key={k} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:`1px solid ${C.border}`,fontSize:12}}>
-                  <span style={{color:C.textoSub}}>{CATS_D_PF[k]||k}</span>
-                  <span style={{color:C.critico,fontWeight:700}}>{fmtBRL(v)}</span>
-                </div>
-              ))}
-              {Object.keys(dados.desPFCat).length===0&&<div style={{color:C.textoMuted,fontSize:12}}>Nenhuma dedução PF lançada</div>}
-              <div style={{fontSize:11,color:C.ambar,marginTop:8,lineHeight:1.6}}>
-                💡 No financeiro pessoal, marque gastos com Saúde e Educação como dedutíveis para aparecerem aqui.
+              <div style={{fontSize:12,fontWeight:700,color:C.ambar,marginBottom:8,textTransform:'uppercase'}}>💸 Todas despesas ({dados.desPF.length})</div>
+              {Object.entries(dados.desPFCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{
+                const isDed = ['saude','educacao','outros_dedutiveis','pensao'].includes(k)
+                return (
+                  <div key={k} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:`1px solid ${C.border}`,fontSize:12}}>
+                    <span style={{color:C.textoSub}}>
+                      {CATS_D_PF[k]||k}
+                      {isDed && <span style={{marginLeft:6,fontSize:10,color:C.verdeClaro,background:`${C.verdeClaro}22`,padding:'1px 5px',borderRadius:4}}>dedutível</span>}
+                    </span>
+                    <span style={{color:isDed?C.critico:C.textoMuted,fontWeight:isDed?700:400}}>{fmtBRL(v)}</span>
+                  </div>
+                )
+              })}
+              {Object.keys(dados.desPFCat).length===0&&<div style={{color:C.textoMuted,fontSize:12}}>Nenhuma despesa no período</div>}
+              <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',marginTop:4,fontSize:12,borderTop:`1px solid ${C.border}`}}>
+                <span style={{color:C.textoMuted}}>Total despesas</span>
+                <span style={{color:C.textoMuted}}>{fmtBRL(dados.totalDesPFTodas)}</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:13,fontWeight:700}}>
+                <span style={{color:C.texto}}>Dedutíveis no IR</span>
+                <span style={{color:C.critico}}>{fmtBRL(dados.totalDesPF)}</span>
+              </div>
+              <div style={{fontSize:11,color:C.ambar,marginTop:8,lineHeight:1.6,background:`${C.ambar}11`,borderRadius:6,padding:'6px 10px'}}>
+                💡 São dedutíveis: Saúde, Educação e Pensão alimentícia. As demais despesas aparecem para controle mas não reduzem o IR.
               </div>
             </div>
           </div>
           <div style={{marginTop:14,background:C.bgInput,borderRadius:8,padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <div>
-              <div style={{fontSize:11,color:C.textoMuted}}>Base de cálculo PF</div>
+              <div style={{fontSize:11,color:C.textoMuted}}>Base de cálculo PF (rendimentos - deduções)</div>
               <div style={{fontSize:20,fontWeight:800,color:C.ambar,fontFamily:'monospace'}}>{fmtBRL(dados.basePF)}</div>
             </div>
             <div style={{textAlign:'right'}}>
