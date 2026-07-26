@@ -21,6 +21,7 @@ export const C = {
   ovinoLeiteAccent: '#9B7FD4',
   ovinoCortePrimary:'#7A5A1A',
   ovinoCorteAccent: '#C49A40',
+}
 
 export function getCor(segmento) {
   if (segmento === 'leite')        return { primary: C.leitePrimary,       accent: C.leiteAccent }
