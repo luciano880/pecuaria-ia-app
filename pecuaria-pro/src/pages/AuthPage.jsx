@@ -221,8 +221,10 @@ function TelaCadastro({ setTela }) {
         }}>Segmento da propriedade</label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
-            { val: 'leite', icon: '🥛', label: 'Pecuária Leiteira', cor: C.leitePrimary, acc: C.leiteAccent },
-            { val: 'corte', icon: '🥩', label: 'Pecuária de Corte', cor: C.cortePrimary, acc: C.corteAccent },
+            { val: 'leite',       icon: '🐄', prod: '🥛', label: 'Bovinos Leiteiros',  cor: C.leitePrimary,      acc: C.leiteAccent },
+            { val: 'corte',       icon: '🐂', prod: '🥩', label: 'Bovinos de Corte',   cor: C.cortePrimary,      acc: C.corteAccent },
+            { val: 'ovino_leite', icon: '🐑', prod: '🥛', label: 'Ovinos Leiteiros',   cor: C.ovinoLeitePrimary, acc: C.ovinoLeiteAccent },
+            { val: 'ovino_corte', icon: '🐏', prod: '🥩', label: 'Ovinos de Corte',    cor: C.ovinoCortePrimary, acc: C.ovinoCorteAccent },
           ].map(s => (
             <button
               key={s.val}
@@ -237,8 +239,9 @@ function TelaCadastro({ setTela }) {
                 transition: 'all 0.15s', textAlign: 'center',
               }}
             >
-              <div style={{ fontSize: 22, marginBottom: 4 }}>{s.icon}</div>
-              {s.label}
+              <div style={{ fontSize: 36, marginBottom: 2, lineHeight: 1 }}>{s.icon}</div>
+              <div style={{ fontSize: 14, marginBottom: 3 }}>{s.prod}</div>
+              <div style={{ fontSize: 11, fontWeight: 800 }}>{s.label}</div>
             </button>
           ))}
         </div>
