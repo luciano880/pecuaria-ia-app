@@ -95,13 +95,13 @@ export const diasAte = (dataStr) => {
   return Math.ceil(diff / 86400000)
 }
 
-export async function chamarIA(prompt) {
-  // Chama via Netlify Function (proxy seguro — chave nunca exposta no browser)
+export async function chamarIA(prompt, maxTokens = 800) {
   const res = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages: [{ role: 'user', content: prompt }],
+      max_tokens: maxTokens,
     }),
   })
   if (!res.ok) {

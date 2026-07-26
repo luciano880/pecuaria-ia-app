@@ -64,17 +64,17 @@ export default function AnaliseIA() {
       })
 
       const prompts = {
-        geral: `Você é médico veterinário e zootecnista especialista em pecuária brasileira, com base nos manuais da Embrapa, CRMVs e CBNA. Faça um diagnóstico completo da propriedade com os dados abaixo. Responda em 4 seções: 1-PONTOS POSITIVOS, 2-PONTOS DE ATENÇÃO, 3-RISCOS IMEDIATOS, 4-PLANO DE AÇÃO PARA ESTA SEMANA. Linguagem direta ao produtor.`,
-        producao: `Você é especialista em produção leiteira (referências: Embrapa Gado de Leite, Milkpoint). Analise a produção, calcule indicadores zootécnicos, compare com a média nacional e sugira melhorias práticas. Foque em: eficiência leiteira, curva de lactação e relação custo x produção.`,
-        confinamento: `Você é especialista em confinamento bovino (referências: Embrapa Gado de Corte, Cepea/USP). Analise o GMD, dieta, projeção de abate e rentabilidade. Compare com benchmarks nacionais. Sugira ajustes práticos de manejo e nutrição.`,
-        nutricao: `Você é nutricionista animal especialista em bovinos (referências: CBNA, NRC, Embrapa). Analise o estoque de insumos, a dieta atual e projete o custo nutricional. Identifique possíveis deficiências nutricionais e sugira ajustes baseados nas exigências da categoria animal.`,
-        sanidade: `Você é médico veterinário especialista em sanidade bovina (referências: MAPA, CFMV, Embrapa). Analise os animais em carência, histórico de medicamentos e protocolos de vacinação. Identifique riscos sanitários e sugira um calendário sanitário adequado para a região Sul do Brasil.`,
-        reproducao: `Você é especialista em reprodução bovina (referências: Embrapa, CBRA). Analise os indicadores reprodutivos da fazenda, identifique gargalos e sugira melhorias no protocolo reprodutivo. Calcule a eficiência reprodutiva e compare com índices ideais (IEP < 365 dias, taxa de concepção > 60%).`,
+        geral: `Veterinário/zootecnista especialista em pecuária brasileira (Embrapa, CBNA). Diagnóstico em 4 seções: 1-PONTOS POSITIVOS, 2-ATENÇÃO, 3-RISCOS, 4-PLANO DESTA SEMANA. Direto ao produtor, sem markdown.`,
+        producao: `Especialista em produção leiteira (Embrapa, Milkpoint). Analise produção, indicadores e sugira melhorias em eficiência leiteira. Sem markdown.`,
+        confinamento: `Especialista em confinamento bovino (Embrapa, Cepea). Analise GMD, dieta e rentabilidade. Benchmarks nacionais. Sem markdown.`,
+        nutricao: `Nutricionista animal (CBNA, NRC, Embrapa). Analise estoque, dieta e custo nutricional. Deficiências e ajustes práticos. Sem markdown.`,
+        sanidade: `Médico veterinário (MAPA, CFMV). Analise carências e vacinação. Riscos sanitários e calendário para Sul do Brasil. Sem markdown.`,
+        reproducao: `Especialista em reprodução bovina (Embrapa, CBRA). IEP, taxa de concepção, gargalos. Compare com IEP<365d, concepção>60%. Sem markdown.`,
       }
 
-      const prompt = `${prompts[modulo] || prompts.geral}\n\nDados da propriedade:\n${contexto}\n\nData de análise: ${new Date().toLocaleDateString('pt-BR')} — Contexto mercado Brasil junho/2026.\n\nResponda sem asteriscos ou markdown. Use numeração, traços e parágrafos diretos.`
+      const prompt = `${prompts[modulo] || prompts.geral}\n\nDados:\n${contexto}\n\nData: ${new Date().toLocaleDateString('pt-BR')}`
 
-      const texto = await chamarIA(prompt)
+      const texto = await chamarIA(prompt, 700)
       setAnalise(texto)
     } catch(e) {
       setAnalise(`Erro: ${e.message}`)
