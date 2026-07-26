@@ -260,10 +260,10 @@ export default function Configuracoes() {
   }
 
   const segOpts = [
-    { value:'leite',       icon:'🥛', label:'Bovinos Leiteiros',  cor: C.leitePrimary,      acc: C.leiteAccent },
-    { value:'corte',       icon:'🥩', label:'Bovinos de Corte',   cor: C.cortePrimary,      acc: C.corteAccent },
-    { value:'ovino_leite', icon:'🐑', label:'Ovinos Leiteiros',   cor: C.ovinoLeitePrimary, acc: C.ovinoLeiteAccent },
-    { value:'ovino_corte', icon:'🐑', label:'Ovinos de Corte',    cor: C.ovinoCortePrimary, acc: C.ovinoCorteAccent },
+    { value:'leite',       icon:'🥛', img:'🐄', label:'Bovinos Leiteiros',  sub:'Vaca leiteira · Produção de leite',  cor: C.leitePrimary,      acc: C.leiteAccent },
+    { value:'corte',       icon:'🥩', img:'🐂', label:'Bovinos de Corte',   sub:'Boi · Engorda e abate',              cor: C.cortePrimary,      acc: C.corteAccent },
+    { value:'ovino_leite', icon:'🐑', img:'🐑', label:'Ovinos Leiteiros',   sub:'Ovelha leiteira · Produção de leite',cor: C.ovinoLeitePrimary, acc: C.ovinoLeiteAccent },
+    { value:'ovino_corte', icon:'🐑', img:'🐏', label:'Ovinos de Corte',    sub:'Carneiro · Engorda e abate',         cor: C.ovinoCortePrimary, acc: C.ovinoCorteAccent },
   ]
 
   return (
@@ -275,10 +275,8 @@ export default function Configuracoes() {
       </div>
 
       {/* Segmento atual */}
-      <div style={{ background:`${perfil?.segmento==='leite'?C.leitePrimary:C.cortePrimary}22`, border:`1px solid ${perfil?.segmento==='leite'?C.leiteAccent:C.corteAccent}`, borderRadius:10, padding:'10px 16px', marginBottom:20, fontSize:13, color:C.texto }}>
-        Segmento atual: <strong style={{ color: perfil?.segmento==='leite'?C.leiteAccent:C.corteAccent }}>
-          {perfil?.segmento==='leite'?'🥛 Pecuária Leiteira':'🥩 Pecuária de Corte'}
-        </strong>
+      <div style={{ background:`${C[perfil?.segmento==='leite'?'leitePrimary':perfil?.segmento==='corte'?'cortePrimary':perfil?.segmento==='ovino_leite'?'ovinoLeitePrimary':'ovinoCortePrimary']||C.verde}22`, border:`1px solid ${C[perfil?.segmento==='leite'?'leiteAccent':perfil?.segmento==='corte'?'corteAccent':perfil?.segmento==='ovino_leite'?'ovinoLeiteAccent':'ovinoCorteAccent']||C.verdeClaro}`, borderRadius:10, padding:'10px 16px', marginBottom:20, fontSize:13, color:C.texto }}>
+        Segmento atual: <strong>{getLabelSegmento(perfil?.segmento)}</strong>
       </div>
 
       {/* Dados da fazenda */}
@@ -292,15 +290,24 @@ export default function Configuracoes() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {segOpts.map(s=>(
               <button key={s.value} onClick={()=>setSegmento(s.value)} style={{
-                padding:'16px 12px', borderRadius:10,
+                padding:'20px 12px', borderRadius:12,
                 border:`2px solid ${segmento===s.value?s.acc:C.border}`,
                 background:segmento===s.value?`${s.cor}44`:C.bgInput,
                 color:segmento===s.value?s.acc:C.textoSub,
                 fontWeight:700, fontSize:13, cursor:'pointer', textAlign:'center',
+                transition:'all 0.15s', position:'relative',
               }}>
-                <div style={{ fontSize:28, marginBottom:6 }}>{s.icon}</div>
-                {s.label}
-                {segmento===s.value&&<div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>✓ Selecionado</div>}
+                {/* Animal */}
+                <div style={{ fontSize:48, marginBottom:4, lineHeight:1 }}>{s.img}</div>
+                {/* Ícone do produto */}
+                <div style={{ fontSize:16, marginBottom:6 }}>{s.icon}</div>
+                {/* Nome */}
+                <div style={{ fontSize:14, fontWeight:800 }}>{s.label}</div>
+                {/* Subtítulo */}
+                <div style={{ fontSize:10, opacity:0.7, marginTop:3, fontWeight:400 }}>{s.sub}</div>
+                {segmento===s.value&&(
+                  <div style={{ fontSize:10, marginTop:6, color:s.acc, fontWeight:700 }}>✓ Selecionado</div>
+                )}
               </button>
             ))}
           </div>
