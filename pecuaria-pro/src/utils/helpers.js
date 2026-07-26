@@ -78,20 +78,11 @@ export const diasAte = (dataStr) => {
 }
 
 export async function chamarIA(prompt) {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_KEY
-  if (!apiKey) throw new Error('Chave da IA não configurada. Adicione VITE_ANTHROPIC_KEY nas variáveis de ambiente.')
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  // Chama via Netlify Function (proxy seguro — chave nunca exposta no browser)
+  const res = await fetch('/api/claude', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-allow-browser': 'true',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     }),
   })
