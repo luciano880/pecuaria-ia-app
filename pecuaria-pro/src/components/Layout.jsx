@@ -37,7 +37,38 @@ export default function Layout() {
     { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
     { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
   ]
-  const nav = seg === 'leite' ? navLeite : navCorte
+  const navOvinoLeite = [
+    { to:'/',                    icon:'🏠', label:'Início' },
+    { to:'/animais',             icon:'🏷️', label:'Animais' },
+    { to:'/producao-leite',      icon:'🐑', label:'Produção de Leite' },
+    { to:'/reproducao',          icon:'🐑', label:'Reprodução' },
+    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
+    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
+    { to:'/estoque',             icon:'🌿', label:'Estoque & Dietas' },
+    { to:'/pesagens',            icon:'⚖️', label:'Pesagens' },
+    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
+    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
+    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
+    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
+  ]
+  const navOvinoCorte = [
+    { to:'/',                    icon:'🏠', label:'Início' },
+    { to:'/animais',             icon:'🏷️', label:'Animais' },
+    { to:'/pesagens',            icon:'⚖️', label:'Pesagens & GMD' },
+    { to:'/reproducao',          icon:'🐑', label:'Reprodução' },
+    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
+    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
+    { to:'/estoque',             icon:'🌿', label:'Estoque & Dietas' },
+    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
+    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
+    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
+    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
+  ]
+
+  const nav = seg === 'leite' ? navLeite
+    : seg === 'corte' ? navCorte
+    : seg === 'ovino_leite' ? navOvinoLeite
+    : navOvinoCorte
 
   async function sair() { await logout(); navigate('/auth') }
 
@@ -67,7 +98,7 @@ export default function Layout() {
         </div>
         <div style={{ marginTop:10 }}>
           <span style={{ display:'inline-flex', alignItems:'center', gap:5, background:`${primary}33`, border:`1px solid ${accent}`, borderRadius:20, padding:'3px 10px', fontSize:10, fontWeight:700, color:accent }}>
-            {seg === 'leite' ? '🥛 Leiteira' : '🥩 Corte'}
+            {seg === 'leite' ? '🥛 Leiteira' : seg === 'corte' ? '🥩 Corte' : seg === 'ovino_leite' ? '🐑 Ov. Leite' : '🐑 Ov. Corte'}
           </span>
         </div>
       </div>
@@ -131,7 +162,7 @@ export default function Layout() {
           <button onClick={() => setOpen(true)} style={{ background:C.bgInput, border:`1px solid ${C.border}`, borderRadius:8, padding:'8px 12px', cursor:'pointer', color:C.texto, fontSize:20, lineHeight:1 }}>☰</button>
           <span style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, color:C.texto, fontSize:16 }}>PecuáriaIA</span>
           <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, color:accent, background:`${primary}33`, border:`1px solid ${accent}`, borderRadius:12, padding:'2px 8px' }}>
-            {seg === 'leite' ? '🥛' : '🥩'} {seg === 'leite' ? 'Leiteira' : 'Corte'}
+            {seg === 'leite' ? '🥛' : seg === 'corte' ? '🥩' : '🐑'} {seg === 'leite' ? 'Leiteira' : seg === 'corte' ? 'Corte' : seg === 'ovino_leite' ? 'Ov. Leite' : 'Ov. Corte'}
           </span>
         </div>
 

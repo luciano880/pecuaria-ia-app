@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { supabase } from '../utils/supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, getCor, fmtBRL, fmtNum, fmtMes, hoje, gerarPDFRelatorio } from '../utils/helpers.js'
+import { C, getCor, fmtBRL, fmtNum, fmtMes, hoje, gerarPDFRelatorio, getLabelSegmento } from '../utils/helpers.js'
 
 function KPI({ icon, label, valor, sub, cor, delay = 0, onClick }) {
   return (
@@ -72,7 +72,9 @@ export default function Dashboard() {
       let totalPesagens = 0
       let grafProdData = []
 
-      if (seg === 'leite') {
+      const isLeite = seg === 'leite' || seg === 'ovino_leite'
+
+      if (isLeite) {
         // Buscar produção de leite
         const prodRes = await supabase.from('producao_leite').select('total_litros,data').eq('user_id',user.id).gte('data', dias30).order('data')
         totalLitrosHoje = (prodRes.data||[]).filter(r=>r.data===hoje()).reduce((s,r)=>s+parseFloat(r.total_litros||0),0)
@@ -84,7 +86,6 @@ export default function Dashboard() {
           return { dia: k, litros: prodMap[k]||0 }
         })
       } else {
-        // Buscar pesagens para corte
         const pesRes = await supabase.from('pesagens').select('peso_kg,data').eq('user_id',user.id).gte('data', dias30).order('data')
         totalPesagens = (pesRes.data||[]).length
         const pesMap = {}
@@ -165,7 +166,7 @@ export default function Dashboard() {
             {saudacao}, {perfil?.nome?.split(' ')[0]} 👋
           </h1>
           <div style={{color:C.textoSub,fontSize:13,marginTop:4}}>
-            {perfil?.fazenda} · {seg==='leite'?'🥛 Pecuária Leiteira':'🥩 Pecuária de Corte'}
+            {perfil?.fazenda} · {getLabelSegmento(seg)}
           </div>
         </div>
         <button onClick={gerarPDF} disabled={gerandoPDF} style={{
@@ -181,8 +182,8 @@ export default function Dashboard() {
       {/* KPIs — diferentes por segmento */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:24}}>
         <KPI delay={1} icon="🐄" label="Rebanho ativo" valor={stats.totalAnimais} cor={accent} sub="animais ativos" onClick={()=>navigate('/animais')} />
-        {seg==='leite'
-          ? <KPI delay={2} icon="🥛" label="Litros hoje" valor={`${fmtNum(stats.totalLitrosHoje,1)} L`} cor={C.leiteAccent} sub="produção do dia" onClick={()=>navigate('/producao-leite')} />
+        {seg==='leite'||seg==='ovino_leite'
+          ? <KPI delay={2} icon={seg==='ovino_leite'?'🐑':'🥛'} label="Litros hoje" valor={`${fmtNum(stats.totalLitrosHoje,1)} L`} cor={C.leiteAccent} sub="produção do dia" onClick={()=>navigate('/producao-leite')} />
           : <KPI delay={2} icon="⚖️" label="Pesagens" valor={stats.totalPesagens||0} cor={C.corteAccent} sub="registradas" onClick={()=>navigate('/pesagens')} />
         }
         <KPI delay={3} icon="💰" label="Receita do mês" valor={fmtBRL(stats.receitaMes)} cor={C.verdeVivo} sub={`Resultado: ${fmtBRL(stats.receitaMes-stats.despesaMes)}`} onClick={()=>navigate('/financeiro')} />

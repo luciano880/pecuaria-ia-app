@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, fmtData, hoje, CATEGORIAS_LEITE, CATEGORIAS_CORTE, LABEL_CATEGORIA, limparPayload } from '../utils/helpers.js'
+import { C, fmtData, hoje, getCategoriasSegmento, LABEL_CATEGORIA, limparPayload } from '../utils/helpers.js'
 import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 
 export default function Animais() {
@@ -15,7 +15,7 @@ export default function Animais() {
   const [busca, setBusca] = useState('')
   const { toast, ToastContainer } = useToast()
 
-  const CATS = seg === 'leite' ? CATEGORIAS_LEITE : CATEGORIAS_CORTE
+  const CATS = getCategoriasSegmento(seg)
 
   const vazio = { brinco:'', nome:'', raca:'', sexo:'F', data_nascimento:'', categoria: CATS[0],
     lote:'', mae_brinco:'', peso_entrada:'', obs:'' }

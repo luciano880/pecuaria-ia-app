@@ -17,12 +17,29 @@ export const C = {
   leiteAccent: '#3DBDAD',
   cortePrimary:'#8A3A18',
   corteAccent: '#D46030',
-}
+  ovinoLeitePrimary:'#6A4A9A',
+  ovinoLeiteAccent: '#9B7FD4',
+  ovinoCortePrimary:'#7A5A1A',
+  ovinoCorteAccent: '#C49A40',
 
 export function getCor(segmento) {
-  return segmento === 'leite'
-    ? { primary: C.leitePrimary, accent: C.leiteAccent }
-    : { primary: C.cortePrimary, accent: C.corteAccent }
+  if (segmento === 'leite')        return { primary: C.leitePrimary,       accent: C.leiteAccent }
+  if (segmento === 'corte')        return { primary: C.cortePrimary,       accent: C.corteAccent }
+  if (segmento === 'ovino_leite')  return { primary: C.ovinoLeitePrimary,  accent: C.ovinoLeiteAccent }
+  if (segmento === 'ovino_corte')  return { primary: C.ovinoCortePrimary,  accent: C.ovinoCorteAccent }
+  return { primary: C.verde, accent: C.verdeClaro }
+}
+
+export function getEspecie(segmento) {
+  return segmento?.startsWith('ovino') ? 'ovino' : 'bovino'
+}
+
+export function getLabelSegmento(segmento) {
+  if (segmento === 'leite')       return '🥛 Bovinos Leiteiros'
+  if (segmento === 'corte')       return '🥩 Bovinos de Corte'
+  if (segmento === 'ovino_leite') return '🐑 Ovinos Leiteiros'
+  if (segmento === 'ovino_corte') return '🐑 Ovinos de Corte'
+  return '🐄 Pecuária'
 }
 
 // Limpa payload — converte strings vazias para null, numbers para parseFloat
@@ -97,11 +114,27 @@ export async function chamarIA(prompt) {
 
 export const CATEGORIAS_LEITE = ['lactacao','seca','novilha','bezerra','touro']
 export const CATEGORIAS_CORTE = ['bezerro','bezerro_desmamado','garrote','novilho','boi_gordo','vaca','touro']
+export const CATEGORIAS_OVINO_LEITE = ['ovelha_lactacao','ovelha_seca','borrega','cordeiro','carneiro']
+export const CATEGORIAS_OVINO_CORTE = ['cordeiro','borrego','ovelha','carneiro','capao']
+
 export const LABEL_CATEGORIA = {
-  lactacao:'Vaca em Lactação', seca:'Vaca Seca', novilha:'Novilha',
-  bezerra:'Bezerra', touro:'Touro',
-  bezerro:'Bezerro', bezerro_desmamado:'Bezerro Desmamado',
-  garrote:'Garrote', novilho:'Novilho', boi_gordo:'Boi Gordo', vaca:'Vaca',
+  // Bovinos leite
+  lactacao:'Vaca em Lactação', seca:'Vaca Seca', novilha:'Novilha', bezerra:'Bezerra', touro:'Touro',
+  // Bovinos corte
+  bezerro:'Bezerro', bezerro_desmamado:'Bezerro Desmamado', garrote:'Garrote',
+  novilho:'Novilho', boi_gordo:'Boi Gordo', vaca:'Vaca',
+  // Ovinos leite
+  ovelha_lactacao:'Ovelha em Lactação', ovelha_seca:'Ovelha Seca', borrega:'Borrega',
+  // Ovinos corte/geral
+  cordeiro:'Cordeiro', borrego:'Borrego', ovelha:'Ovelha', carneiro:'Carneiro', capao:'Capão',
+}
+
+export function getCategoriasSegmento(seg) {
+  if (seg === 'leite')       return CATEGORIAS_LEITE
+  if (seg === 'corte')       return CATEGORIAS_CORTE
+  if (seg === 'ovino_leite') return CATEGORIAS_OVINO_LEITE
+  if (seg === 'ovino_corte') return CATEGORIAS_OVINO_CORTE
+  return CATEGORIAS_LEITE
 }
 
 // Gerar PDF relatório mensal

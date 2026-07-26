@@ -26,6 +26,8 @@ function CardIndice({ icon, titulo, valor, unidade, meta, descricao, status }) {
 export default function IndicesZootecnicos() {
   const { user, perfil } = useAuth()
   const seg = perfil?.segmento || 'leite'
+  const isLeite = seg === 'leite' || seg === 'ovino_leite'
+  const isOvino = seg === 'ovino_leite' || seg === 'ovino_corte'
   const { ToastContainer } = useToast()
   const [dados, setDados] = useState(null)
   const [carregando, setCarregando] = useState(true)
@@ -39,7 +41,13 @@ export default function IndicesZootecnicos() {
 
       const catsLeite = ['lactacao','seca','novilha','bezerra']
       const catsCorte = ['bezerro','bezerro_desmamado','garrote','novilho','boi_gordo','vaca','touro']
-      const cats = seg==='leite' ? catsLeite : catsCorte
+      const catsOvinoLeite = ['ovelha_lactacao','ovelha_seca','borrega','cordeiro','carneiro']
+      const catsOvinoCorte = ['cordeiro','borrego','ovelha','carneiro','capao']
+
+      const cats = seg==='leite' ? catsLeite
+        : seg==='corte' ? catsCorte
+        : seg==='ovino_leite' ? catsOvinoLeite
+        : catsOvinoCorte
 
       const [animRes, partosRes, reprosRes, pesagensRes] = await Promise.all([
         supabase.from('animais').select('*').eq('user_id',user.id).eq('ativo',true).in('categoria',cats),
@@ -104,12 +112,17 @@ export default function IndicesZootecnicos() {
         return { brinco:a.brinco, nome:a.nome, mae_brinco:a.mae_brinco, mae_nome:mae?.nome, mae_cat:mae?.categoria }
       })
 
-      if (seg==='leite') {
-        // ── Índices exclusivos LEITE ────────────────────────
-        const lactantes = animais.filter(a=>a.categoria==='lactacao').length
-        const secas     = animais.filter(a=>a.categoria==='seca').length
-        const novilhas  = animais.filter(a=>a.categoria==='novilha').length
-        const bezerras  = animais.filter(a=>a.categoria==='bezerra').length
+      if (seg==='leite' || seg==='ovino_leite') {
+        // ── Índices LEITE / OVINO LEITE ─────────────────────
+        const lactKey = seg==='ovino_leite' ? 'ovelha_lactacao' : 'lactacao'
+        const secaKey = seg==='ovino_leite' ? 'ovelha_seca' : 'seca'
+        const novilhaKey = seg==='ovino_leite' ? 'borrega' : 'novilha'
+        const bezerraKey = seg==='ovino_leite' ? 'cordeiro' : 'bezerra'
+
+        const lactantes = animais.filter(a=>a.categoria===lactKey).length
+        const secas     = animais.filter(a=>a.categoria===secaKey).length
+        const novilhas  = animais.filter(a=>a.categoria===novilhaKey).length
+        const bezerras  = animais.filter(a=>a.categoria===bezerraKey).length
         const total     = lactantes + secas
         const pctLact   = total>0 ? (lactantes/total)*100 : 0
         const pctSeca   = total>0 ? (secas/total)*100 : 0
@@ -125,7 +138,7 @@ export default function IndicesZootecnicos() {
         })
         const del = dels.length>0 ? Math.round(dels.reduce((s,v)=>s+v,0)/dels.length) : null
 
-        setDados({ seg:'leite', total:animais.length, lactantes, secas, novilhas, bezerras, pctLact, pctSeca, iepa, del, dea, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
+        setDados({ seg, isOvino, total:animais.length, lactantes, secas, novilhas, bezerras, pctLact, pctSeca, iepa, del, dea, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
       } else {
         // ── Índices exclusivos CORTE ────────────────────────
         const bezerros  = animais.filter(a=>['bezerro','bezerro_desmamado'].includes(a.categoria)).length
@@ -151,7 +164,7 @@ export default function IndicesZootecnicos() {
         // Taxa de natalidade = partos / vacas * 100
         const txNatalidade = vacas>0 ? (totalN/vacas)*100 : null
 
-        setDados({ seg:'corte', total:animais.length, bezerros, garrotes, novilhos, boisGordos, vacas, touros, iepa, dea, gmdMedio, txNatalidade, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
+        setDados({ seg, isOvino, total:animais.length, bezerros, garrotes, novilhos, boisGordos, vacas, touros, iepa, dea, gmdMedio, txNatalidade, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
       }
     } catch(e) { console.error(e) }
     finally { setCarregando(false) }
@@ -169,14 +182,14 @@ export default function IndicesZootecnicos() {
     <div style={{maxWidth:1000,margin:'0 auto'}}>
       <ToastContainer />
       <div style={{marginBottom:24}}>
-        <h2 style={{fontSize:22,fontWeight:800,color:seg==='leite'?C.leiteAccent:C.corteAccent,fontFamily:"'Syne',sans-serif"}}>
-          📊 Índices Zootécnicos — {seg==='leite'?'🥛 Pecuária Leiteira':'🥩 Pecuária de Corte'}
+        <h2 style={{fontSize:22,fontWeight:800,color:seg==='leite'?C.leiteAccent:seg==='ovino_leite'?C.ovinoLeiteAccent:seg==='ovino_corte'?C.ovinoCorteAccent:C.corteAccent,fontFamily:"'Syne',sans-serif"}}>
+          📊 Índices Zootécnicos — {seg==='leite'?'🥛 Bovinos Leiteiros':seg==='corte'?'🥩 Bovinos de Corte':seg==='ovino_leite'?'🐑 Ovinos Leiteiros':'🐑 Ovinos de Corte'}
         </h2>
-        <p style={{color:C.textoMuted,fontSize:13}}>Indicadores de desempenho — referência Embrapa</p>
+        <p style={{color:C.textoMuted,fontSize:13}}>Indicadores de desempenho — referência Embrapa / {dados.isOvino?'SEBRAE Ovinos':'Embrapa Gado'}</p>
       </div>
 
       {/* ══ LEITE ══ */}
-      {dados.seg==='leite' && (<>
+      {(dados.seg==='leite'||dados.seg==='ovino_leite') && (<>
         <Secao titulo="Composição do Rebanho" icon="🐄" cor={C.leiteAccent}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10}}>
             {[
@@ -208,30 +221,30 @@ export default function IndicesZootecnicos() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
             <CardIndice icon="📅" titulo="IEPA — Intervalo Entre Partos Atual"
               valor={dados.iepa?fmtNum(dados.iepa,0):'—'} unidade="dias"
-              meta="365–395 dias"
+              meta={dados.isOvino?"240–270 dias (8-9 meses)":"365–395 dias"}
               descricao={dados.iepa?`Média de ${dados.intervalos} intervalos do histórico.`:'Cadastre pelo menos 2 partos por animal.'}
-              status={!dados.iepa?'atencao':dados.iepa<=395?'bom':dados.iepa<=430?'atencao':'critico'}/>
-            <CardIndice icon="🥛" titulo="DEL — Dias Em Lactação"
+              status={!dados.iepa?'atencao':dados.isOvino?(dados.iepa<=270?'bom':dados.iepa<=300?'atencao':'critico'):(dados.iepa<=395?'bom':dados.iepa<=430?'atencao':'critico')}/>
+            <CardIndice icon="🥛" titulo={dados.isOvino?"DEL — Dias Em Lactação":"DEL — Dias Em Lactação"}
               valor={dados.del?fmtNum(dados.del,0):'—'} unidade="dias"
-              meta="150–180 dias"
-              descricao="Média de dias em lactação das vacas em produção."
-              status={!dados.del?'atencao':dados.del<=180?'bom':dados.del<=220?'atencao':'critico'}/>
+              meta={dados.isOvino?"120–150 dias":"150–180 dias"}
+              descricao={dados.isOvino?"Média de dias em lactação das ovelhas em produção.":"Média de dias em lactação das vacas em produção."}
+              status={!dados.del?'atencao':dados.isOvino?(dados.del<=150?'bom':dados.del<=180?'atencao':'critico'):(dados.del<=180?'bom':dados.del<=220?'atencao':'critico')}/>
             <CardIndice icon="⏳" titulo="DEA — Dias Em Aberto"
               valor={dados.dea?fmtNum(dados.dea,0):'—'} unidade="dias"
-              meta="60–90 dias"
+              meta={dados.isOvino?"30–60 dias":"60–90 dias"}
               descricao="Dias do parto até a prenhez confirmada."
-              status={!dados.dea?'atencao':dados.dea<=90?'bom':dados.dea<=120?'atencao':'critico'}/>
+              status={!dados.dea?'atencao':dados.isOvino?(dados.dea<=60?'bom':dados.dea<=90?'atencao':'critico'):(dados.dea<=90?'bom':dados.dea<=120?'atencao':'critico')}/>
             <CardIndice icon="📊" titulo="IEPP — Intervalo Entre Partos Previsto"
-              valor="365" unidade="dias"
-              meta="365 dias (12 meses)"
-              descricao="Referência Embrapa: gestação 283d + DEA ideal 82d = 365d."
-              status={!dados.dea?'atencao':dados.dea<=90?'bom':dados.dea<=120?'atencao':'critico'}/>
+              valor={dados.isOvino?"240":"365"} unidade="dias"
+              meta={dados.isOvino?"240 dias (8 meses — Embrapa Ovinos)":"365 dias (12 meses)"}
+              descricao={dados.isOvino?"Gestação 147d + DEA ideal 93d = 240d. Ovinos podem parir até 3x em 2 anos.":"Referência Embrapa: gestação 283d + DEA ideal 82d = 365d."}
+              status={!dados.dea?'atencao':dados.isOvino?(dados.dea<=60?'bom':dados.dea<=90?'atencao':'critico'):(dados.dea<=90?'bom':dados.dea<=120?'atencao':'critico')}/>
           </div>
         </Secao>
       </>)}
 
       {/* ══ CORTE ══ */}
-      {dados.seg==='corte' && (<>
+      {(dados.seg==='corte'||dados.seg==='ovino_corte') && (<>
         <Secao titulo="Composição do Rebanho" icon="🥩" cor={C.corteAccent}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:10}}>
             {[

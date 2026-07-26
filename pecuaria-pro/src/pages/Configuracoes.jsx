@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../utils/supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, hoje } from '../utils/helpers.js'
+import { C, hoje, getLabelSegmento } from '../utils/helpers.js'
 import { Secao, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 
 // ── Parser de XML NF-e ────────────────────────────────────────
@@ -260,8 +260,10 @@ export default function Configuracoes() {
   }
 
   const segOpts = [
-    { value:'leite', icon:'🥛', label:'Pecuária Leiteira', cor: C.leitePrimary, acc: C.leiteAccent },
-    { value:'corte', icon:'🥩', label:'Pecuária de Corte',  cor: C.cortePrimary, acc: C.corteAccent },
+    { value:'leite',       icon:'🥛', label:'Bovinos Leiteiros',  cor: C.leitePrimary,      acc: C.leiteAccent },
+    { value:'corte',       icon:'🥩', label:'Bovinos de Corte',   cor: C.cortePrimary,      acc: C.corteAccent },
+    { value:'ovino_leite', icon:'🐑', label:'Ovinos Leiteiros',   cor: C.ovinoLeitePrimary, acc: C.ovinoLeiteAccent },
+    { value:'ovino_corte', icon:'🐑', label:'Ovinos de Corte',    cor: C.ovinoCortePrimary, acc: C.ovinoCorteAccent },
   ]
 
   return (
@@ -318,7 +320,7 @@ export default function Configuracoes() {
       {/* Backup e Restauração */}
       <Secao titulo="Backup & Restauração" icon="💾" cor={C.ambar}>
         <p style={{ fontSize:12, color:C.textoMuted, marginBottom:16, lineHeight:1.7 }}>
-          O backup exporta <strong style={{color:C.texto}}>todos os seus dados</strong> em formato JSON.
+          O backup exporta <strong style={{color:C.texto}}>todos os seus dados</strong> em formato JSON. 
           Guarde o arquivo em local seguro. Para restaurar, faça upload do arquivo de backup.
         </p>
         <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
@@ -338,7 +340,7 @@ export default function Configuracoes() {
       {/* Importar XML NF-e */}
       <Secao titulo="Importar NF-e para Estoque" icon="📄" cor={C.verdeClaro}>
         <p style={{ fontSize:12, color:C.textoMuted, marginBottom:16, lineHeight:1.7 }}>
-          Importe o XML da Nota Fiscal Eletrônica de compra de <strong style={{color:C.texto}}>ração, silagem, insumos</strong> e outros produtos.
+          Importe o XML da Nota Fiscal Eletrônica de compra de <strong style={{color:C.texto}}>ração, silagem, insumos</strong> e outros produtos. 
           O sistema identifica automaticamente a categoria e lança no estoque.
         </p>
         <Btn cor={C.verdeClaro} onClick={()=>inputXML.current?.click()}>
