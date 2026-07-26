@@ -21,14 +21,41 @@ function calcIR(base) {
 }
 
 const CATS_R = ['venda_leite','venda_animal','venda_bezerro','subvencao','servico','arrendamento','outro']
-const CATS_D = ['alimentacao','sanidade','reproducao','mao_obra','energia','combustivel','manutencao','arrendamento','impostos','financiamento','sementes_insumos','outro']
+
+const CATS_D = [
+  { value:'alimentacao',        label:'🌽 Alimentação Animal (ração, silagem, sal)',  deducivel: true  },
+  { value:'sanidade',           label:'💊 Sanidade (vacinas, medicamentos, vet)',      deducivel: true  },
+  { value:'reproducao',         label:'🐄 Reprodução (sêmen, IATF, exames)',           deducivel: true  },
+  { value:'mao_obra',           label:'👨‍🌾 Mão de Obra (salários, diaristas)',         deducivel: true  },
+  { value:'energia',            label:'⚡ Energia Elétrica da fazenda',                deducivel: true  },
+  { value:'combustivel',        label:'⛽ Combustível (trator, caminhão rural)',        deducivel: true  },
+  { value:'manutencao',         label:'🔧 Manutenção (máquinas, equipamentos)',        deducivel: true  },
+  { value:'financiamento_maq',  label:'🚜 Financiamento de Máquinas/Equipamentos',    deducivel: true  },
+  { value:'financiamento_obra', label:'🏗️ Financiamento de Benfeitorias/Obras',       deducivel: true  },
+  { value:'sementes_insumos',   label:'🌱 Sementes, Adubos e Defensivos',             deducivel: true  },
+  { value:'arrendamento',       label:'🌾 Arrendamento pago',                          deducivel: true  },
+  { value:'impostos',           label:'📋 Impostos/ITR/Taxas rurais',                 deducivel: true  },
+  { value:'frete',              label:'🚛 Frete e Transporte rural',                   deducivel: true  },
+  { value:'assistencia_tecnica',label:'📐 Assistência Técnica/Agronomia',             deducivel: true  },
+  { value:'seguro_rural',       label:'🛡️ Seguro Rural',                              deducivel: true  },
+  { value:'financiamento_custeio',label:'🏦 Financiamento de Custeio (Pronaf etc)',   deducivel: true  },
+  { value:'outro_ded',          label:'📦 Outra despesa dedutível',                   deducivel: true  },
+  { value:'outro',              label:'📦 Outra despesa (não dedutível)',              deducivel: false },
+]
+
+// Determina se categoria é dedutível automaticamente
+const isDedutivel = (cat) => CATS_D.find(c => c.value === cat)?.deducivel ?? true
+
 const LBL = {
-  venda_leite:'Venda de Leite',venda_animal:'Venda de Animal',venda_bezerro:'Venda de Bezerro',
-  subvencao:'Subvenção/Pronaf',servico:'Serviço',arrendamento:'Arrendamento',
-  alimentacao:'Alimentação Animal',sanidade:'Sanidade',reproducao:'Reprodução',
-  mao_obra:'Mão de Obra',energia:'Energia',combustivel:'Combustível',
-  manutencao:'Manutenção',impostos:'Impostos/ITR',financiamento:'Financiamento',
-  sementes_insumos:'Sementes/Insumos',outro:'Outro',
+  venda_leite:'Venda de Leite', venda_animal:'Venda de Animal', venda_bezerro:'Venda de Bezerro',
+  subvencao:'Subvenção/Pronaf', servico:'Serviço', arrendamento:'Arrendamento',
+  alimentacao:'Alimentação Animal', sanidade:'Sanidade', reproducao:'Reprodução',
+  mao_obra:'Mão de Obra', energia:'Energia', combustivel:'Combustível',
+  manutencao:'Manutenção', impostos:'Impostos/ITR', financiamento:'Financiamento',
+  financiamento_maq:'Financ. Máquinas', financiamento_obra:'Financ. Benfeitorias',
+  financiamento_custeio:'Financ. Custeio', sementes_insumos:'Sementes/Insumos',
+  frete:'Frete/Transporte', assistencia_tecnica:'Assist. Técnica',
+  seguro_rural:'Seguro Rural', outro_ded:'Outra dedutível', outro:'Outro',
 }
 
 function Tip({active,payload,label,prefix='',suffix=''}) {
@@ -64,7 +91,7 @@ export default function Financeiro() {
   const [fD, setFD] = useState(vD)
   const [fCR, setFCR] = useState(vCR)
   const sR = (k,v) => setFR(f=>({...f,[k]:v}))
-  const sD = (k,v) => setFD(f=>({...f,[k]:v}))
+  const sD = (k,v,ded) => setFD(f=>({...f,[k]:v, ...(k==='categoria' ? {deducivel_ir: ded ?? isDedutivel(v)} : {})}))
   const sCR = (k,v) => setFCR(f=>({...f,[k]:v}))
 
   // Verificar contas a receber vencidas/hoje e lançar automaticamente
@@ -341,10 +368,13 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
         <Secao titulo={`${despesas.length} despesas`} icon="💸" cor={C.critico} acao={<Btn size="sm" cor={C.critico} onClick={()=>setModalD(true)}>+ Nova</Btn>}>
           <Tabela colunas={[
             {key:'data',label:'Data',render:r=>fmtData(r.data)},
-            {key:'categoria',label:'Categoria',render:r=>LBL[r.categoria]||r.categoria},
+            {key:'categoria',label:'Categoria',render:r=>(
+              <span>{LBL[r.categoria]||r.categoria}
+                {r.deducivel_ir && <span style={{fontSize:9,color:C.verdeClaro,background:`${C.verdeClaro}22`,padding:'1px 5px',borderRadius:3,marginLeft:4}}>✓IR</span>}
+              </span>
+            )},
             {key:'descricao',label:'Descrição'},
             {key:'valor',label:'Valor',render:r=><strong style={{color:C.critico}}>{fmtBRL(r.valor)}</strong>},
-            {key:'deducivel_ir',label:'Ded.IR',render:r=>r.deducivel_ir?<span style={{color:C.verdeClaro}}>✓</span>:'—'},
             {key:'fornecedor',label:'Fornecedor'},
           ]} dados={despesas} loading={loadD} onDelete={r=>{if(confirm('Excluir?'))removerD(r.id)}}/>
         </Secao>
@@ -521,7 +551,7 @@ Linguagem clara ao produtor. Sem markdown ou asteriscos.`)
         <Modal titulo="Lançar Despesa" onClose={()=>setModalD(false)}>
           <Grid cols={2}>
             <Campo label="Data" type="date" value={fD.data} onChange={v=>sD('data',v)} required/>
-            <Campo label="Categoria" type="select" value={fD.categoria} onChange={v=>sD('categoria',v)} options={CATS_D.map(c=>({value:c,label:LBL[c]}))}/>
+            <Campo label="Categoria" type="select" value={fD.categoria} onChange={v=>sD('categoria', v, isDedutivel(v))} options={CATS_D}/>
           </Grid>
           <Campo label="Descrição" value={fD.descricao} onChange={v=>sD('descricao',v)} required/>
           <Grid cols={2}>
