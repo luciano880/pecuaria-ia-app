@@ -15,6 +15,7 @@ import Financeiro         from './pages/Financeiro.jsx'
 import FinanceiroPessoal  from './pages/FinanceiroPessoal.jsx'
 import DeclaracaoIR       from './pages/DeclaracaoIR.jsx'
 import IndicesZootecnicos from './pages/IndicesZootecnicos.jsx'
+import Maquinas           from './pages/Maquinas.jsx'
 import Configuracoes      from './pages/Configuracoes.jsx'
 import { C } from './utils/helpers.js'
 
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="financeiro-pessoal"    element={<FinanceiroPessoal />} />
         <Route path="declaracao-ir"         element={<DeclaracaoIR />} />
         <Route path="indices"               element={<IndicesZootecnicos />} />
+        <Route path="maquinas"              element={<Maquinas />} />
         <Route path="configuracoes"         element={<Configuracoes />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
