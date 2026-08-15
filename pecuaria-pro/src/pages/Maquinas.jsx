@@ -32,7 +32,8 @@ const LABEL_TIPO    = Object.fromEntries(TIPOS.map(t=>[t.value,t.label]))
 const LABEL_MAN     = Object.fromEntries(TIPOS_MAN.map(t=>[t.value,t.label]))
 
 export default function Maquinas() {
-  const { user } = useAuth()
+  const { user, perfil } = useAuth()
+  const seg = perfil?.segmento
   const { toast, ToastContainer } = useToast()
   const [maquinas,    setMaquinas]    = useState([])
   const [manutencoes, setManutencoes] = useState([])
@@ -53,7 +54,7 @@ export default function Maquinas() {
   async function carregar() {
     setLoading(true)
     const [mRes, manRes] = await Promise.all([
-      supabase.from('maquinas').select('*').eq('user_id', user.id).order('nome'),
+      supabase.from('maquinas').select('*').eq('user_id', user.id).eq('segmento', seg).order('nome'),
       supabase.from('manutencoes_maquina').select('*').eq('user_id', user.id).order('data', { ascending: false }),
     ])
     setMaquinas(mRes.data || [])
@@ -76,7 +77,7 @@ export default function Maquinas() {
         await supabase.from('maquinas').update(payload).eq('id', editMaq).eq('user_id', user.id)
         toast('Máquina atualizada!')
       } else {
-        await supabase.from('maquinas').insert({ ...payload, user_id: user.id })
+        await supabase.from('maquinas').insert({ ...payload, user_id: user.id, segmento: seg })
         toast('Máquina cadastrada!')
       }
       setModalMaq(false); setFMaq(vMaq); setEditMaq(null)

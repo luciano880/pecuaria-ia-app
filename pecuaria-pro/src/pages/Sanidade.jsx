@@ -10,9 +10,9 @@ export default function Sanidade() {
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
 
-  const { dados: medicamentos, loading: loadMed, inserir: inserirMed, remover: removerMed } = useTabela('medicamentos')
-  const { dados: aplicacoes, loading: loadApl, inserir: inserirApl, carregar: recarregarApl, remover: removerApl } = useTabela('aplicacoes')
-  const { dados: vacinacoes, loading: loadVac, inserir: inserirVac, remover: removerVac } = useTabela('vacinacoes')
+  const { dados: medicamentos, loading: loadMed, inserir: inserirMed, remover: removerMed } = useTabela('medicamentos', { segmento: seg })
+  const { dados: aplicacoes, loading: loadApl, inserir: inserirApl, carregar: recarregarApl, remover: removerApl } = useTabela('aplicacoes', { segmento: seg })
+  const { dados: vacinacoes, loading: loadVac, inserir: inserirVac, remover: removerVac } = useTabela('vacinacoes', { segmento: seg })
   const { dados: animais } = useTabela('animais', { segmento: seg })
   const { toast, ToastContainer } = useToast()
 
@@ -46,7 +46,7 @@ export default function Sanidade() {
 
   async function salvarMed() {
     if (!fMed.nome) { toast('Nome do medicamento obrigatório', 'erro'); return }
-    try { await inserirMed(fMed); toast('Medicamento cadastrado!'); setModalMed(false) }
+    try { await inserirMed({ ...fMed, segmento: seg }); toast('Medicamento cadastrado!'); setModalMed(false) }
     catch (e) { toast(e.message, 'erro') }
   }
 
@@ -61,7 +61,7 @@ export default function Sanidade() {
     const fimCarne = med.carencia_carne > 0
       ? new Date(dataBase.getTime() + med.carencia_carne * 86400000).toISOString().split('T')[0] : null
     try {
-      await inserirApl({
+      await inserirApl({ segmento: seg, ...{
         ...fApl, animal_id: animal?.id || null,
         medicamento_nome: med.nome,
         carencia_leite_dias: med.carencia_leite,

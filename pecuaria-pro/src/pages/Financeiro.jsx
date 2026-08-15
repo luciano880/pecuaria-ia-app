@@ -72,9 +72,9 @@ export default function Financeiro() {
   const { user, perfil } = useAuth()
   const seg = perfil?.segmento
   const { toast, ToastContainer } = useToast()
-  const { dados: receitas, loading: loadR, inserir: inserirR, remover: removerR } = useTabela('receitas')
-  const { dados: despesas, loading: loadD, inserir: inserirD, remover: removerD } = useTabela('despesas')
-  const { dados: contasReceber, loading: loadCR, inserir: inserirCR, atualizar: atualizarCR, carregar: recarregarCR } = useTabela('contas_receber')
+  const { dados: receitas, loading: loadR, inserir: inserirR, remover: removerR } = useTabela('receitas', { segmento: seg })
+  const { dados: despesas, loading: loadD, inserir: inserirD, remover: removerD } = useTabela('despesas', { segmento: seg })
+  const { dados: contasReceber, loading: loadCR, inserir: inserirCR, atualizar: atualizarCR, carregar: recarregarCR } = useTabela('contas_receber', { segmento: seg })
   const [aba, setAba] = useState('resumo')
   const [modalR, setModalR] = useState(false)
   const [modalD, setModalD] = useState(false)
@@ -134,7 +134,7 @@ export default function Financeiro() {
     if(!fR.valor||!fR.descricao){toast('Preencha valor e descrição','erro');return}
     try{
       await inserirR({
-        ...fR,
+        ...fR, segmento: seg,
         valor: fR.valor===''?null:parseFloat(fR.valor),
         quantidade: fR.quantidade===''?null:(fR.quantidade?parseFloat(fR.quantidade):null),
       })
@@ -145,7 +145,7 @@ export default function Financeiro() {
     if(!fD.valor||!fD.descricao){toast('Preencha valor e descrição','erro');return}
     try{
       await inserirD({
-        ...fD,
+        ...fD, segmento: seg,
         valor: fD.valor===''?null:parseFloat(fD.valor),
       })
       toast('Despesa lançada!');setModalD(false);setFD(vD)
@@ -158,7 +158,7 @@ export default function Financeiro() {
     }
     try{
       await inserirCR({
-        ...fCR,
+        ...fCR, segmento: seg,
         valor: parseFloat(fCR.valor),
         status: 'pendente',
       })

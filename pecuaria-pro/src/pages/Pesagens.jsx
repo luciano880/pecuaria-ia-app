@@ -8,7 +8,7 @@ export default function Pesagens() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
-  const { dados, loading, inserir, remover } = useTabela('pesagens')
+  const { dados, loading, inserir, remover } = useTabela('pesagens', { segmento: seg })
   const { dados: animais } = useTabela('animais', { segmento: seg })
   const [modal, setModal] = useState(false)
   const { toast, ToastContainer } = useToast()

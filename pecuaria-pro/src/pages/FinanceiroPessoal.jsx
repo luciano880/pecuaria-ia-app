@@ -32,9 +32,10 @@ const CORES = ['#5A9A35','#D46A1A','#2A8A78','#8A3A18','#3D6B25','#C03520','#7EC
 
 export default function FinanceiroPessoal() {
   const { user, perfil } = useAuth()
+  const seg = perfil?.segmento
   const { toast, ToastContainer } = useToast()
-  const { dados: receitas, loading: loadR, inserir: inserirR, remover: removerR } = useTabela('receitas_pessoal')
-  const { dados: despesas, loading: loadD, inserir: inserirD, remover: removerD } = useTabela('despesas_pessoal')
+  const { dados: receitas, loading: loadR, inserir: inserirR, remover: removerR } = useTabela('receitas_pessoal', { segmento: seg })
+  const { dados: despesas, loading: loadD, inserir: inserirD, remover: removerD } = useTabela('despesas_pessoal', { segmento: seg })
   const [aba, setAba] = useState('resumo')
   const [modalR, setModalR] = useState(false)
   const [modalD, setModalD] = useState(false)
@@ -47,7 +48,7 @@ export default function FinanceiroPessoal() {
   async function salvarR() {
     if (!fR.valor || !fR.descricao) { toast('Preencha valor e descrição', 'erro'); return }
     try {
-      await inserirR({ ...fR, valor: parseFloat(fR.valor) })
+      await inserirR({ ...fR, valor: parseFloat(fR.valor), segmento: seg })
       toast('Receita pessoal lançada!'); setModalR(false); setFR(vR)
     } catch(e) { toast(e.message, 'erro') }
   }
@@ -55,7 +56,7 @@ export default function FinanceiroPessoal() {
   async function salvarD() {
     if (!fD.valor || !fD.descricao) { toast('Preencha valor e descrição', 'erro'); return }
     try {
-      await inserirD({ ...fD, valor: parseFloat(fD.valor) })
+      await inserirD({ ...fD, valor: parseFloat(fD.valor), segmento: seg })
       toast('Despesa pessoal lançada!'); setModalD(false); setFD(vD)
     } catch(e) { toast(e.message, 'erro') }
   }

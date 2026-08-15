@@ -13,7 +13,7 @@ export default function Reproducao() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
-  const { dados, loading, inserir, atualizar, remover } = useTabela('reproducao')
+  const { dados, loading, inserir, atualizar, remover } = useTabela('reproducao', { segmento: seg })
   const { dados: animais } = useTabela('animais', { segmento: seg, sexo: 'F' })
   const [modal, setModal] = useState(false)
   const [editando, setEditando] = useState(null)
