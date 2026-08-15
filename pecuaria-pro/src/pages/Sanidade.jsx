@@ -61,8 +61,10 @@ export default function Sanidade() {
     const fimCarne = med.carencia_carne > 0
       ? new Date(dataBase.getTime() + med.carencia_carne * 86400000).toISOString().split('T')[0] : null
     try {
-      await inserirApl({ segmento: seg, ...{
-        ...fApl, animal_id: animal?.id || null,
+      await inserirApl({
+        segmento: seg,
+        ...fApl,
+        animal_id: animal?.id || null,
         medicamento_nome: med.nome,
         carencia_leite_dias: med.carencia_leite,
         carencia_carne_dias: med.carencia_carne,
