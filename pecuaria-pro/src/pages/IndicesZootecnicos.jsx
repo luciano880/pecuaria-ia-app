@@ -51,9 +51,9 @@ export default function IndicesZootecnicos() {
 
       const [animRes, partosRes, reprosRes, pesagensRes] = await Promise.all([
         supabase.from('animais').select('*').eq('user_id',user.id).eq('ativo',true).in('categoria',cats),
-        supabase.from('reproducao').select('*').eq('user_id',user.id).eq('tipo','parto').order('data_evento'),
-        supabase.from('reproducao').select('*').eq('user_id',user.id).order('data_evento',{ascending:false}),
-        supabase.from('pesagens').select('*').eq('user_id',user.id).order('data'),
+        supabase.from('reproducao').select('*').eq('user_id',user.id).eq('segmento',seg).eq('tipo','parto').order('data_evento'),
+        supabase.from('reproducao').select('*').eq('user_id',user.id).eq('segmento',seg).order('data_evento',{ascending:false}),
+        supabase.from('pesagens').select('*').eq('user_id',user.id).eq('segmento',seg).order('data'),
       ])
 
       const animais = animRes.data || []

@@ -59,9 +59,9 @@ export default function Dashboard() {
       const [animRes, alertRes, estRes, recRes, desRes] = await Promise.all([
         supabase.from('animais').select('id,categoria').eq('user_id',user.id).eq('segmento',seg||'leite').eq('ativo',true),
         supabase.from('alertas').select('*').eq('user_id',user.id).eq('lido',false).order('data_alerta').limit(8),
-        supabase.from('estoque_insumos').select('nome,quantidade,estoque_minimo').eq('user_id',user.id),
-        supabase.from('receitas').select('valor,data').eq('user_id',user.id).gte('data', mesAtual+'-01'),
-        supabase.from('despesas').select('valor,data').eq('user_id',user.id).gte('data', mesAtual+'-01'),
+        supabase.from('estoque_insumos').select('nome,quantidade,estoque_minimo').eq('user_id',user.id).eq('segmento',seg||'leite'),
+        supabase.from('receitas').select('valor,data').eq('user_id',user.id).eq('segmento',seg||'leite').gte('data', mesAtual+'-01'),
+        supabase.from('despesas').select('valor,data').eq('user_id',user.id).eq('segmento',seg||'leite').gte('data', mesAtual+'-01'),
       ])
 
       const estoquesBaixos = (estRes.data||[]).filter(i=>parseFloat(i.quantidade)<=parseFloat(i.estoque_minimo||0)).length
@@ -86,7 +86,7 @@ export default function Dashboard() {
           return { dia: k, litros: prodMap[k]||0 }
         })
       } else {
-        const pesRes = await supabase.from('pesagens').select('peso_kg,data').eq('user_id',user.id).gte('data', dias30).order('data')
+        const pesRes = await supabase.from('pesagens').select('peso_kg,data').eq('user_id',user.id).eq('segmento',seg||'leite').gte('data', dias30).order('data')
         totalPesagens = (pesRes.data||[]).length
         const pesMap = {}
         ;(pesRes.data||[]).forEach(r => {
@@ -127,10 +127,10 @@ export default function Dashboard() {
     setGerandoPDF(true)
     try {
       const [animRes,alertRes,recRes,desRes] = await Promise.all([
-        supabase.from('animais').select('categoria').eq('user_id',user.id),
+        supabase.from('animais').select('categoria').eq('user_id',user.id).eq('segmento',seg||'leite'),
         supabase.from('alertas').select('*').eq('user_id',user.id).eq('lido',false),
-        supabase.from('receitas').select('valor').eq('user_id',user.id),
-        supabase.from('despesas').select('valor').eq('user_id',user.id),
+        supabase.from('receitas').select('valor').eq('user_id',user.id).eq('segmento',seg||'leite'),
+        supabase.from('despesas').select('valor').eq('user_id',user.id).eq('segmento',seg||'leite'),
       ])
       const rec = (recRes.data||[]).reduce((s,r)=>s+parseFloat(r.valor||0),0)
       const des = (desRes.data||[]).reduce((s,r)=>s+parseFloat(r.valor||0),0)

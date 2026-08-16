@@ -62,7 +62,7 @@ export default function FichaAnimal() {
 
   async function salvarParto() {
     try {
-      await supabase.from('reproducao').insert({
+      await supabase.from('reproducao').insert({ segmento: seg,
         user_id: user.id,
         animal_id: animal.id,
         brinco: animal.brinco,
@@ -84,7 +84,7 @@ export default function FichaAnimal() {
 
   async function salvarPeso() {
     if (!novoPeso.peso_kg) { toast('Informe o peso', 'erro'); return }
-    const { error } = await supabase.from('pesagens').insert({
+    const { error } = await supabase.from('pesagens').insert({ segmento: seg,
       user_id: user.id, animal_id: animal.id,
       brinco: animal.brinco, ...novoPeso,
     })
