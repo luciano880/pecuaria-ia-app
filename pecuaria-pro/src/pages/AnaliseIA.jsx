@@ -6,23 +6,24 @@ import { C, chamarIA, hoje } from '../utils/helpers.js'
 export default function AnaliseIA() {
   const { user, perfil } = useAuth()
   const seg = perfil?.segmento
-  const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
+  const cor = seg === 'leite' ? C.leiteAccent : seg === 'ovino_leite' ? C.ovinoLeiteAccent : seg === 'ovino_corte' ? C.ovinoCorteAccent : C.corteAccent
   const [analise, setAnalise] = useState(null)
   const [loading, setLoading] = useState(false)
   const [modulo, setModulo] = useState('geral')
 
-  const modulos = seg === 'leite' ? [
+  const modulos = (seg === 'leite' || seg === 'ovino_leite') ? [
     { id: 'geral',      label: '🏠 Diagnóstico Geral' },
-    { id: 'producao',   label: '🥛 Produção & Margem' },
-    { id: 'nutricao',   label: '🌽 Nutrição & Dieta' },
+    { id: 'producao',   label: seg === 'ovino_leite' ? '🐑 Produção & Leite' : '🥛 Produção & Margem' },
+    { id: 'nutricao',   label: '🌿 Nutrição & Dieta' },
     { id: 'sanidade',   label: '💊 Sanidade & Carências' },
-    { id: 'reproducao', label: '🐄 Reprodução' },
+    { id: 'reproducao', label: seg === 'ovino_leite' ? '🐑 Reprodução Ovina' : '🐄 Reprodução' },
   ] : [
-    { id: 'geral',      label: '🏠 Diagnóstico Geral' },
-    { id: 'confinamento', label: '⚖️ Confinamento & GMD' },
-    { id: 'nutricao',   label: '🌽 Nutrição & Dieta' },
-    { id: 'sanidade',   label: '💊 Sanidade & Carências' },
-    { id: 'reproducao', label: '🐄 Reprodução' },
+    { id: 'geral',        label: '🏠 Diagnóstico Geral' },
+    { id: 'confinamento', label: seg === 'ovino_corte' ? '🐑 Engorda & GMD' : '⚖️ Confinamento & GMD' },
+    { id: 'nutricao',     label: '🌿 Nutrição & Dieta' },
+    { id: 'sanidade',     label: '💊 Sanidade & Carências' },
+    { id: 'reproducao',   label: seg === 'ovino_corte' ? '🐑 Reprodução Ovina' : '🐄 Reprodução' },
+  ]
   ]
 
   async function analisar() {
@@ -63,13 +64,28 @@ export default function AnaliseIA() {
         contexto += `  - ${i.nome}: ${i.quantidade} ${i.unidade}${dias ? ` (${dias} dias)` : ''}\n`
       })
 
+      const refs = {
+        leite:       'Embrapa Gado de Leite (CNPGL), Milkpoint, CBNA, NRC 2001 Dairy, MAPA',
+        corte:       'Embrapa Gado de Corte (CNPGC), Cepea/USP, CBNA, NRC Beef, ANUALPEC, MAPA',
+        ovino_leite: 'Embrapa Caprinos e Ovinos (CNPCO), SEBRAE Ovinos, ACOB, NRC Small Ruminants, MAPA',
+        ovino_corte: 'Embrapa Caprinos e Ovinos (CNPCO), SEBRAE Ovinos, ACOB, NRC Small Ruminants, MAPA',
+      }
+      const esp = {
+        leite:'bovinos leiteiros', corte:'bovinos de corte',
+        ovino_leite:'ovinos leiteiros', ovino_corte:'ovinos de corte',
+      }
+      const segAtual = perfil?.segmento || 'leite'
+      const ref = refs[segAtual] || refs.leite
+      const animal = esp[segAtual] || 'bovinos'
+      const isOvino = segAtual?.includes('ovino')
+
       const prompts = {
-        geral: `Veterinário/zootecnista especialista em pecuária brasileira (Embrapa, CBNA). Diagnóstico em 4 seções: 1-PONTOS POSITIVOS, 2-ATENÇÃO, 3-RISCOS, 4-PLANO DESTA SEMANA. Direto ao produtor, sem markdown.`,
-        producao: `Especialista em produção leiteira (Embrapa, Milkpoint). Analise produção, indicadores e sugira melhorias em eficiência leiteira. Sem markdown.`,
-        confinamento: `Especialista em confinamento bovino (Embrapa, Cepea). Analise GMD, dieta e rentabilidade. Benchmarks nacionais. Sem markdown.`,
-        nutricao: `Nutricionista animal (CBNA, NRC, Embrapa). Analise estoque, dieta e custo nutricional. Deficiências e ajustes práticos. Sem markdown.`,
-        sanidade: `Médico veterinário (MAPA, CFMV). Analise carências e vacinação. Riscos sanitários e calendário para Sul do Brasil. Sem markdown.`,
-        reproducao: `Especialista em reprodução bovina (Embrapa, CBRA). IEP, taxa de concepção, gargalos. Compare com IEP<365d, concepção>60%. Sem markdown.`,
+        geral: `Veterinário/zootecnista especialista em ${animal} no Brasil. Referências: ${ref}. Diagnóstico em 4 seções: 1-PONTOS POSITIVOS, 2-ATENÇÃO, 3-RISCOS, 4-PLANO DESTA SEMANA. Direto ao produtor, sem markdown.`,
+        producao: `Especialista em produção de leite de ${animal}. Referências: ${ref}. Analise produção, DEL, eficiência leiteira e sugira melhorias práticas. Sem markdown.`,
+        confinamento: `Especialista em crescimento/engorda de ${animal}. Referências: ${ref}. Analise GMD, conversão alimentar, projeção de abate e rentabilidade. Benchmarks nacionais. Sem markdown.`,
+        nutricao: `Nutricionista animal especialista em ${animal}. Referências: ${ref}. Analise estoque, dieta e custo nutricional. Identifique deficiências e sugira ajustes práticos. Sem markdown.`,
+        sanidade: `Médico veterinário especialista em ${animal}. Referências: ${ref}. Analise carências, vacinação e riscos sanitários. Calendário sanitário para Sul do Brasil. Sem markdown.`,
+        reproducao: `Especialista em reprodução de ${animal}. Referências: ${ref}. Analise índices reprodutivos e gargalos. ${isOvino ? 'Compare com: IEPA<270d, natalidade>90%, prolificidade>1,5 cordeiros/parto.' : 'Compare com: IEP<365d, concepção>60%, DEA<90d.'} Sem markdown.`,
       }
 
       const prompt = `${prompts[modulo] || prompts.geral}\n\nDados:\n${contexto}\n\nData: ${new Date().toLocaleDateString('pt-BR')}`
@@ -88,7 +104,12 @@ export default function AnaliseIA() {
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: cor }}>🤖 Análise IA</h2>
         <p style={{ color: C.textoMuted, fontSize: 13 }}>
-          Diagnóstico inteligente baseado nos seus dados reais · Referências: Embrapa, CBNA, NRC, MAPA
+          Diagnóstico inteligente baseado nos seus dados reais · {
+            perfil?.segmento === 'leite' ? 'Referências: Embrapa CNPGL, CBNA, NRC Dairy, MAPA' :
+            perfil?.segmento === 'corte' ? 'Referências: Embrapa CNPGC, Cepea/USP, CBNA, NRC Beef' :
+            perfil?.segmento === 'ovino_leite' ? 'Referências: Embrapa CNPCO, SEBRAE Ovinos, NRC Small Ruminants' :
+            'Referências: Embrapa CNPCO, SEBRAE Ovinos, ACOB, NRC Small Ruminants'
+          }
         </p>
       </div>
 
