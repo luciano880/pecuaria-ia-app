@@ -86,7 +86,9 @@ export default function Estoque() {
   const vazio = { nome:'', categoria:'silagem', quantidade:0, unidade:'kg', consumo_diario:0, estoque_minimo:0, preco_unitario:0, fornecedor:'' }
   const [form, setForm] = useState(vazio)
   const [fMov, setFMov] = useState({ tipo:'entrada', quantidade:'', data:hoje(), motivo:'' })
-  const [fDieta, setFDieta] = useState({ lote:'', data_inicio:hoje(), silagem_kg_cab_dia:0, concentrado_kg_cab_dia:0, sal_mineral_g_cab_dia:0, obs:'' })
+  const isOvino = seg?.includes('ovino')
+  const isLeite = seg === 'leite' || seg === 'ovino_leite'
+  const [fDieta, setFDieta] = useState({ lote:'', data_inicio:hoje(), silagem_kg_cab_dia:0, feno_kg_cab_dia:0, concentrado_kg_cab_dia:0, sal_mineral_g_cab_dia:0, ureia_g_cab_dia:0, volumoso_kg_cab_dia:0, obs:'' })
 
   function set(k,v)  { setForm(f => ({ ...f, [k]: v })) }
   function setD(k,v) { setFDieta(f => ({ ...f, [k]: v })) }
@@ -133,6 +135,7 @@ export default function Estoque() {
         const valorTotal = parseFloat(fMov.quantidade) * parseFloat(modalMov.preco_unitario)
         await supabase.from('despesas').insert({
           user_id: user.id,
+          segmento: seg,
           data: fMov.data,
           categoria: modalMov.categoria==='vacina'||modalMov.categoria==='medicamento' ? 'sanidade' : 'alimentacao',
           descricao: `Entrada estoque: ${modalMov.nome} (${fMov.quantidade} ${modalMov.unidade})`,
@@ -300,9 +303,10 @@ export default function Estoque() {
           <Tabela colunas={[
             { key:'lote',                   label:'Lote' },
             { key:'data_inicio',            label:'Início',     render:r=>r.data_inicio||'—' },
-            { key:'silagem_kg_cab_dia',     label:'Silagem/cab',render:r=>`${r.silagem_kg_cab_dia||0} kg` },
+            { key:'vol',  label:isOvino?'Feno/cab':'Silagem/cab', render:r=>isOvino?`${r.feno_kg_cab_dia||0} kg`:`${r.silagem_kg_cab_dia||0} kg` },
             { key:'concentrado_kg_cab_dia', label:'Conc./cab',  render:r=>`${r.concentrado_kg_cab_dia||0} kg` },
             { key:'sal_mineral_g_cab_dia',  label:'Sal/cab',    render:r=>`${r.sal_mineral_g_cab_dia||0} g` },
+            { key:'ureia_g_cab_dia',        label:'Ureia/cab',  render:r=>r.ureia_g_cab_dia>0?`${r.ureia_g_cab_dia} g`:'—' },
             { key:'obs',                    label:'Obs',        render:r=>r.obs||'—' },
           ]} dados={dietas} loading={false} onDelete={excluirDieta}/>
         </Secao>
@@ -420,10 +424,17 @@ export default function Estoque() {
             <Campo label="Lote / Grupo" value={fDieta.lote} onChange={v=>setD('lote',v)} required/>
             <Campo label="Data início" type="date" value={fDieta.data_inicio} onChange={v=>setD('data_inicio',v)}/>
           </Grid>
-          <Grid cols={3}>
-            <Campo label="Silagem (kg/cab/dia)" type="number" step="0.1" value={fDieta.silagem_kg_cab_dia} onChange={v=>setD('silagem_kg_cab_dia',v)}/>
-            <Campo label="Conc. (kg/cab/dia)" type="number" step="0.1" value={fDieta.concentrado_kg_cab_dia} onChange={v=>setD('concentrado_kg_cab_dia',v)}/>
-            <Campo label="Sal (g/cab/dia)" type="number" step="1" value={fDieta.sal_mineral_g_cab_dia} onChange={v=>setD('sal_mineral_g_cab_dia',v)}/>
+          {/* Volumosos por segmento */}
+          <Grid cols={isOvino ? 3 : 2}>
+            {!isOvino && <Campo label="🌽 Silagem (kg/cab/dia)" type="number" step="0.1" value={fDieta.silagem_kg_cab_dia} onChange={v=>setD('silagem_kg_cab_dia',v)} placeholder={isLeite?"30-40 kg/vaca":"8-10 kg/bov"}/>}
+            {isOvino && <Campo label="🌾 Feno (kg/cab/dia)" type="number" step="0.1" value={fDieta.feno_kg_cab_dia} onChange={v=>setD('feno_kg_cab_dia',v)} placeholder="1,5-2 kg/ovelha"/>}
+            {isOvino && <Campo label="🌱 Volumoso (kg/cab/dia)" type="number" step="0.1" value={fDieta.volumoso_kg_cab_dia} onChange={v=>setD('volumoso_kg_cab_dia',v)} placeholder="pastagem+feno"/>}
+            <Campo label="🟤 Conc. (kg/cab/dia)" type="number" step="0.1" value={fDieta.concentrado_kg_cab_dia} onChange={v=>setD('concentrado_kg_cab_dia',v)} placeholder={isOvino?(isLeite?"0,5-0,8 kg":"0,3-0,5 kg"):isLeite?"4-6 kg":"2-4 kg"}/>
+          </Grid>
+          <Grid cols={isOvino ? 2 : 3}>
+            <Campo label="🧂 Sal mineral (g/cab/dia)" type="number" step="1" value={fDieta.sal_mineral_g_cab_dia} onChange={v=>setD('sal_mineral_g_cab_dia',v)} placeholder={isOvino?"10-15 g":"60-80 g"}/>
+            {!isOvino && <Campo label="⚗️ Ureia (g/cab/dia)" type="number" step="1" value={fDieta.ureia_g_cab_dia} onChange={v=>setD('ureia_g_cab_dia',v)} placeholder="max 150g/bov/dia"/>}
+            {isOvino && <Campo label="⚗️ Ureia (g/cab/dia)" type="number" step="1" value={fDieta.ureia_g_cab_dia} onChange={v=>setD('ureia_g_cab_dia',v)} placeholder="max 5g/ovino/dia"/>}
           </Grid>
           <Campo label="Observações" type="textarea" value={fDieta.obs} onChange={v=>setD('obs',v)}/>
           <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:8}}>

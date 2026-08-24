@@ -44,17 +44,25 @@ export default function AnaliseIA() {
       const estoque = estRes.data || []
       const carencias = aplRes.data || []
 
-      let contexto = `Fazenda: ${perfil?.fazenda} | Segmento: ${seg === 'leite' ? 'Pecuária Leiteira' : 'Pecuária de Corte'}\n`
+      const segLabel = {
+        leite:'Bovinos Leiteiros', corte:'Bovinos de Corte',
+        ovino_leite:'Ovinos Leiteiros', ovino_corte:'Ovinos de Corte'
+      }
+      let contexto = `Fazenda: ${perfil?.fazenda} | Segmento: ${segLabel[seg]||seg}\n`
       contexto += `Rebanho: ${animais.length} animais ativos\n`
 
-      if (seg === 'leite') {
+      if (seg === 'leite' || seg === 'ovino_leite') {
         const prod = prodRes.data || []
         const totalLitros30d = prod.reduce((s,r) => s + parseFloat(r.total_litros||0), 0)
         const mediaLitrosDia = prod.length > 0 ? totalLitros30d / (new Set(prod.map(r=>r.data)).size) : 0
         contexto += `Produção últimos 30 dias: ${totalLitros30d.toFixed(0)} L | Média/dia: ${mediaLitrosDia.toFixed(1)} L\n`
+        if(seg==='ovino_leite') contexto += `Meta raça Lacaune: 200-400L/lactação (150d) | Meta Santa Inês: 80-120L\n`
+        else contexto += `Meta rebanho: >25L/vaca/dia (Embrapa CNPGL) | CCS meta: <400.000 céls/mL (IN77/2018)\n`
       } else {
         const pesagens = prodRes.data || []
         contexto += `Pesagens últimos 60 dias: ${pesagens.length} registros\n`
+        if(seg==='ovino_corte') contexto += `Meta GMD Dorper: 300g/dia | Meta Santa Inês: 200g/dia | Peso abate: 35-45kg (Embrapa CNPCO)\n`
+        else contexto += `Meta GMD Nelore: 1,2kg/dia | Cruzados: 1,5kg/dia | Peso abate: 480-520kg (Cepea/USP)\n`
       }
 
       contexto += `Animais em carência: ${carencias.length}\n`

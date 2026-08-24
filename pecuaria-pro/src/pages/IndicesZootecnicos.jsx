@@ -113,6 +113,8 @@ export default function IndicesZootecnicos() {
       })
 
       if (seg==='leite' || seg==='ovino_leite') {
+        // ── CCS (bovinos leite) — buscar da producao_leite
+        // ── Prolificidade ovinos — gêmeos/trigêmeos
         // ── Índices LEITE / OVINO LEITE ─────────────────────
         const lactKey = seg==='ovino_leite' ? 'ovelha_lactacao' : 'lactacao'
         const secaKey = seg==='ovino_leite' ? 'ovelha_seca' : 'seca'
@@ -194,10 +196,10 @@ export default function IndicesZootecnicos() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10}}>
             {[
               {l:'Total fêmeas', v:dados.total,                                           c:C.texto},
-              {l:'🥛 Lactantes', v:`${dados.lactantes} (${fmtNum(dados.pctLact,0)}%)`,   c:C.leiteAccent},
-              {l:'🔵 Secas',     v:`${dados.secas} (${fmtNum(dados.pctSeca,0)}%)`,       c:C.ambar},
-              {l:'🌱 Novilhas',  v:dados.novilhas,                                        c:C.verdeClaro},
-              {l:'🍼 Bezerras',  v:dados.bezerras,                                        c:C.verdeVivo},
+              {l:dados.isOvino?'🐑 Em Lactação':'🥛 Lactantes', v:`${dados.lactantes} (${fmtNum(dados.pctLact,0)}%)`, c:C.leiteAccent},
+              {l:dados.isOvino?'🐑 Secas/Gestantes':'🔵 Secas', v:`${dados.secas} (${fmtNum(dados.pctSeca,0)}%)`, c:C.ambar},
+              {l:dados.isOvino?'🐑 Borregas':'🌱 Novilhas', v:dados.novilhas, c:C.verdeClaro},
+              {l:dados.isOvino?'🐑 Cordeiras':'🍼 Bezerras', v:dados.bezerras, c:C.verdeVivo},
             ].map((s,i)=>(
               <div key={i} style={{background:C.bgInput,borderRadius:8,padding:'10px 12px',textAlign:'center'}}>
                 <div style={{fontSize:10,color:C.textoMuted,textTransform:'uppercase',fontWeight:600,marginBottom:4}}>{s.l}</div>
@@ -212,7 +214,7 @@ export default function IndicesZootecnicos() {
           <div style={{display:'flex',gap:16,marginTop:6,fontSize:11,color:C.textoMuted}}>
             <span style={{color:C.leiteAccent}}>● Lactantes</span>
             <span style={{color:C.ambar}}>● Secas</span>
-            <span>Meta: 85% lactantes / 15% secas</span>
+            <span>Meta: {dados.isOvino?'80% lactantes / 20% secas (CNPCO)':'85% lactantes / 15% secas (CNPGL)'}</span>
           </div>
         </Secao>
 
@@ -298,7 +300,7 @@ export default function IndicesZootecnicos() {
         ):(
           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}}>
             {[
-              {l:'Total partos',   v:dados.nascimentos.totalN,                                            c:C.texto},
+              {l:dados.isOvino?'Total partos':'Total partos', v:dados.nascimentos.totalN,                                            c:C.texto},
               {l:'🚺 Fêmeas',     v:`${dados.nascimentos.femeas} (${fmtNum(dados.nascimentos.pctF,0)}%)`,c:C.leiteAccent},
               {l:'🚹 Machos',     v:`${dados.nascimentos.machos} (${fmtNum(dados.nascimentos.pctM,0)}%)`,c:C.ambar},
               {l:'💀 Natimortos', v:`${dados.nascimentos.natimortos} (${fmtNum(dados.nascimentos.pctN,1)}%)`,c:dados.nascimentos.natimortos>0?C.critico:C.verdeClaro},
