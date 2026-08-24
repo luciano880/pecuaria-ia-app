@@ -12,6 +12,8 @@ const nf = (v) => (v === '' || v === undefined || v === null) ? null : parseFloa
 export default function Reproducao() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
+  const diasGestacao = seg?.includes('ovino') ? 147 : 283
+  const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
   const { dados, loading, inserir, atualizar, remover } = useTabela('reproducao', { segmento: seg })
   const { dados: animais } = useTabela('animais', { segmento: seg, sexo: 'F' })
@@ -25,11 +27,11 @@ export default function Reproducao() {
   const [form, setForm] = useState(vazio)
   function set(k,v) { setForm(f => ({ ...f, [k]: v })) }
 
-  // Calcular previsão de parto (283 dias para bovinos - Embrapa)
+  // Calcular previsão de parto (283d bovinos Embrapa / 147d ovinos Embrapa CNPCO)
   function calcularParto(dataCobertura) {
     if (!dataCobertura) return ''
     const d = new Date(dataCobertura)
-    d.setDate(d.getDate() + 283)
+    d.setDate(d.getDate() + diasGestacao)
     return d.toISOString().split('T')[0]
   }
 
@@ -116,7 +118,7 @@ export default function Reproducao() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: cor }}>🐄 Reprodução</h2>
-          <p style={{ color: C.textoMuted, fontSize: 13 }}>Coberturas, IATF, diagnósticos e partos · Previsão: 283 dias (Embrapa)</p>
+          <p style={{ color: C.textoMuted, fontSize: 13 }}>{seg?.includes('ovino') ? 'Coberturas, diagnósticos e partos · Gestação: 147 dias (Embrapa CNPCO)' : 'Coberturas, IATF, diagnósticos e partos · Gestação: 283 dias (Embrapa CNPGL)'}</p>
         </div>
         <Btn onClick={abrirNovo} cor={seg === 'leite' ? C.leitePrimary : C.cortePrimary}>+ Novo Evento</Btn>
       </div>

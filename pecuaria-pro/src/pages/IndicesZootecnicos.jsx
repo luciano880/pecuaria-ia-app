@@ -221,17 +221,17 @@ export default function IndicesZootecnicos() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
             <CardIndice icon="📅" titulo="IEPA — Intervalo Entre Partos Atual"
               valor={dados.iepa?fmtNum(dados.iepa,0):'—'} unidade="dias"
-              meta={dados.isOvino?"240–270 dias (8-9 meses)":"365–395 dias"}
+              meta={dados.isOvino?"240–270 dias — Embrapa CNPCO (8-9 meses)":"365–395 dias — Embrapa CNPGL (12-13 meses)"}
               descricao={dados.iepa?`Média de ${dados.intervalos} intervalos do histórico.`:'Cadastre pelo menos 2 partos por animal.'}
               status={!dados.iepa?'atencao':dados.isOvino?(dados.iepa<=270?'bom':dados.iepa<=300?'atencao':'critico'):(dados.iepa<=395?'bom':dados.iepa<=430?'atencao':'critico')}/>
             <CardIndice icon="🥛" titulo={dados.isOvino?"DEL — Dias Em Lactação":"DEL — Dias Em Lactação"}
               valor={dados.del?fmtNum(dados.del,0):'—'} unidade="dias"
-              meta={dados.isOvino?"120–150 dias":"150–180 dias"}
+              meta={dados.isOvino?"120–150 dias (Embrapa CNPCO)":"150–180 dias (Embrapa CNPGL — meta 305d de lactação)"}
               descricao={dados.isOvino?"Média de dias em lactação das ovelhas em produção.":"Média de dias em lactação das vacas em produção."}
               status={!dados.del?'atencao':dados.isOvino?(dados.del<=150?'bom':dados.del<=180?'atencao':'critico'):(dados.del<=180?'bom':dados.del<=220?'atencao':'critico')}/>
             <CardIndice icon="⏳" titulo="DEA — Dias Em Aberto"
               valor={dados.dea?fmtNum(dados.dea,0):'—'} unidade="dias"
-              meta={dados.isOvino?"30–60 dias":"60–90 dias"}
+              meta={dados.isOvino?"30–60 dias (CNPCO)":"60–85 dias — Embrapa CNPGL (ideal: 80d)"}
               descricao="Dias do parto até a prenhez confirmada."
               status={!dados.dea?'atencao':dados.isOvino?(dados.dea<=60?'bom':dados.dea<=90?'atencao':'critico'):(dados.dea<=90?'bom':dados.dea<=120?'atencao':'critico')}/>
             <CardIndice icon="📊" titulo="IEPP — Intervalo Entre Partos Previsto"
@@ -267,24 +267,24 @@ export default function IndicesZootecnicos() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
             <CardIndice icon="⚖️" titulo="GMD — Ganho Médio Diário"
               valor={dados.gmdMedio?fmtNum(dados.gmdMedio,2):'—'} unidade="kg/dia"
-              meta="1,2–1,5 kg/dia (confinamento)"
-              descricao="Média do GMD de todos os animais com pelo menos 2 pesagens."
-              status={!dados.gmdMedio?'atencao':dados.gmdMedio>=1.2?'bom':dados.gmdMedio>=0.8?'atencao':'critico'}/>
+              meta={dados.isOvino?"200–300 g/dia (Embrapa CNPCO)":"1,2–1,5 kg/dia (Embrapa CNPGC)"}
+              descricao={dados.isOvino?"GMD ideal para ovinos de corte: 250g/dia. Raças Dorper e Santa Inês atingem 300g/dia em confinamento.":"GMD ideal no confinamento bovino. Nelore: 1,2 kg/dia; cruzados: até 1,5 kg/dia (Cepea/USP)."}
+              status={!dados.gmdMedio?'atencao':dados.isOvino?(dados.gmdMedio>=0.25?'bom':dados.gmdMedio>=0.18?'atencao':'critico'):(dados.gmdMedio>=1.2?'bom':dados.gmdMedio>=0.8?'atencao':'critico')}/>
             <CardIndice icon="⏳" titulo="DEA — Dias Em Aberto"
               valor={dados.dea?fmtNum(dados.dea,0):'—'} unidade="dias"
-              meta="Até 120 dias"
-              descricao="Dias do parto até a prenhez confirmada. Meta no corte: até 120d."
+              meta="Até 90–120 dias — Embrapa CNPGC"
+              descricao="Nelore extensivo: aceita até 120d. Cruzados semi-intensivos: meta 90d. Acima de 150d indica falha reprodutiva."
               status={!dados.dea?'atencao':dados.dea<=120?'bom':dados.dea<=180?'atencao':'critico'}/>
             <CardIndice icon="📅" titulo="IEPA — Intervalo Entre Partos"
               valor={dados.iepa?fmtNum(dados.iepa,0):'—'} unidade="dias"
-              meta="365–420 dias"
-              descricao="No corte é aceitável até 420 dias (14 meses)."
+              meta="365–420 dias — Embrapa CNPGC"
+              descricao="Zebu puro: aceita até 420d. Cruzados taurinos: meta 365d. Acima de 450d compromete rentabilidade (ANUALPEC)."
               status={!dados.iepa?'atencao':dados.iepa<=420?'bom':dados.iepa<=450?'atencao':'critico'}/>
             <CardIndice icon="🐣" titulo="Taxa de Natalidade"
               valor={dados.txNatalidade?fmtNum(dados.txNatalidade,0):'—'} unidade="%"
-              meta="Acima de 80%"
-              descricao="Partos registrados / vacas em reprodução × 100."
-              status={!dados.txNatalidade?'atencao':dados.txNatalidade>=80?'bom':dados.txNatalidade>=60?'atencao':'critico'}/>
+              meta={dados.isOvino?"Acima de 90% (Embrapa CNPCO)":"Acima de 80% (Embrapa CNPGC)"}
+              descricao={dados.isOvino?"Ovinos de alta prolificidade atingem >150% (gêmeos/trigêmeos). Meta mínima: 90% de natalidade.":"Partos registrados / vacas em reprodução × 100. Meta Embrapa: >80%."}
+              status={!dados.txNatalidade?'atencao':dados.isOvino?(dados.txNatalidade>=90?'bom':dados.txNatalidade>=70?'atencao':'critico'):(dados.txNatalidade>=80?'bom':dados.txNatalidade>=60?'atencao':'critico')}/>
           </div>
         </Secao>
       </>)}
