@@ -72,7 +72,7 @@ export default function Dashboard() {
       let totalPesagens = 0
       let grafProdData = []
 
-      const isLeite = seg === 'leite' || seg === 'ovino_leite'
+      const isLeite = seg === 'leite' || seg === 'ovino_leite' || seg === 'caprino_leite'
 
       if (isLeite) {
         // Buscar produção de leite
@@ -145,7 +145,7 @@ export default function Dashboard() {
 
   if (carregando) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',flexDirection:'column',gap:12}}>
-      <div className="pulse" style={{fontSize:36}}>{seg?.includes("ovino") ? "🐑" : "🐄"}</div>
+      <div className="pulse" style={{fontSize:36}}>{seg?.includes("ovino") ? "🐑" : seg?.includes("caprino") ? "🐐" : "🐄"}</div>
       <div style={{color:C.textoMuted,fontSize:13}}>Carregando dados da fazenda...</div>
     </div>
   )
@@ -181,7 +181,7 @@ export default function Dashboard() {
 
       {/* KPIs — diferentes por segmento */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:24}}>
-        <KPI delay={1} icon={seg?.includes("ovino") ? "🐑" : "🐄"} label="Rebanho ativo" valor={stats.totalAnimais} cor={accent} sub="animais ativos" onClick={()=>navigate('/animais')} />
+        <KPI delay={1} icon={seg?.includes("ovino") ? "🐑" : seg?.includes("caprino") ? "🐐" : "🐄"} label="Rebanho ativo" valor={stats.totalAnimais} cor={accent} sub="animais ativos" onClick={()=>navigate('/animais')} />
         {seg==='leite'||seg==='ovino_leite'
           ? <KPI delay={2} icon={seg==='ovino_leite'?'🐑':'🥛'} label="Litros hoje" valor={`${fmtNum(stats.totalLitrosHoje,1)} L`} cor={C.leiteAccent} sub="produção do dia" onClick={()=>navigate('/producao-leite')} />
           : <KPI delay={2} icon="⚖️" label="Pesagens" valor={stats.totalPesagens||0} cor={C.corteAccent} sub="registradas" onClick={()=>navigate('/pesagens')} />

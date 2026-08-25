@@ -11,18 +11,18 @@ export default function AnaliseIA() {
   const [loading, setLoading] = useState(false)
   const [modulo, setModulo] = useState('geral')
 
-  const modulos = (seg === 'leite' || seg === 'ovino_leite') ? [
+  const modulos = (seg === 'leite' || seg === 'ovino_leite' || seg === 'caprino_leite') ? [
     { id: 'geral',      label: '🏠 Diagnóstico Geral' },
-    { id: 'producao',   label: seg === 'ovino_leite' ? '🐑 Produção & Leite' : '🥛 Produção & Margem' },
+    { id: 'producao',   label: seg === 'ovino_leite' ? '🐑 Produção & Leite' : seg === 'caprino_leite' ? '🐐 Produção & Leite' : '🥛 Produção & Margem' },
     { id: 'nutricao',   label: '🌿 Nutrição & Dieta' },
     { id: 'sanidade',   label: '💊 Sanidade & Carências' },
-    { id: 'reproducao', label: seg === 'ovino_leite' ? '🐑 Reprodução Ovina' : '🐄 Reprodução' },
+    { id: 'reproducao', label: seg === 'ovino_leite' ? '🐑 Reprodução Ovina' : seg === 'caprino_leite' ? '🐐 Reprodução Caprina' : '🐄 Reprodução' },
   ] : [
     { id: 'geral',        label: '🏠 Diagnóstico Geral' },
-    { id: 'confinamento', label: seg === 'ovino_corte' ? '🐑 Engorda & GMD' : '⚖️ Confinamento & GMD' },
+    { id: 'confinamento', label: seg === 'ovino_corte' ? '🐑 Engorda & GMD' : seg === 'caprino_corte' ? '🐐 Engorda & GMD' : '⚖️ Confinamento & GMD' },
     { id: 'nutricao',     label: '🌿 Nutrição & Dieta' },
     { id: 'sanidade',     label: '💊 Sanidade & Carências' },
-    { id: 'reproducao',   label: seg === 'ovino_corte' ? '🐑 Reprodução Ovina' : '🐄 Reprodução' },
+    { id: 'reproducao',   label: seg === 'ovino_corte' ? '🐑 Reprodução Ovina' : seg === 'caprino_corte' ? '🐐 Reprodução Caprina' : '🐄 Reprodução' },
   ]
   ]
 
@@ -57,11 +57,13 @@ export default function AnaliseIA() {
         const mediaLitrosDia = prod.length > 0 ? totalLitros30d / (new Set(prod.map(r=>r.data)).size) : 0
         contexto += `Produção últimos 30 dias: ${totalLitros30d.toFixed(0)} L | Média/dia: ${mediaLitrosDia.toFixed(1)} L\n`
         if(seg==='ovino_leite') contexto += `Meta raça Lacaune: 200-400L/lactação (150d) | Meta Santa Inês: 80-120L\n`
+        else if(seg==='caprino_leite') contexto += `Meta Saanen: 600-900L/lactação (270d) | Meta Alpina: 500-700L | Meta Anglo-Nubiana: 300-500L (Embrapa CNPCO/IDF)\n`
         else contexto += `Meta rebanho: >25L/vaca/dia (Embrapa CNPGL) | CCS meta: <400.000 céls/mL (IN77/2018)\n`
       } else {
         const pesagens = prodRes.data || []
         contexto += `Pesagens últimos 60 dias: ${pesagens.length} registros\n`
         if(seg==='ovino_corte') contexto += `Meta GMD Dorper: 300g/dia | Meta Santa Inês: 200g/dia | Peso abate: 35-45kg (Embrapa CNPCO)\n`
+        else if(seg==='caprino_corte') contexto += `Meta GMD cabrito: 150-200g/dia | Peso abate: 25-35kg (cabrito leite: 8-12kg) | Rendimento carcaça: 45-50% (Embrapa CNPCO)\n`
         else contexto += `Meta GMD Nelore: 1,2kg/dia | Cruzados: 1,5kg/dia | Peso abate: 480-520kg (Cepea/USP)\n`
       }
 
@@ -75,17 +77,22 @@ export default function AnaliseIA() {
       const refs = {
         leite:       'Embrapa Gado de Leite (CNPGL), Milkpoint, CBNA, NRC 2001 Dairy, MAPA',
         corte:       'Embrapa Gado de Corte (CNPGC), Cepea/USP, CBNA, NRC Beef, ANUALPEC, MAPA',
-        ovino_leite: 'Embrapa Caprinos e Ovinos (CNPCO), SEBRAE Ovinos, ACOB, NRC Small Ruminants, MAPA',
-        ovino_corte: 'Embrapa Caprinos e Ovinos (CNPCO), SEBRAE Ovinos, ACOB, NRC Small Ruminants, MAPA',
+        ovino_leite:   'Embrapa Caprinos e Ovinos (CNPCO), SEBRAE Ovinos, ACOB, NRC Small Ruminants, MAPA',
+        ovino_corte:   'Embrapa Caprinos e Ovinos (CNPCO), SEBRAE Ovinos, ACOB, NRC Small Ruminants, MAPA',
+        caprino_leite: 'Embrapa Caprinos e Ovinos (CNPCO), ACOC, NRC Small Ruminants, MAPA, IDF',
+        caprino_corte: 'Embrapa Caprinos e Ovinos (CNPCO), ACOC, NRC Small Ruminants, MAPA',
       }
       const esp = {
         leite:'bovinos leiteiros', corte:'bovinos de corte',
         ovino_leite:'ovinos leiteiros', ovino_corte:'ovinos de corte',
+        caprino_leite:'caprinos leiteiros', caprino_corte:'caprinos de corte',
       }
       const segAtual = perfil?.segmento || 'leite'
       const ref = refs[segAtual] || refs.leite
       const animal = esp[segAtual] || 'bovinos'
       const isOvino = segAtual?.includes('ovino')
+      const isCaprino = segAtual?.includes('caprino')
+      const isPequeno = isOvino || isCaprino
 
       const prompts = {
         geral: `Veterinário/zootecnista especialista em ${animal} no Brasil. Referências: ${ref}. Diagnóstico em 4 seções: 1-PONTOS POSITIVOS, 2-ATENÇÃO, 3-RISCOS, 4-PLANO DESTA SEMANA. Direto ao produtor, sem markdown.`,
@@ -93,7 +100,7 @@ export default function AnaliseIA() {
         confinamento: `Especialista em crescimento/engorda de ${animal}. Referências: ${ref}. Analise GMD, conversão alimentar, projeção de abate e rentabilidade. Benchmarks nacionais. Sem markdown.`,
         nutricao: `Nutricionista animal especialista em ${animal}. Referências: ${ref}. Analise estoque, dieta e custo nutricional. Identifique deficiências e sugira ajustes práticos. Sem markdown.`,
         sanidade: `Médico veterinário especialista em ${animal}. Referências: ${ref}. Analise carências, vacinação e riscos sanitários. Calendário sanitário para Sul do Brasil. Sem markdown.`,
-        reproducao: `Especialista em reprodução de ${animal}. Referências: ${ref}. Analise índices reprodutivos e gargalos. ${isOvino ? 'Compare com: IEPA<270d, natalidade>90%, prolificidade>1,5 cordeiros/parto.' : 'Compare com: IEP<365d, concepção>60%, DEA<90d.'} Sem markdown.`,
+        reproducao: `Especialista em reprodução de ${animal}. Referências: ${ref}. Analise índices reprodutivos e gargalos. ${isCaprino ? 'Compare com: IEPA<240d, natalidade>90%, prolificidade>1,8 cabritos/parto, gestação 150d (Embrapa CNPCO).' : isOvino ? 'Compare com: IEPA<270d, natalidade>90%, prolificidade>1,5 cordeiros/parto.' : 'Compare com: IEP<365d, concepção>60%, DEA<90d.'} Sem markdown.`,
       }
 
       const prompt = `${prompts[modulo] || prompts.geral}\n\nDados:\n${contexto}\n\nData: ${new Date().toLocaleDateString('pt-BR')}`

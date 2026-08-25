@@ -7,7 +7,7 @@ import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/
 export default function ProducaoLeite() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
-  const catLact = seg === 'ovino_leite' ? 'ovelha_lactacao' : 'lactacao'
+  const catLact = seg === 'ovino_leite' ? 'ovelha_lactacao' : seg === 'caprino_leite' ? 'cabra_lactacao' : 'lactacao'
   const { dados, loading, inserir, remover } = useTabela('producao_leite', { segmento: seg })
   const { dados: entregas, inserir: inserirEntrega, remover: removerEntrega } = useTabela('entrega_leite', { segmento: seg })
   const { dados: animais } = useTabela('animais', { segmento: seg, categoria: catLact })

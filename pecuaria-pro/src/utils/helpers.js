@@ -21,6 +21,10 @@ export const C = {
   ovinoLeiteAccent: '#9B7FD4',
   ovinoCortePrimary:'#7A5A1A',
   ovinoCorteAccent: '#C49A40',
+  caprinoLeitePrimary:'#1A6A5A',
+  caprinoLeiteAccent: '#2DB89A',
+  caprinoCortePrimary:'#5A3A1A',
+  caprinoCorteAccent: '#A06030',
 }
 
 export function getCor(segmento) {
@@ -28,18 +32,24 @@ export function getCor(segmento) {
   if (segmento === 'corte')        return { primary: C.cortePrimary,       accent: C.corteAccent }
   if (segmento === 'ovino_leite')  return { primary: C.ovinoLeitePrimary,  accent: C.ovinoLeiteAccent }
   if (segmento === 'ovino_corte')  return { primary: C.ovinoCortePrimary,  accent: C.ovinoCorteAccent }
+  if (segmento === 'caprino_leite') return { primary: C.caprinoLeitePrimary, accent: C.caprinoLeiteAccent }
+  if (segmento === 'caprino_corte') return { primary: C.caprinoCortePrimary, accent: C.caprinoCorteAccent }
   return { primary: C.verde, accent: C.verdeClaro }
 }
 
 export function getEspecie(segmento) {
-  return segmento?.startsWith('ovino') ? 'ovino' : 'bovino'
+  if (segmento?.startsWith('ovino'))   return 'ovino'
+  if (segmento?.startsWith('caprino')) return 'caprino'
+  return 'bovino'
 }
 
 export function getLabelSegmento(segmento) {
   if (segmento === 'leite')       return '🥛 Bovinos Leiteiros'
   if (segmento === 'corte')       return '🥩 Bovinos de Corte'
   if (segmento === 'ovino_leite') return '🐑 Ovinos Leiteiros'
-  if (segmento === 'ovino_corte') return '🐑 Ovinos de Corte'
+  if (segmento === 'ovino_corte')   return '🐑 Ovinos de Corte'
+  if (segmento === 'caprino_leite') return '🐐 Caprinos Leiteiros'
+  if (segmento === 'caprino_corte') return '🐐 Caprinos de Corte'
   return '🐄 Pecuária'
 }
 
@@ -126,6 +136,9 @@ export const LABEL_CATEGORIA = {
   novilho:'Novilho', boi_gordo:'Boi Gordo', vaca:'Vaca',
   // Ovinos leite
   ovelha_lactacao:'Ovelha em Lactação', ovelha_seca:'Ovelha Seca', borrega:'Borrega',
+  // Caprinos
+  cabra_lactacao:'Cabra em Lactação', cabra_seca:'Cabra Seca', cabrita:'Cabrita',
+  cabrito:'Cabrito', bode:'Bode', capao_caprino:'Capão Caprino',
   // Ovinos corte/geral
   cordeiro:'Cordeiro', borrego:'Borrego', ovelha:'Ovelha', carneiro:'Carneiro', capao:'Capão',
 }
@@ -134,7 +147,9 @@ export function getCategoriasSegmento(seg) {
   if (seg === 'leite')       return CATEGORIAS_LEITE
   if (seg === 'corte')       return CATEGORIAS_CORTE
   if (seg === 'ovino_leite') return CATEGORIAS_OVINO_LEITE
-  if (seg === 'ovino_corte') return CATEGORIAS_OVINO_CORTE
+  if (seg === 'ovino_corte')   return CATEGORIAS_OVINO_CORTE
+  if (seg === 'caprino_leite') return ['cabra_lactacao','cabra_seca','cabrita','cabrito','bode']
+  if (seg === 'caprino_corte') return ['cabrito','cabrita','cabra','bode','capao_caprino']
   return CATEGORIAS_LEITE
 }
 

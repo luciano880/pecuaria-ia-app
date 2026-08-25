@@ -224,7 +224,9 @@ function TelaCadastro({ setTela }) {
             { val: 'leite',       icon: '🐄', prod: '🥛', label: 'Bovinos Leiteiros',  cor: C.leitePrimary,      acc: C.leiteAccent },
             { val: 'corte',       icon: '🐂', prod: '🥩', label: 'Bovinos de Corte',   cor: C.cortePrimary,      acc: C.corteAccent },
             { val: 'ovino_leite', icon: '🐑', prod: '🥛', label: 'Ovinos Leiteiros',   cor: C.ovinoLeitePrimary, acc: C.ovinoLeiteAccent },
-            { val: 'ovino_corte', icon: '🐏', prod: '🥩', label: 'Ovinos de Corte',    cor: C.ovinoCortePrimary, acc: C.ovinoCorteAccent },
+            { val: 'ovino_corte',   icon: '🐏', prod: '🥩', label: 'Ovinos de Corte',      cor: C.ovinoCortePrimary,   acc: C.ovinoCorteAccent },
+            { val: 'caprino_leite', icon: '🐐', prod: '🥛', label: 'Caprinos Leiteiros',   cor: C.caprinoLeitePrimary, acc: C.caprinoLeiteAccent },
+            { val: 'caprino_corte', icon: '🐐', prod: '🥩', label: 'Caprinos de Corte',    cor: C.caprinoCortePrimary, acc: C.caprinoCorteAccent },
           ].map(s => (
             <button
               key={s.val}

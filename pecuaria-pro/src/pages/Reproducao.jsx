@@ -12,7 +12,7 @@ const nf = (v) => (v === '' || v === undefined || v === null) ? null : parseFloa
 export default function Reproducao() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
-  const diasGestacao = seg?.includes('ovino') ? 147 : 283
+  const diasGestacao = seg?.includes('ovino') ? 147 : seg?.includes('caprino') ? 150 : 283
   const seg = perfil?.segmento
   const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
   const { dados, loading, inserir, atualizar, remover } = useTabela('reproducao', { segmento: seg })
@@ -118,7 +118,7 @@ export default function Reproducao() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: cor }}>🐄 Reprodução</h2>
-          <p style={{ color: C.textoMuted, fontSize: 13 }}>{seg?.includes('ovino') ? 'Coberturas, diagnósticos e partos · Gestação: 147 dias (Embrapa CNPCO)' : 'Coberturas, IATF, diagnósticos e partos · Gestação: 283 dias (Embrapa CNPGL)'}</p>
+          <p style={{ color: C.textoMuted, fontSize: 13 }}>{seg?.includes('ovino') ? 'Coberturas, diagnósticos e partos · Gestação: 147 dias (Embrapa CNPCO)' : seg?.includes('caprino') ? 'Coberturas, diagnósticos e partos · Gestação: 150 dias (Embrapa CNPCO)' : 'Coberturas, IATF, diagnósticos e partos · Gestação: 283 dias (Embrapa CNPGL)'}</p>
         </div>
         <Btn onClick={abrirNovo} cor={seg === 'leite' ? C.leitePrimary : C.cortePrimary}>+ Novo Evento</Btn>
       </div>

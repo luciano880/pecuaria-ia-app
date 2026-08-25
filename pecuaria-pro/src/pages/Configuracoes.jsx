@@ -263,7 +263,9 @@ export default function Configuracoes() {
     { value:'leite',       icon:'🥛', img:'🐄', label:'Bovinos Leiteiros',  sub:'Vaca leiteira · Produção de leite',  cor: C.leitePrimary,      acc: C.leiteAccent },
     { value:'corte',       icon:'🥩', img:'🐂', label:'Bovinos de Corte',   sub:'Boi · Engorda e abate',              cor: C.cortePrimary,      acc: C.corteAccent },
     { value:'ovino_leite', icon:'🐑', img:'🐑', label:'Ovinos Leiteiros',   sub:'Ovelha leiteira · Produção de leite',cor: C.ovinoLeitePrimary, acc: C.ovinoLeiteAccent },
-    { value:'ovino_corte', icon:'🐑', img:'🐏', label:'Ovinos de Corte',    sub:'Carneiro · Engorda e abate',         cor: C.ovinoCortePrimary, acc: C.ovinoCorteAccent },
+    { value:'ovino_corte',   icon:'🐑', img:'🐏', label:'Ovinos de Corte',      sub:'Carneiro · Engorda e abate',            cor: C.ovinoCortePrimary,   acc: C.ovinoCorteAccent },
+    { value:'caprino_leite', icon:'🐐', img:'🐐', label:'Caprinos Leiteiros',    sub:'Cabra leiteira · Leite e queijo',       cor: C.caprinoLeitePrimary, acc: C.caprinoLeiteAccent },
+    { value:'caprino_corte', icon:'🐐', img:'🐐', label:'Caprinos de Corte',     sub:'Cabrito · Engorda e abate',             cor: C.caprinoCortePrimary, acc: C.caprinoCorteAccent },
   ]
 
   return (

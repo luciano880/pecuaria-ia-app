@@ -26,8 +26,10 @@ function CardIndice({ icon, titulo, valor, unidade, meta, descricao, status }) {
 export default function IndicesZootecnicos() {
   const { user, perfil } = useAuth()
   const seg = perfil?.segmento || 'leite'
-  const isLeite = seg === 'leite' || seg === 'ovino_leite'
-  const isOvino = seg === 'ovino_leite' || seg === 'ovino_corte'
+  const isLeite   = seg === 'leite' || seg === 'ovino_leite' || seg === 'caprino_leite'
+  const isOvino   = seg === 'ovino_leite' || seg === 'ovino_corte'
+  const isCaprino = seg === 'caprino_leite' || seg === 'caprino_corte'
+  const isPequeno = isOvino || isCaprino
   const { ToastContainer } = useToast()
   const [dados, setDados] = useState(null)
   const [carregando, setCarregando] = useState(true)
@@ -42,7 +44,9 @@ export default function IndicesZootecnicos() {
       const catsLeite = ['lactacao','seca','novilha','bezerra']
       const catsCorte = ['bezerro','bezerro_desmamado','garrote','novilho','boi_gordo','vaca','touro']
       const catsOvinoLeite = ['ovelha_lactacao','ovelha_seca','borrega','cordeiro','carneiro']
-      const catsOvinoCorte = ['cordeiro','borrego','ovelha','carneiro','capao']
+      const catsOvinoCorte   = ['cordeiro','borrego','ovelha','carneiro','capao']
+      const catsCaprinoLeite = ['cabra_lactacao','cabra_seca','cabrita','cabrito','bode']
+      const catsCaprinoCorte = ['cabrito','cabrita','cabra','bode','capao_caprino']
 
       const cats = seg==='leite' ? catsLeite
         : seg==='corte' ? catsCorte
@@ -112,7 +116,10 @@ export default function IndicesZootecnicos() {
         return { brinco:a.brinco, nome:a.nome, mae_brinco:a.mae_brinco, mae_nome:mae?.nome, mae_cat:mae?.categoria }
       })
 
-      if (seg==='leite' || seg==='ovino_leite') {
+      // Gestação: bovinos 283d | ovinos 147d | caprinos 150d (Embrapa CNPCO)
+      const diasGest = seg?.includes('ovino') ? 147 : seg?.includes('caprino') ? 150 : 283
+
+      if (seg==='leite' || seg==='ovino_leite' || seg==='caprino_leite') {
         // ── CCS (bovinos leite) — buscar da producao_leite
         // ── Prolificidade ovinos — gêmeos/trigêmeos
         // ── Índices LEITE / OVINO LEITE ─────────────────────
@@ -140,7 +147,7 @@ export default function IndicesZootecnicos() {
         })
         const del = dels.length>0 ? Math.round(dels.reduce((s,v)=>s+v,0)/dels.length) : null
 
-        setDados({ seg, isOvino, total:animais.length, lactantes, secas, novilhas, bezerras, pctLact, pctSeca, iepa, del, dea, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
+        setDados({ seg, isOvino, isCaprino, isPequeno, total:animais.length, lactantes, secas, novilhas, bezerras, pctLact, pctSeca, iepa, del, dea, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
       } else {
         // ── Índices exclusivos CORTE ────────────────────────
         const bezerros  = animais.filter(a=>['bezerro','bezerro_desmamado'].includes(a.categoria)).length
@@ -166,7 +173,7 @@ export default function IndicesZootecnicos() {
         // Taxa de natalidade = partos / vacas * 100
         const txNatalidade = vacas>0 ? (totalN/vacas)*100 : null
 
-        setDados({ seg, isOvino, total:animais.length, bezerros, garrotes, novilhos, boisGordos, vacas, touros, iepa, dea, gmdMedio, txNatalidade, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
+        setDados({ seg, isOvino, isCaprino, isPequeno, total:animais.length, bezerros, garrotes, novilhos, boisGordos, vacas, touros, iepa, dea, gmdMedio, txNatalidade, intervalos:intervalos.length, nascimentos:{totalN,femeas,machos,natimortos,pctF,pctM,pctN}, genealogia })
       }
     } catch(e) { console.error(e) }
     finally { setCarregando(false) }
@@ -185,9 +192,9 @@ export default function IndicesZootecnicos() {
       <ToastContainer />
       <div style={{marginBottom:24}}>
         <h2 style={{fontSize:22,fontWeight:800,color:seg==='leite'?C.leiteAccent:seg==='ovino_leite'?C.ovinoLeiteAccent:seg==='ovino_corte'?C.ovinoCorteAccent:C.corteAccent,fontFamily:"'Syne',sans-serif"}}>
-          📊 Índices Zootécnicos — {seg==='leite'?'🥛 Bovinos Leiteiros':seg==='corte'?'🥩 Bovinos de Corte':seg==='ovino_leite'?'🐑 Ovinos Leiteiros':'🐑 Ovinos de Corte'}
+          📊 Índices Zootécnicos — {seg==='leite'?'🥛 Bovinos Leiteiros':seg==='corte'?'🥩 Bovinos de Corte':seg==='ovino_leite'?'🐑 Ovinos Leiteiros':seg==='ovino_corte'?'🐑 Ovinos de Corte':seg==='caprino_leite'?'🐐 Caprinos Leiteiros':'🐐 Caprinos de Corte'}
         </h2>
-        <p style={{color:C.textoMuted,fontSize:13}}>Indicadores de desempenho — referência Embrapa / {dados.isOvino?'SEBRAE Ovinos':'Embrapa Gado'}</p>
+        <p style={{color:C.textoMuted,fontSize:13}}>Indicadores de desempenho — referência Embrapa / {dados.isCaprino?'Embrapa CNPCO/ACOC':dados.isOvino?'Embrapa CNPCO/SEBRAE':'Embrapa Gado'}</p>
       </div>
 
       {/* ══ LEITE ══ */}
@@ -196,10 +203,10 @@ export default function IndicesZootecnicos() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10}}>
             {[
               {l:'Total fêmeas', v:dados.total,                                           c:C.texto},
-              {l:dados.isOvino?'🐑 Em Lactação':'🥛 Lactantes', v:`${dados.lactantes} (${fmtNum(dados.pctLact,0)}%)`, c:C.leiteAccent},
-              {l:dados.isOvino?'🐑 Secas/Gestantes':'🔵 Secas', v:`${dados.secas} (${fmtNum(dados.pctSeca,0)}%)`, c:C.ambar},
-              {l:dados.isOvino?'🐑 Borregas':'🌱 Novilhas', v:dados.novilhas, c:C.verdeClaro},
-              {l:dados.isOvino?'🐑 Cordeiras':'🍼 Bezerras', v:dados.bezerras, c:C.verdeVivo},
+              {l:dados.isCaprino?'🐐 Em Lactação':dados.isOvino?'🐑 Em Lactação':'🥛 Lactantes', v:`${dados.lactantes} (${fmtNum(dados.pctLact,0)}%)`, c:C.leiteAccent},
+              {l:dados.isCaprino?'🐐 Secas/Gestantes':dados.isOvino?'🐑 Secas/Gestantes':'🔵 Secas', v:`${dados.secas} (${fmtNum(dados.pctSeca,0)}%)`, c:C.ambar},
+              {l:dados.isCaprino?'🐐 Cabritas':dados.isOvino?'🐑 Borregas':'🌱 Novilhas', v:dados.novilhas, c:C.verdeClaro},
+              {l:dados.isCaprino?'🐐 Cabritos':dados.isOvino?'🐑 Cordeiras':'🍼 Bezerras', v:dados.bezerras, c:C.verdeVivo},
             ].map((s,i)=>(
               <div key={i} style={{background:C.bgInput,borderRadius:8,padding:'10px 12px',textAlign:'center'}}>
                 <div style={{fontSize:10,color:C.textoMuted,textTransform:'uppercase',fontWeight:600,marginBottom:4}}>{s.l}</div>
@@ -214,7 +221,7 @@ export default function IndicesZootecnicos() {
           <div style={{display:'flex',gap:16,marginTop:6,fontSize:11,color:C.textoMuted}}>
             <span style={{color:C.leiteAccent}}>● Lactantes</span>
             <span style={{color:C.ambar}}>● Secas</span>
-            <span>Meta: {dados.isOvino?'80% lactantes / 20% secas (CNPCO)':'85% lactantes / 15% secas (CNPGL)'}</span>
+            <span>Meta: {dados.isCaprino?'80% lactantes / 20% secas (CNPCO/ACOC)':dados.isOvino?'80% lactantes / 20% secas (CNPCO)':'85% lactantes / 15% secas (CNPGL)'}</span>
           </div>
         </Secao>
 
@@ -223,23 +230,23 @@ export default function IndicesZootecnicos() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
             <CardIndice icon="📅" titulo="IEPA — Intervalo Entre Partos Atual"
               valor={dados.iepa?fmtNum(dados.iepa,0):'—'} unidade="dias"
-              meta={dados.isOvino?"240–270 dias — Embrapa CNPCO (8-9 meses)":"365–395 dias — Embrapa CNPGL (12-13 meses)"}
+              meta={dados.isCaprino?"220–250 dias — Embrapa CNPCO (7-8 meses)":dados.isOvino?"240–270 dias — Embrapa CNPCO (8-9 meses)":"365–395 dias — Embrapa CNPGL (12-13 meses)"}
               descricao={dados.iepa?`Média de ${dados.intervalos} intervalos do histórico.`:'Cadastre pelo menos 2 partos por animal.'}
               status={!dados.iepa?'atencao':dados.isOvino?(dados.iepa<=270?'bom':dados.iepa<=300?'atencao':'critico'):(dados.iepa<=395?'bom':dados.iepa<=430?'atencao':'critico')}/>
             <CardIndice icon="🥛" titulo={dados.isOvino?"DEL — Dias Em Lactação":"DEL — Dias Em Lactação"}
               valor={dados.del?fmtNum(dados.del,0):'—'} unidade="dias"
-              meta={dados.isOvino?"120–150 dias (Embrapa CNPCO)":"150–180 dias (Embrapa CNPGL — meta 305d de lactação)"}
+              meta={dados.isCaprino?"240–270 dias (Saanen/Alpina — Embrapa CNPCO)":dados.isOvino?"120–150 dias (Embrapa CNPCO)":"150–180 dias (Embrapa CNPGL — meta 305d de lactação)"}
               descricao={dados.isOvino?"Média de dias em lactação das ovelhas em produção.":"Média de dias em lactação das vacas em produção."}
               status={!dados.del?'atencao':dados.isOvino?(dados.del<=150?'bom':dados.del<=180?'atencao':'critico'):(dados.del<=180?'bom':dados.del<=220?'atencao':'critico')}/>
             <CardIndice icon="⏳" titulo="DEA — Dias Em Aberto"
               valor={dados.dea?fmtNum(dados.dea,0):'—'} unidade="dias"
-              meta={dados.isOvino?"30–60 dias (CNPCO)":"60–85 dias — Embrapa CNPGL (ideal: 80d)"}
+              meta={dados.isCaprino?"30–60 dias (Embrapa CNPCO)":dados.isOvino?"30–60 dias (CNPCO)":"60–85 dias — Embrapa CNPGL (ideal: 80d)"}
               descricao="Dias do parto até a prenhez confirmada."
               status={!dados.dea?'atencao':dados.isOvino?(dados.dea<=60?'bom':dados.dea<=90?'atencao':'critico'):(dados.dea<=90?'bom':dados.dea<=120?'atencao':'critico')}/>
             <CardIndice icon="📊" titulo="IEPP — Intervalo Entre Partos Previsto"
               valor={dados.isOvino?"240":"365"} unidade="dias"
               meta={dados.isOvino?"240 dias (8 meses — Embrapa Ovinos)":"365 dias (12 meses)"}
-              descricao={dados.isOvino?"Gestação 147d + DEA ideal 93d = 240d. Ovinos podem parir até 3x em 2 anos.":"Referência Embrapa: gestação 283d + DEA ideal 82d = 365d."}
+              descricao={dados.isCaprino?"Gestação 150d + DEA ideal 70d = 220d. Caprinas podem parir 3x em 2 anos (Embrapa CNPCO).":dados.isOvino?"Gestação 147d + DEA ideal 93d = 240d. Ovinos podem parir até 3x em 2 anos.":"Referência Embrapa: gestação 283d + DEA ideal 82d = 365d."}
               status={!dados.dea?'atencao':dados.isOvino?(dados.dea<=60?'bom':dados.dea<=90?'atencao':'critico'):(dados.dea<=90?'bom':dados.dea<=120?'atencao':'critico')}/>
           </div>
         </Secao>
@@ -269,9 +276,9 @@ export default function IndicesZootecnicos() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
             <CardIndice icon="⚖️" titulo="GMD — Ganho Médio Diário"
               valor={dados.gmdMedio?fmtNum(dados.gmdMedio,2):'—'} unidade="kg/dia"
-              meta={dados.isOvino?"200–300 g/dia (Embrapa CNPCO)":"1,2–1,5 kg/dia (Embrapa CNPGC)"}
-              descricao={dados.isOvino?"GMD ideal para ovinos de corte: 250g/dia. Raças Dorper e Santa Inês atingem 300g/dia em confinamento.":"GMD ideal no confinamento bovino. Nelore: 1,2 kg/dia; cruzados: até 1,5 kg/dia (Cepea/USP)."}
-              status={!dados.gmdMedio?'atencao':dados.isOvino?(dados.gmdMedio>=0.25?'bom':dados.gmdMedio>=0.18?'atencao':'critico'):(dados.gmdMedio>=1.2?'bom':dados.gmdMedio>=0.8?'atencao':'critico')}/>
+              meta={dados.isCaprino?"150–200 g/dia (Embrapa CNPCO)":dados.isOvino?"200–300 g/dia (Embrapa CNPCO)":"1,2–1,5 kg/dia (Embrapa CNPGC)"}
+              descricao={dados.isCaprino?"GMD ideal cabrito: 180g/dia. Raças Boer e Anglo-Nubiana atingem 200g/dia. Peso abate: 25-35kg (Embrapa CNPCO).":dados.isOvino?"GMD ideal para ovinos de corte: 250g/dia. Raças Dorper e Santa Inês atingem 300g/dia em confinamento.":"GMD ideal no confinamento bovino. Nelore: 1,2 kg/dia; cruzados: até 1,5 kg/dia (Cepea/USP)."}
+              status={!dados.gmdMedio?'atencao':dados.isCaprino?(dados.gmdMedio>=0.18?'bom':dados.gmdMedio>=0.12?'atencao':'critico'):dados.isOvino?(dados.gmdMedio>=0.25?'bom':dados.gmdMedio>=0.18?'atencao':'critico'):(dados.gmdMedio>=1.2?'bom':dados.gmdMedio>=0.8?'atencao':'critico')}/>
             <CardIndice icon="⏳" titulo="DEA — Dias Em Aberto"
               valor={dados.dea?fmtNum(dados.dea,0):'—'} unidade="dias"
               meta="Até 90–120 dias — Embrapa CNPGC"
@@ -284,8 +291,8 @@ export default function IndicesZootecnicos() {
               status={!dados.iepa?'atencao':dados.iepa<=420?'bom':dados.iepa<=450?'atencao':'critico'}/>
             <CardIndice icon="🐣" titulo="Taxa de Natalidade"
               valor={dados.txNatalidade?fmtNum(dados.txNatalidade,0):'—'} unidade="%"
-              meta={dados.isOvino?"Acima de 90% (Embrapa CNPCO)":"Acima de 80% (Embrapa CNPGC)"}
-              descricao={dados.isOvino?"Ovinos de alta prolificidade atingem >150% (gêmeos/trigêmeos). Meta mínima: 90% de natalidade.":"Partos registrados / vacas em reprodução × 100. Meta Embrapa: >80%."}
+              meta={dados.isCaprino?"Acima de 90% — prolificidade >1,8 (Embrapa CNPCO)":dados.isOvino?"Acima de 90% — prolificidade >1,5 (Embrapa CNPCO)":"Acima de 80% (Embrapa CNPGC)"}
+              descricao={dados.isCaprino?"Caprinos atingem >180% (gêmeos frequentes). Raças Saanen e Alpina: até 200% de prolificidade (Embrapa CNPCO/ACOC).":dados.isOvino?"Ovinos de alta prolificidade atingem >150% (gêmeos/trigêmeos). Meta mínima: 90% de natalidade.":"Partos registrados / vacas em reprodução × 100. Meta Embrapa: >80%."}
               status={!dados.txNatalidade?'atencao':dados.isOvino?(dados.txNatalidade>=90?'bom':dados.txNatalidade>=70?'atencao':'critico'):(dados.txNatalidade>=80?'bom':dados.txNatalidade>=60?'atencao':'critico')}/>
           </div>
         </Secao>
