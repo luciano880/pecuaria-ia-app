@@ -8,9 +8,10 @@ export default function ProducaoLeite() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
   const catLact = seg === 'ovino_leite' ? 'ovelha_lactacao' : seg === 'caprino_leite' ? 'cabra_lactacao' : 'lactacao'
-  const { dados, loading, inserir, remover } = useTabela('producao_leite', { segmento: seg })
-  const { dados: entregas, inserir: inserirEntrega, remover: removerEntrega } = useTabela('entrega_leite', { segmento: seg })
-  const { dados: animais } = useTabela('animais', { segmento: seg, categoria: catLact })
+  const { dados, loading, inserir, remover } = useTabela('producao_leite', seg ? { segmento: seg } : {})
+  const { dados: entregas, inserir: inserirEntrega, remover: removerEntrega } = useTabela('entrega_leite', seg ? { segmento: seg } : {})
+  const { dados: animaisTodos } = useTabela('animais', seg ? { segmento: seg } : {})
+  const animais = animaisTodos.filter(a => a.categoria === catLact)
   const [modal, setModal] = useState(false)
   const [modalEntrega, setModalEntrega] = useState(false)
   const [aba, setAba] = useState('diario')
