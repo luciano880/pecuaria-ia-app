@@ -291,8 +291,8 @@ export default function IndicesZootecnicos() {
               status={!dados.iepa?'atencao':dados.iepa<=420?'bom':dados.iepa<=450?'atencao':'critico'}/>
             <CardIndice icon="🐣" titulo="Taxa de Natalidade"
               valor={dados.txNatalidade?fmtNum(dados.txNatalidade,0):'—'} unidade="%"
-              meta={dados.isCaprino?"Acima de 90% — prolificidade >1,8 (Embrapa CNPCO)":dados.isOvino?"Acima de 90% — prolificidade >1,5 (Embrapa CNPCO)":"Acima de 80% (Embrapa CNPGC)"}
-              descricao={dados.isCaprino?"Caprinos atingem >180% (gêmeos frequentes). Raças Saanen e Alpina: até 200% de prolificidade (Embrapa CNPCO/ACOC).":dados.isOvino?"Ovinos de alta prolificidade atingem >150% (gêmeos/trigêmeos). Meta mínima: 90% de natalidade.":"Partos registrados / vacas em reprodução × 100. Meta Embrapa: >80%."}
+              meta={dados.isCaprino?"Acima de 90% — prolificidade maior que 1,8 (Embrapa CNPCO)":dados.isOvino?"Acima de 90% — prolificidade maior que 1,5 (Embrapa CNPCO)":"Acima de 80% (Embrapa CNPGC)"}
+              descricao={dados.isCaprino?"Caprinos atingem mais de 180% (gêmeos frequentes). Raças Saanen e Alpina: até 200% de prolificidade (Embrapa CNPCO/ACOC).":dados.isOvino?"Ovinos de alta prolificidade atingem mais de 150% (gêmeos/trigêmeos). Meta mínima: 90% de natalidade.":"Partos registrados / vacas em reprodução × 100. Meta Embrapa: mais de 80%."}
               status={!dados.txNatalidade?'atencao':dados.isOvino?(dados.txNatalidade>=90?'bom':dados.txNatalidade>=70?'atencao':'critico'):(dados.txNatalidade>=80?'bom':dados.txNatalidade>=60?'atencao':'critico')}/>
           </div>
         </Secao>
