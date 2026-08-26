@@ -24,7 +24,6 @@ export default function AnaliseIA() {
     { id: 'sanidade',     label: '💊 Sanidade & Carências' },
     { id: 'reproducao',   label: seg === 'ovino_corte' ? '🐑 Reprodução Ovina' : seg === 'caprino_corte' ? '🐐 Reprodução Caprina' : '🐄 Reprodução' },
   ]
-  ]
 
   async function analisar() {
     setLoading(true); setAnalise(null)
