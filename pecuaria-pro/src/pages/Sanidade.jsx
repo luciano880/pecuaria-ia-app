@@ -8,7 +8,7 @@ import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast, BadgeAlerta } from '.
 export default function Sanidade() {
   const { user, perfil } = useAuth()
   const seg = perfil?.segmento
-  const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
+  const cor = seg === 'leite' ? C.leiteAccent : seg === 'corte' ? C.corteAccent : seg === 'ovino_leite' ? C.ovinoLeiteAccent : seg === 'ovino_corte' ? C.ovinoCorteAccent : seg === 'caprino_leite' ? C.caprinoLeiteAccent : C.caprinoCorteAccent
 
   const { dados: medicamentos, loading: loadMed, inserir: inserirMed, remover: removerMed } = useTabela('medicamentos', { segmento: seg })
   const { dados: aplicacoes, loading: loadApl, inserir: inserirApl, carregar: recarregarApl, remover: removerApl } = useTabela('aplicacoes', { segmento: seg })

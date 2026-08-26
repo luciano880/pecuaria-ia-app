@@ -96,7 +96,7 @@ export default function FichaAnimal() {
   }
 
   async function salvarAnimal(dados) {
-    const { error } = await supabase.from('animais').update(dados).eq('id', animal.id)
+    const { error } = await supabase.from('animais').update(dados).eq('id', animal.id).eq('user_id', user.id)
     if (error) { toast(error.message, 'erro'); return }
     setAnimal(prev => ({ ...prev, ...dados }))
     toast('Animal atualizado!')
@@ -153,7 +153,7 @@ export default function FichaAnimal() {
     { id: 'peso',      label: '⚖️ Pesagens' },
     { id: 'reproducao',label: '🐄 Reprodução' },
     { id: 'sanidade',  label: '💊 Sanidade' },
-    ...(seg === 'leite' ? [{ id: 'producao', label: '🥛 Produção' }] : []),
+    ...((seg === 'leite' || seg === 'ovino_leite' || seg === 'caprino_leite') ? [{ id: 'producao', label: '🥛 Produção' }] : []),
   ]
 
   return (

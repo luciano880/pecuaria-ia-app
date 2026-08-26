@@ -77,12 +77,12 @@ export default function Animais() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: seg === 'leite' ? C.leiteAccent : C.corteAccent }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: seg === 'leite' ? C.leiteAccent : seg === 'corte' ? C.corteAccent : seg === 'ovino_leite' ? C.ovinoLeiteAccent : seg === 'ovino_corte' ? C.ovinoCorteAccent : seg === 'caprino_leite' ? C.caprinoLeiteAccent : C.caprinoCorteAccent }}>
             🏷️ Cadastro de Animais
           </h2>
           <p style={{ color: C.textoMuted, fontSize: 13 }}>Controle por número de brinco</p>
         </div>
-        <Btn onClick={abrirNovo} cor={seg === 'leite' ? C.leitePrimary : C.cortePrimary}>
+        <Btn onClick={abrirNovo} cor={seg === 'leite' ? C.leitePrimary : seg === 'corte' ? C.cortePrimary : seg === 'ovino_leite' ? C.ovinoLeitePrimary : seg === 'ovino_corte' ? C.ovinoCortePrimary : seg === 'caprino_leite' ? C.caprinoLeitePrimary : C.caprinoCortePrimary}>
           + Novo Animal
         </Btn>
       </div>
@@ -150,7 +150,7 @@ export default function Animais() {
           <Campo label="Observações" type="textarea" value={form.obs} onChange={v => set('obs', v)} />
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
             <Btn outline cor={C.textoMuted} onClick={() => setModal(false)}>Cancelar</Btn>
-            <Btn cor={seg === 'leite' ? C.leitePrimary : C.cortePrimary} onClick={salvar}>
+            <Btn cor={seg === 'leite' ? C.leitePrimary : seg === 'corte' ? C.cortePrimary : seg === 'ovino_leite' ? C.ovinoLeitePrimary : seg === 'ovino_corte' ? C.ovinoCortePrimary : seg === 'caprino_leite' ? C.caprinoLeitePrimary : C.caprinoCortePrimary} onClick={salvar}>
               {editando ? 'Salvar alterações' : 'Cadastrar'}
             </Btn>
           </div>

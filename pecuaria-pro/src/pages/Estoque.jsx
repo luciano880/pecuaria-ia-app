@@ -49,7 +49,7 @@ function parseNFe(xmlStr) {
 export default function Estoque() {
   const { user, perfil } = useAuth()
   const seg = perfil?.segmento
-  const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
+  const cor = seg === 'leite' ? C.leiteAccent : seg === 'corte' ? C.corteAccent : seg === 'ovino_leite' ? C.ovinoLeiteAccent : seg === 'ovino_corte' ? C.ovinoCorteAccent : seg === 'caprino_leite' ? C.caprinoLeiteAccent : C.caprinoCorteAccent
   const { toast, ToastContainer } = useToast()
 
   const { dados: insumos, loading, inserir, atualizar, carregar, remover } = useTabela('estoque_insumos', { segmento: seg })
@@ -86,8 +86,9 @@ export default function Estoque() {
   const vazio = { nome:'', categoria:'silagem', quantidade:0, unidade:'kg', consumo_diario:0, estoque_minimo:0, preco_unitario:0, fornecedor:'' }
   const [form, setForm] = useState(vazio)
   const [fMov, setFMov] = useState({ tipo:'entrada', quantidade:'', data:hoje(), motivo:'' })
-  const isOvino = seg?.includes('ovino')
-  const isLeite = seg === 'leite' || seg === 'ovino_leite'
+  const isPequenoRum = seg?.includes('ovino') || seg?.includes('caprino')
+  const isOvino = isPequenoRum  // pequenos ruminantes usam mesma base de dieta (feno)
+  const isLeite = seg === 'leite' || seg === 'ovino_leite' || seg === 'caprino_leite'
   const [fDieta, setFDieta] = useState({ lote:'', data_inicio:hoje(), silagem_kg_cab_dia:0, feno_kg_cab_dia:0, concentrado_kg_cab_dia:0, sal_mineral_g_cab_dia:0, ureia_g_cab_dia:0, volumoso_kg_cab_dia:0, obs:'' })
 
   function set(k,v)  { setForm(f => ({ ...f, [k]: v })) }

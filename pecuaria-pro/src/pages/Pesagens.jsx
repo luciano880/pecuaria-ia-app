@@ -7,7 +7,7 @@ import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/
 export default function Pesagens() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
-  const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
+  const cor = seg === 'leite' ? C.leiteAccent : seg === 'corte' ? C.corteAccent : seg === 'ovino_leite' ? C.ovinoLeiteAccent : seg === 'ovino_corte' ? C.ovinoCorteAccent : seg === 'caprino_leite' ? C.caprinoLeiteAccent : C.caprinoCorteAccent
   const { dados, loading, inserir, remover } = useTabela('pesagens', { segmento: seg })
   const { dados: animais } = useTabela('animais', { segmento: seg })
   const [modal, setModal] = useState(false)
@@ -62,7 +62,7 @@ export default function Pesagens() {
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: cor }}>⚖️ Pesagens & GMD</h2>
           <p style={{ color: C.textoMuted, fontSize: 13 }}>
-            Controle de peso por brinco · GMD = Ganho Médio Diário (referência Embrapa: 1,2-1,5 kg/dia)
+            Controle de peso por brinco · GMD = Ganho Médio Diário (referência Embrapa: {seg?.includes('caprino') ? '150-200 g/dia' : seg?.includes('ovino') ? '200-300 g/dia' : '1,2-1,5 kg/dia'})
           </p>
         </div>
         <Btn cor={seg === 'leite' ? C.leitePrimary : C.cortePrimary} onClick={() => setModal(true)}>+ Nova Pesagem</Btn>
