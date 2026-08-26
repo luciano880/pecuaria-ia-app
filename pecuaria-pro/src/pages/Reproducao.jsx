@@ -13,8 +13,7 @@ export default function Reproducao() {
   const { perfil } = useAuth()
   const seg = perfil?.segmento
   const diasGestacao = seg?.includes('ovino') ? 147 : seg?.includes('caprino') ? 150 : 283
-  const seg = perfil?.segmento
-  const cor = seg === 'leite' ? C.leiteAccent : C.corteAccent
+  const cor = seg === 'leite' ? C.leiteAccent : seg === 'ovino_leite' ? C.ovinoLeiteAccent : seg === 'ovino_corte' ? C.ovinoCorteAccent : seg === 'caprino_leite' ? C.caprinoLeiteAccent : seg === 'caprino_corte' ? C.caprinoCorteAccent : C.corteAccent
   const { dados, loading, inserir, atualizar, remover } = useTabela('reproducao', { segmento: seg })
   const { dados: animais } = useTabela('animais', { segmento: seg, sexo: 'F' })
   const [modal, setModal] = useState(false)
