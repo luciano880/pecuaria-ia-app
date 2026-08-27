@@ -12,6 +12,7 @@ import Estoque            from './pages/Estoque.jsx'
 import Pesagens           from './pages/Pesagens.jsx'
 import AnaliseIA          from './pages/AnaliseIA.jsx'
 import Financeiro         from './pages/Financeiro.jsx'
+import FinanceiroAnimal   from './pages/FinanceiroAnimal.jsx'
 import FinanceiroPessoal  from './pages/FinanceiroPessoal.jsx'
 import DeclaracaoIR       from './pages/DeclaracaoIR.jsx'
 import IndicesZootecnicos from './pages/IndicesZootecnicos.jsx'
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="pesagens"              element={<Pesagens />} />
         <Route path="analise-ia"            element={<AnaliseIA />} />
         <Route path="financeiro"            element={<Financeiro />} />
+        <Route path="financeiro-animal"     element={<FinanceiroAnimal />} />
         <Route path="financeiro-pessoal"    element={<FinanceiroPessoal />} />
         <Route path="declaracao-ir"         element={<DeclaracaoIR />} />
         <Route path="indices"               element={<IndicesZootecnicos />} />
