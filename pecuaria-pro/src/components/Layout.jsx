@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { C, getCor } from '../utils/helpers.js'
+import { contarPendentes, iniciarAutoSync, sincronizar } from '../utils/offlineQueue.js'
 
 export default function Layout() {
   const { perfil, logout } = useAuth()
@@ -9,6 +10,26 @@ export default function Layout() {
   const seg = perfil?.segmento
   const { accent, primary } = getCor(seg || 'leite')
   const [open, setOpen] = useState(false)
+  const [online, setOnline] = useState(navigator.onLine)
+  const [pendentes, setPendentes] = useState(contarPendentes())
+
+  useEffect(() => {
+    const atualizarStatus = () => { setOnline(navigator.onLine); setPendentes(contarPendentes()) }
+    window.addEventListener('online', atualizarStatus)
+    window.addEventListener('offline', atualizarStatus)
+    // Auto-sincronizar quando voltar internet
+    const parar = iniciarAutoSync((res) => {
+      setPendentes(contarPendentes())
+    })
+    // Atualizar contador periodicamente
+    const interval = setInterval(() => setPendentes(contarPendentes()), 5000)
+    return () => {
+      window.removeEventListener('online', atualizarStatus)
+      window.removeEventListener('offline', atualizarStatus)
+      clearInterval(interval)
+      parar && parar()
+    }
+  }, [])
 
   const navLeite = [
     { to:'/',                    icon:'🏠', label:'Início' },
@@ -201,6 +222,22 @@ export default function Layout() {
             {seg === 'leite' ? '🥛' : seg === 'corte' ? '🥩' : seg?.includes('ovino') ? '🐑' : '🐐'} {seg === 'leite' ? 'Leiteira' : seg === 'corte' ? 'Corte' : seg === 'ovino_leite' ? 'Ov. Leite' : seg === 'ovino_corte' ? 'Ov. Corte' : seg === 'caprino_leite' ? 'Cap. Leite' : 'Cap. Corte'}
           </span>
         </div>
+
+        {/* Banner status offline/sincronização */}
+        {(!online || pendentes > 0) && (
+          <div style={{
+            display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+            padding:'8px 16px', fontSize:12, fontWeight:600,
+            background: !online ? `${C.ambar}22` : `${C.verdeClaro}22`,
+            color: !online ? C.ambar : C.verdeClaro,
+            borderBottom:`1px solid ${!online ? C.ambar : C.verdeClaro}`,
+          }}>
+            {!online
+              ? <>📴 Modo offline — {pendentes > 0 ? `${pendentes} lançamento(s) serão sincronizados ao voltar a internet` : 'seus dados serão salvos localmente'}</>
+              : <>🔄 Sincronizando {pendentes} lançamento(s) pendente(s)...</>
+            }
+          </div>
+        )}
 
         <div style={{ padding:'20px 16px' }}>
           <Outlet />
