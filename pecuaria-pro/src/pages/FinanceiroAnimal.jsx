@@ -56,7 +56,7 @@ export default function FinanceiroAnimal() {
     // Produção de leite por animal (receita estimada)
     const litrosPorBrinco = {}
     producao.forEach(p => {
-      const litros = (parseFloat(p.manha || 0) + parseFloat(p.tarde || 0) + parseFloat(p.noite || 0))
+      const litros = (parseFloat(p.litros_manha || 0) + parseFloat(p.litros_tarde || 0) + parseFloat(p.litros_noite || 0))
       litrosPorBrinco[p.brinco] = (litrosPorBrinco[p.brinco] || 0) + litros
     })
 

@@ -77,7 +77,7 @@ export async function verificarAlertas(userId, segmento) {
     const { data: repro } = await supabase
       .from('reproducao').select('*')
       .eq('user_id', userId).eq('segmento', segmento)
-      .eq('tipo', 'cobertura')
+      .in('tipo', ['cobertura', 'iatf'])
     if (repro?.length) {
       const gestacao = segmento?.includes('ovino') ? 147 : segmento?.includes('caprino') ? 150 : 283
       const partosProximos = repro.filter(r => {

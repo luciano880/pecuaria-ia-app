@@ -1,5 +1,5 @@
 // PecuáriaIA — Service Worker v2.0
-const CACHE_NAME = 'pecuaria-ia-v2'
+const CACHE_NAME = 'pecuaria-ia-v3'
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json']
 
 // Instalar e cachear assets estáticos
@@ -22,6 +22,11 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
+
+  // Ignorar requisições de outros domínios (CDNs, fontes, Tesseract, etc) — deixa passar direto
+  if (url.origin !== self.location.origin) {
+    return
+  }
 
   // Nunca cachear a função de IA nem chamadas de API do Supabase (sempre rede)
   if (url.pathname.includes('/api/') || url.hostname.includes('supabase.co')) {
