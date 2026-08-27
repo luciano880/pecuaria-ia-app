@@ -1,17 +1,11 @@
-// PecuáriaIA — Service Worker v1.0
-const CACHE_NAME = 'pecuaria-ia-v1'
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-]
+// PecuáriaIA — Service Worker v2.0
+const CACHE_NAME = 'pecuaria-ia-v2'
+const STATIC_ASSETS = ['/', '/index.html', '/manifest.json']
 
 // Instalar e cachear assets estáticos
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS)
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   )
   self.skipWaiting()
 })
@@ -26,16 +20,22 @@ self.addEventListener('activate', event => {
   self.clients.claim()
 })
 
-// Estratégia: Network First para API, Cache First para assets
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
 
-  // Supabase API — sempre tenta rede, fallback para cache
-  if (url.hostname.includes('supabase.co')) {
+  // Nunca cachear a função de IA nem chamadas de API do Supabase (sempre rede)
+  if (url.pathname.includes('/api/') || url.hostname.includes('supabase.co')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    )
+    return
+  }
+
+  // JS/CSS com hash (assets do Vite) — Network First para pegar versão nova
+  if (url.pathname.includes('/assets/')) {
     event.respondWith(
       fetch(event.request)
         .then(res => {
-          // Cachear resposta bem-sucedida
           if (res.ok) {
             const clone = res.clone()
             caches.open(CACHE_NAME).then(c => c.put(event.request, clone))
@@ -47,7 +47,7 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // Assets estáticos — Cache First
+  // Demais GET — Cache First
   if (event.request.method === 'GET') {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -58,13 +58,12 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE_NAME).then(c => c.put(event.request, clone))
           }
           return res
-        })
+        }).catch(() => caches.match('/index.html'))
       })
     )
   }
 })
 
-// Mensagem para forçar atualização
 self.addEventListener('message', event => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting()
 })

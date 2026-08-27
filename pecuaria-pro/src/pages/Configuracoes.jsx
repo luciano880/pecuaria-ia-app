@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../utils/supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { C, hoje, getLabelSegmento } from '../utils/helpers.js'
@@ -70,6 +70,26 @@ export default function Configuracoes() {
   const [confirmaSenha, setConfirmaSenha] = useState('')
   const [salvandoSenha, setSalvandoSenha] = useState(false)
 
+  // PWA - instalação
+  const [promptInstall, setPromptInstall] = useState(null)
+  const [instalado, setInstalado] = useState(false)
+  useEffect(() => {
+    const handler = (e) => { e.preventDefault(); setPromptInstall(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    // Detectar se já está instalado
+    if (window.matchMedia('(display-mode: standalone)').matches) setInstalado(true)
+    window.addEventListener('appinstalled', () => { setInstalado(true); setPromptInstall(null) })
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  async function instalarApp() {
+    if (!promptInstall) return
+    promptInstall.prompt()
+    const { outcome } = await promptInstall.userChoice
+    if (outcome === 'accepted') setInstalado(true)
+    setPromptInstall(null)
+  }
+
   // Backup
   const [fazendoBackup,    setFazendoBackup]    = useState(false)
   const [restaurando,      setRestaurando]       = useState(false)
@@ -90,10 +110,6 @@ export default function Configuracoes() {
         .upsert({ id: uid, email: perfil?.email || user?.email, nome, fazenda, segmento })
       if (error) throw error
       toast('✅ Salvo! Recarregando...')
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations()
-        await Promise.all(regs.map(r => r.unregister()))
-      }
       setTimeout(() => { window.location.href = window.location.origin + '/?reload=' + Date.now() }, 1000)
     } catch (e) { toast(e.message, 'erro'); setSalvando(false) }
   }
@@ -325,6 +341,32 @@ export default function Configuracoes() {
           </Btn>
         </div>
       </Secao>
+
+      {/* Instalar App (PWA) */}
+      {!instalado && (
+        <Secao titulo="Instalar Aplicativo" icon="📱" cor={C.verdeVivo}>
+          <p style={{ fontSize:13, color:C.textoSub, marginBottom:14, lineHeight:1.7 }}>
+            Instale o PecuáriaIA no seu celular ou computador para acesso rápido, tela cheia e <strong style={{color:C.texto}}>funcionamento offline no campo</strong> (sem internet). Os dados sincronizam quando voltar a ter sinal.
+          </p>
+          {promptInstall ? (
+            <Btn cor={C.verdeVivo} onClick={instalarApp}>📲 Instalar PecuáriaIA</Btn>
+          ) : (
+            <div style={{ fontSize:12, color:C.textoMuted, background:C.bgInput, borderRadius:8, padding:'12px 16px', lineHeight:1.7 }}>
+              💡 <strong style={{color:C.textoSub}}>Como instalar:</strong><br/>
+              • <strong>Android/Chrome:</strong> menu ⋮ → "Instalar aplicativo" ou "Adicionar à tela inicial"<br/>
+              • <strong>iPhone/Safari:</strong> botão Compartilhar → "Adicionar à Tela de Início"<br/>
+              • <strong>Computador:</strong> ícone de instalar na barra de endereço
+            </div>
+          )}
+        </Secao>
+      )}
+      {instalado && (
+        <Secao titulo="Aplicativo Instalado" icon="✅" cor={C.verdeVivo}>
+          <p style={{ fontSize:13, color:C.verdeClaro }}>
+            ✅ O PecuáriaIA está instalado e funciona offline! Seus dados sincronizam automaticamente quando há internet.
+          </p>
+        </Secao>
+      )}
 
       {/* Backup e Restauração */}
       <Secao titulo="Backup & Restauração" icon="💾" cor={C.ambar}>

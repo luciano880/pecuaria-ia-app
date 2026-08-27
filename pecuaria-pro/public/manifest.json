@@ -1,7 +1,7 @@
 {
   "name": "PecuáriaIA — Gestão Inteligente",
   "short_name": "PecuáriaIA",
-  "description": "Gestão inteligente de rebanhos leiteiros e de corte",
+  "description": "Gestão inteligente de rebanhos - bovinos, ovinos e caprinos",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A1508",
@@ -21,18 +21,31 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
   "lang": "pt-BR",
   "shortcuts": [
     {
       "name": "Animais",
       "url": "/animais",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Produção de Leite",
       "url": "/producao-leite",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
