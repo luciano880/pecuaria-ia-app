@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
@@ -21,9 +21,16 @@ export default function Animais() {
     lote:'', mae_brinco:'', peso_entrada:'', obs:'' }
   const [form, setForm] = useState(vazio)
 
+  // Atualizar categoria padrão quando o segmento carregar/mudar
+  useEffect(() => {
+    if (seg && !editando) {
+      setForm(f => ({ ...f, categoria: CATS.includes(f.categoria) ? f.categoria : CATS[0] }))
+    }
+  }, [seg])
+
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
-  function abrirNovo() { setForm(vazio); setEditando(null); setModal(true) }
+  function abrirNovo() { setForm({ ...vazio, categoria: CATS[0] }); setEditando(null); setModal(true) }
   function abrirEditar(row) { setForm({ ...vazio, ...row }); setEditando(row.id); setModal(true) }
 
   async function salvar() {
