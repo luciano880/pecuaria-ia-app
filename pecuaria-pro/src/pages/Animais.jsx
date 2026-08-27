@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ScannerBrinco from '../components/ScannerBrinco.jsx'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { C, fmtData, hoje, getCategoriasSegmento, LABEL_CATEGORIA, limparPayload } from '../utils/helpers.js'
@@ -13,6 +14,8 @@ export default function Animais() {
   const [modal, setModal] = useState(false)
   const [editando, setEditando] = useState(null)
   const [busca, setBusca] = useState('')
+  const [scannerBusca, setScannerBusca] = useState(false)
+  const [scannerCadastro, setScannerCadastro] = useState(false)
   const { toast, ToastContainer } = useToast()
 
   const CATS = getCategoriasSegmento(seg)
@@ -114,16 +117,22 @@ export default function Animais() {
         </div>
       </div>
 
-      {/* Busca */}
-      <input
-        value={busca} onChange={e => setBusca(e.target.value)}
-        placeholder="🔍 Buscar por brinco, nome ou categoria..."
-        style={{
-          width: '100%', padding: '10px 14px', borderRadius: 8,
-          border: `1.5px solid ${C.border}`, background: C.bgInput,
-          color: C.texto, fontSize: 13, marginBottom: 16, boxSizing: 'border-box',
-        }}
-      />
+      {/* Busca com scanner */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input
+          value={busca} onChange={e => setBusca(e.target.value)}
+          placeholder="🔍 Buscar por brinco, nome ou categoria..."
+          style={{
+            flex: 1, padding: '10px 14px', borderRadius: 8,
+            border: `1.5px solid ${C.border}`, background: C.bgInput,
+            color: C.texto, fontSize: 13, boxSizing: 'border-box',
+          }}
+        />
+        <button onClick={() => setScannerBusca(true)} title="Escanear brinco" style={{
+          padding: '10px 16px', borderRadius: 8, border: `1.5px solid ${C.verdeVivo}`,
+          background: `${C.verdeVivo}22`, color: C.verdeVivo, fontSize: 18, cursor: 'pointer',
+        }}>📷</button>
+      </div>
 
       <Secao titulo={`${filtrados.length} animais`} icon="🐄">
         <Tabela colunas={colunas} dados={filtrados} loading={loading}
@@ -133,7 +142,17 @@ export default function Animais() {
       {modal && (
         <Modal titulo={editando ? 'Editar Animal' : 'Cadastrar Animal'} onClose={() => setModal(false)} largura={600}>
           <Grid cols={2}>
-            <Campo label="Nº Brinco" value={form.brinco} onChange={v => set('brinco', v)} required placeholder="ex: 0042" />
+            <div>
+              <label style={{ display:'block', fontSize:12, fontWeight:600, color:C.textoSub, marginBottom:6 }}>Nº Brinco <span style={{color:C.critico}}>*</span></label>
+              <div style={{ display:'flex', gap:6 }}>
+                <input value={form.brinco} onChange={e => set('brinco', e.target.value)} placeholder="ex: 0042"
+                  style={{ flex:1, padding:'10px 12px', borderRadius:8, border:`1.5px solid ${C.border}`, background:C.bgInput, color:C.texto, fontSize:14, boxSizing:'border-box' }} />
+                <button type="button" onClick={() => setScannerCadastro(true)} title="Escanear brinco" style={{
+                  padding:'0 14px', borderRadius:8, border:`1.5px solid ${C.verdeVivo}`,
+                  background:`${C.verdeVivo}22`, color:C.verdeVivo, fontSize:18, cursor:'pointer'
+                }}>📷</button>
+              </div>
+            </div>
             <Campo label="Nome (opcional)" value={form.nome} onChange={v => set('nome', v)} placeholder="ex: Mimosa" />
           </Grid>
           <Grid cols={2}>
@@ -162,6 +181,22 @@ export default function Animais() {
             </Btn>
           </div>
         </Modal>
+      )}
+
+      {/* Scanner para busca */}
+      {scannerBusca && (
+        <ScannerBrinco
+          onLer={(valor) => { setBusca(valor); setScannerBusca(false) }}
+          onClose={() => setScannerBusca(false)}
+        />
+      )}
+
+      {/* Scanner para cadastro */}
+      {scannerCadastro && (
+        <ScannerBrinco
+          onLer={(valor) => { set('brinco', valor); setScannerCadastro(false) }}
+          onClose={() => setScannerCadastro(false)}
+        />
       )}
     </div>
   )
