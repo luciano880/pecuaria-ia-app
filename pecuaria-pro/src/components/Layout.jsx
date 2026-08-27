@@ -3,9 +3,10 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { C, getCor } from '../utils/helpers.js'
 import { contarPendentes, iniciarAutoSync, sincronizar } from '../utils/offlineQueue.js'
+import { iniciarVerificacaoAlertas } from '../utils/notificacoes.js'
 
 export default function Layout() {
-  const { perfil, logout } = useAuth()
+  const { user, perfil, logout } = useAuth()
   const navigate = useNavigate()
   const seg = perfil?.segmento
   const { accent, primary } = getCor(seg || 'leite')
@@ -21,6 +22,11 @@ export default function Layout() {
     const parar = iniciarAutoSync((res) => {
       setPendentes(contarPendentes())
     })
+    // Verificar alertas e notificar (vacinas, partos, carências, revisões)
+    let pararAlertas
+    if (user && seg) {
+      pararAlertas = iniciarVerificacaoAlertas(user.id, seg)
+    }
     // Atualizar contador periodicamente
     const interval = setInterval(() => setPendentes(contarPendentes()), 5000)
     return () => {
@@ -28,8 +34,9 @@ export default function Layout() {
       window.removeEventListener('offline', atualizarStatus)
       clearInterval(interval)
       parar && parar()
+      pararAlertas && pararAlertas()
     }
-  }, [])
+  }, [user, seg])
 
   const navLeite = [
     { to:'/',                    icon:'🏠', label:'Início' },

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../utils/supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { C, hoje, getLabelSegmento } from '../utils/helpers.js'
+import { pedirPermissao, notificacoesAtivas, notificar } from '../utils/notificacoes.js'
 import { Secao, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 
 // ── Parser de XML NF-e ────────────────────────────────────────
@@ -88,6 +89,20 @@ export default function Configuracoes() {
     const { outcome } = await promptInstall.userChoice
     if (outcome === 'accepted') setInstalado(true)
     setPromptInstall(null)
+  }
+
+  // Notificações
+  const [notifAtiva, setNotifAtiva] = useState(notificacoesAtivas())
+  async function ativarNotif() {
+    const res = await pedirPermissao()
+    if (res === 'granted') {
+      setNotifAtiva(true)
+      notificar('🔔 Notificações ativadas!', 'Você receberá alertas de vacinas, partos, carências e revisões.', 'teste')
+    } else if (res === 'denied') {
+      toast('Permissão negada. Ative nas configurações do navegador.', 'erro')
+    } else if (res === 'nao_suportado') {
+      toast('Seu navegador não suporta notificações.', 'erro')
+    }
   }
 
   // Backup
@@ -367,6 +382,20 @@ export default function Configuracoes() {
           </p>
         </Secao>
       )}
+
+      {/* Notificações */}
+      <Secao titulo="Notificações & Alertas" icon="🔔" cor={C.ambar}>
+        <p style={{ fontSize:13, color:C.textoSub, marginBottom:14, lineHeight:1.7 }}>
+          Receba alertas automáticos no celular sobre: <strong style={{color:C.texto}}>vacinas próximas, partos previstos, fim de carência de medicamentos e revisão de máquinas</strong>. As notificações são verificadas uma vez por dia.
+        </p>
+        {notifAtiva ? (
+          <div style={{ fontSize:13, color:C.verdeClaro, background:`${C.verdeClaro}15`, borderRadius:8, padding:'10px 14px' }}>
+            ✅ Notificações ativadas! Você receberá alertas importantes automaticamente.
+          </div>
+        ) : (
+          <Btn cor={C.ambar} onClick={ativarNotif}>🔔 Ativar Notificações</Btn>
+        )}
+      </Secao>
 
       {/* Backup e Restauração */}
       <Secao titulo="Backup & Restauração" icon="💾" cor={C.ambar}>
