@@ -52,9 +52,9 @@ export default function Animais() {
   }
 
   const filtrados = dados.filter(a =>
-    a.brinco?.toLowerCase().includes(busca.toLowerCase()) ||
-    a.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-    a.categoria?.toLowerCase().includes(busca.toLowerCase())
+    String(a.brinco ?? '').toLowerCase().includes(busca.toLowerCase()) ||
+    String(a.nome ?? '').toLowerCase().includes(busca.toLowerCase()) ||
+    String(a.categoria ?? '').toLowerCase().includes(busca.toLowerCase())
   )
 
   // Resumo por categoria

@@ -55,10 +55,14 @@ export function getLabelSegmento(segmento) {
 
 // Limpa payload — converte strings vazias para null, numbers para parseFloat
 export function limparPayload(obj) {
+  // Campos que devem SEMPRE permanecer como texto (nunca converter para número)
+  const CAMPOS_TEXTO = ['brinco', 'nome', 'raca', 'lote', 'mae_brinco', 'pai_brinco', 'brinco_cria', 'obs', 'categoria', 'segmento', 'sexo', 'tipo', 'placa', 'modelo', 'marca', 'nota_fiscal', 'numero_cheque', 'fornecedor', 'comprador', 'pagador', 'banco', 'descricao', 'responsavel', 'vacina', 'touro_semen']
   const result = {}
   for (const [k, v] of Object.entries(obj)) {
     if (v === '' || v === undefined) {
       result[k] = null
+    } else if (CAMPOS_TEXTO.includes(k)) {
+      result[k] = v  // Mantém como está (texto)
     } else if (typeof v === 'string' && !isNaN(v) && v.trim() !== '' && !v.includes('-')) {
       result[k] = parseFloat(v)
     } else {
