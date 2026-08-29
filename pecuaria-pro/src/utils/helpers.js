@@ -141,7 +141,7 @@ export const LABEL_CATEGORIA = {
   // Ovinos leite
   ovelha_lactacao:'Ovelha em Lactação', ovelha_seca:'Ovelha Seca', borrega:'Borrega',
   // Caprinos
-  cabra_lactacao:'Cabra em Lactação', cabra_seca:'Cabra Seca', cabrita:'Cabrita',
+  cabra_lactacao:'Cabra em Lactação', cabra_seca:'Cabra Seca', cabra:'Cabra', cabrita:'Cabrita',
   cabrito:'Cabrito', bode:'Bode', capao_caprino:'Capão Caprino',
   // Ovinos corte/geral
   cordeiro:'Cordeiro', borrego:'Borrego', ovelha:'Ovelha', carneiro:'Carneiro', capao:'Capão',
@@ -155,6 +155,19 @@ export function getCategoriasSegmento(seg) {
   if (seg === 'caprino_leite') return ['cabra_lactacao','cabra_seca','cabrita','cabrito','bode']
   if (seg === 'caprino_corte') return ['cabrito','cabrita','cabra','bode','capao_caprino']
   return CATEGORIAS_LEITE
+}
+
+// Raças por segmento (principais raças criadas no Brasil)
+export function getRacasSegmento(seg) {
+  const racas = {
+    leite: ['Holandês', 'Girolando', 'Gir Leiteiro', 'Jersey', 'Pardo Suíço', 'Guzerá', 'Sindi', 'Simental', 'Outra'],
+    corte: ['Nelore', 'Angus', 'Brahman', 'Senepol', 'Hereford', 'Brangus', 'Guzerá', 'Tabapuã', 'Canchim', 'Cruzado', 'Outra'],
+    ovino_leite: ['Lacaune', 'East Friesian', 'Bergamácia', 'Santa Inês', 'Assaf', 'Awassi', 'Outra'],
+    ovino_corte: ['Santa Inês', 'Dorper', 'White Dorper', 'Texel', 'Suffolk', 'Ile de France', 'Morada Nova', 'Somalis', 'Cruzado', 'Outra'],
+    caprino_leite: ['Saanen', 'Parda Alpina', 'Anglo-Nubiana', 'Toggenburg', 'Alpina Americana', 'Murciana', 'Outra'],
+    caprino_corte: ['Boer', 'Anglo-Nubiana', 'Savana', 'Kalahari', 'Moxotó', 'Canindé', 'Cruzado', 'Outra'],
+  }
+  return racas[seg] || racas.leite
 }
 
 // Gerar PDF relatório mensal

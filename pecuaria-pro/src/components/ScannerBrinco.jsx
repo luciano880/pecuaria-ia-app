@@ -9,7 +9,8 @@ export default function ScannerBrinco({ onLer, onClose }) {
   const [modo, setModo] = useState('codigo') // 'codigo' | 'ocr'
   const [manual, setManual] = useState('')
   const [lendo, setLendo] = useState(false)
-  const [resultado, setResultado] = useState('') // valor lido para confirmar
+  const [resultado, setResultado] = useState('')
+  const [progresso, setProgresso] = useState(0)
   const streamRef = useRef(null)
   const rafRef = useRef(null)
 
@@ -20,7 +21,11 @@ export default function ScannerBrinco({ onLer, onClose }) {
     async function iniciarCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },   // alta resolução para leitura melhor
+            height: { ideal: 1080 },
+          }
         })
         streamRef.current = stream
         if (videoRef.current) {
@@ -28,10 +33,9 @@ export default function ScannerBrinco({ onLer, onClose }) {
           await videoRef.current.play()
         }
 
-        // Modo código de barras/QR (se suportado)
         if (modo === 'codigo' && 'BarcodeDetector' in window) {
           detector = new window.BarcodeDetector({
-            formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'codabar']
+            formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'codabar', 'upc_a', 'upc_e', 'itf', 'data_matrix']
           })
           const detectar = async () => {
             if (!ativo || !videoRef.current) return
@@ -48,7 +52,7 @@ export default function ScannerBrinco({ onLer, onClose }) {
           detectar()
         }
       } catch (e) {
-        if (e.name === 'NotAllowedError') setErro('Permissão de câmera negada.')
+        if (e.name === 'NotAllowedError') setErro('Permissão de câmera negada. Autorize nas configurações do navegador.')
         else if (e.name === 'NotFoundError') setErro('Nenhuma câmera encontrada.')
         else setErro('Erro na câmera: ' + e.message)
       }
@@ -64,44 +68,69 @@ export default function ScannerBrinco({ onLer, onClose }) {
     return () => pararCamera()
   }, [modo, resultado])
 
-  // Capturar foto e fazer OCR (ler número escrito)
+  // Capturar foto e fazer OCR com pré-processamento
   async function lerNumero() {
     if (!videoRef.current || !canvasRef.current) return
     setLendo(true)
+    setProgresso(0)
+    setErro('')
     try {
       const video = videoRef.current
       const canvas = canvasRef.current
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(video, 0, 0)
+      const vw = video.videoWidth
+      const vh = video.videoHeight
 
-      // Carregar Tesseract via CDN (só quando precisa)
+      // Recortar só a região central (a mira) para focar no número
+      const cropW = Math.floor(vw * 0.75)
+      const cropH = Math.floor(vh * 0.30)
+      const cropX = Math.floor((vw - cropW) / 2)
+      const cropY = Math.floor((vh - cropH) / 2)
+
+      canvas.width = cropW
+      canvas.height = cropH
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
+
+      // Pré-processamento: escala de cinza + aumento de contraste (melhora OCR)
+      const imgData = ctx.getImageData(0, 0, cropW, cropH)
+      const d = imgData.data
+      for (let i = 0; i < d.length; i += 4) {
+        const gray = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114
+        // Binarização com limiar (preto/branco puro)
+        const bin = gray > 120 ? 255 : 0
+        d[i] = d[i+1] = d[i+2] = bin
+      }
+      ctx.putImageData(imgData, 0, 0)
+
+      // Carregar Tesseract via CDN
       if (!window.Tesseract) {
         await new Promise((resolve, reject) => {
           const script = document.createElement('script')
           script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'
           script.onload = resolve
-          script.onerror = reject
+          script.onerror = () => reject(new Error('Falha ao carregar OCR. Verifique a internet.'))
           document.head.appendChild(script)
         })
       }
 
       const { data } = await window.Tesseract.recognize(canvas, 'eng', {
         tessedit_char_whitelist: '0123456789',
+        logger: m => {
+          if (m.status === 'recognizing text') setProgresso(Math.round(m.progress * 100))
+        }
       })
-      // Extrair só números
       const numeros = (data.text.match(/\d+/g) || []).sort((a, b) => b.length - a.length)
       if (numeros.length > 0) {
         setResultado(numeros[0])
         if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop())
       } else {
-        setErro('Não consegui ler o número. Tente melhorar a luz ou digite manual.')
+        setErro('Número não reconhecido. Melhore a luz, aproxime a câmera ou digite manualmente.')
       }
     } catch (e) {
-      setErro('Erro no OCR: ' + e.message)
+      setErro(e.message || 'Erro no OCR.')
     }
     setLendo(false)
+    setProgresso(0)
   }
 
   function confirmar(valor) {
@@ -122,7 +151,6 @@ export default function ScannerBrinco({ onLer, onClose }) {
       <div style={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
         <h3 style={{ color: '#fff', fontSize: 18, fontWeight: 800, marginBottom: 12 }}>📷 Escanear Brinco</h3>
 
-        {/* Tela de confirmação do valor lido */}
         {resultado ? (
           <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 24, marginBottom: 16 }}>
             <div style={{ fontSize: 13, color: '#999', marginBottom: 8 }}>Número lido:</div>
@@ -138,7 +166,6 @@ export default function ScannerBrinco({ onLer, onClose }) {
           </div>
         ) : (
           <>
-            {/* Seletor de modo */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 12, justifyContent: 'center' }}>
               <button onClick={() => { setModo('codigo'); setErro('') }} style={{
                 padding: '6px 14px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600,
@@ -154,33 +181,30 @@ export default function ScannerBrinco({ onLer, onClose }) {
               }}>🔢 Ler número</button>
             </div>
 
-            {!erro && (
-              <>
-                <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: `3px solid ${C.verdeVivo}`, marginBottom: 12 }}>
-                  <video ref={videoRef} style={{ width: '100%', display: 'block' }} playsInline muted />
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '75%', height: '30%', border: `2px solid ${C.verdeVivo}`, borderRadius: 8, boxShadow: '0 0 0 9999px rgba(0,0,0,0.25)' }} />
-                </div>
-                <p style={{ color: '#ccc', fontSize: 12, marginBottom: 12 }}>
-                  {modo === 'codigo'
-                    ? 'Aponte para o código de barras ou QR do brinco'
-                    : 'Enquadre o número do brinco e toque em "Ler número"'}
-                </p>
-                {modo === 'ocr' && (
-                  <button onClick={lerNumero} disabled={lendo} style={{
-                    width: '100%', padding: '14px', borderRadius: 8, border: 'none',
-                    background: lendo ? '#555' : C.verdeVivo, color: '#fff', fontWeight: 700, fontSize: 15, cursor: lendo ? 'wait' : 'pointer', marginBottom: 12
-                  }}>{lendo ? '⏳ Lendo número...' : '🔢 Ler número do brinco'}</button>
-                )}
-              </>
+            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: `3px solid ${C.verdeVivo}`, marginBottom: 12 }}>
+              <video ref={videoRef} style={{ width: '100%', display: 'block' }} playsInline muted />
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '75%', height: '30%', border: `2px solid ${C.verdeVivo}`, borderRadius: 8, boxShadow: '0 0 0 9999px rgba(0,0,0,0.25)' }} />
+            </div>
+
+            <p style={{ color: '#ccc', fontSize: 12, marginBottom: 12 }}>
+              {modo === 'codigo'
+                ? '🏷️ Aponte para o código de barras ou QR do brinco'
+                : '🔢 Enquadre o número dentro da moldura e toque em "Ler número"'}
+            </p>
+
+            {modo === 'ocr' && (
+              <button onClick={lerNumero} disabled={lendo} style={{
+                width: '100%', padding: '14px', borderRadius: 8, border: 'none',
+                background: lendo ? '#555' : C.verdeVivo, color: '#fff', fontWeight: 700, fontSize: 15, cursor: lendo ? 'wait' : 'pointer', marginBottom: 12
+              }}>{lendo ? `⏳ Lendo... ${progresso}%` : '🔢 Ler número do brinco'}</button>
             )}
 
             {erro && (
-              <div style={{ background: '#2a1a1a', borderRadius: 12, padding: 16, marginBottom: 12, color: '#ff9999', fontSize: 13 }}>
+              <div style={{ background: '#2a1a1a', borderRadius: 12, padding: 14, marginBottom: 12, color: '#ff9999', fontSize: 13 }}>
                 ⚠️ {erro}
               </div>
             )}
 
-            {/* Entrada manual */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <input
                 value={manual} onChange={e => setManual(e.target.value)}

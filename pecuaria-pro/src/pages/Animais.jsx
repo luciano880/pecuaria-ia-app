@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import ScannerBrinco from '../components/ScannerBrinco.jsx'
 import { useTabela } from '../utils/useTabela.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, fmtData, hoje, getCategoriasSegmento, LABEL_CATEGORIA, limparPayload } from '../utils/helpers.js'
+import { C, fmtData, hoje, getCategoriasSegmento, getRacasSegmento, LABEL_CATEGORIA, limparPayload } from '../utils/helpers.js'
 import { Secao, Tabela, Modal, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 
 export default function Animais() {
@@ -19,6 +19,7 @@ export default function Animais() {
   const { toast, ToastContainer } = useToast()
 
   const CATS = getCategoriasSegmento(seg)
+  const RACAS = getRacasSegmento(seg)
 
   const vazio = { brinco:'', nome:'', raca:'', sexo:'F', data_nascimento:'', categoria: CATS[0],
     lote:'', mae_brinco:'', peso_entrada:'', obs:'' }
@@ -162,7 +163,7 @@ export default function Animais() {
               options={[{ value: 'F', label: 'Fêmea' }, { value: 'M', label: 'Macho' }]} />
           </Grid>
           <Grid cols={2}>
-            <Campo label="Raça" value={form.raca} onChange={v => set('raca', v)} placeholder="ex: Gir Leiteiro" />
+            <Campo label="Raça" type="select" value={form.raca} onChange={v => set('raca', v)} options={RACAS} placeholder="Selecione..." />
             <Campo label="Lote" value={form.lote} onChange={v => set('lote', v)} placeholder="ex: Lote A" />
           </Grid>
           <Grid cols={2}>

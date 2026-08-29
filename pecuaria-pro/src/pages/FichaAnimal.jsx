@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../utils/supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
-import { C, getCor, fmtData, fmtBRL, fmtNum, hoje, LABEL_CATEGORIA, getCategoriasSegmento, diasAte } from '../utils/helpers.js'
+import { C, getCor, fmtData, fmtBRL, fmtNum, hoje, LABEL_CATEGORIA, getCategoriasSegmento, getRacasSegmento, diasAte } from '../utils/helpers.js'
 import { Secao, Modal, Campo, Grid, Btn, useToast } from '../components/UI.jsx'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
@@ -603,6 +603,7 @@ export default function FichaAnimal() {
 
 function EditarAnimal({ animal, onSave, onClose, seg }) {
   const cats = getCategoriasSegmento(seg)
+  const racas = getRacasSegmento(seg)
 
   const [form, setForm] = useState({
     ...animal,
@@ -633,7 +634,7 @@ function EditarAnimal({ animal, onSave, onClose, seg }) {
           options={cats.map(c => ({ value: c, label: LABEL_CATEGORIA[c] || c }))} />
       </Grid>
       <Grid cols={2}>
-        <Campo label="Raça" value={form.raca} onChange={v => set('raca', v)} />
+        <Campo label="Raça" type="select" value={form.raca} onChange={v => set('raca', v)} options={racas} />
         <Campo label="Lote" value={form.lote} onChange={v => set('lote', v)} />
       </Grid>
       <Grid cols={2}>
