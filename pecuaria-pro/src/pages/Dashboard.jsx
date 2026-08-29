@@ -76,7 +76,7 @@ export default function Dashboard() {
 
       if (isLeite) {
         // Buscar produção de leite
-        const prodRes = await supabase.from('producao_leite').select('total_litros,data').eq('user_id',user.id).gte('data', dias30).order('data')
+        const prodRes = await supabase.from('producao_leite').select('total_litros,data').eq('user_id',user.id).eq('segmento',seg||'leite').gte('data', dias30).order('data')
         totalLitrosHoje = (prodRes.data||[]).filter(r=>r.data===hoje()).reduce((s,r)=>s+parseFloat(r.total_litros||0),0)
         const prodMap = {}
         ;(prodRes.data||[]).forEach(r => { prodMap[r.data?.slice(5)] = (prodMap[r.data?.slice(5)]||0)+parseFloat(r.total_litros||0) })

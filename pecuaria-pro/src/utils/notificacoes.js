@@ -73,19 +73,14 @@ export async function verificarAlertas(userId, segmento) {
       )
     }
 
-    // 2. Partos previstos (reprodução com previsão próxima)
+    // 2. Partos previstos (usa previsao_parto já calculada)
     const { data: repro } = await supabase
       .from('reproducao').select('*')
       .eq('user_id', userId).eq('segmento', segmento)
-      .in('tipo', ['cobertura', 'iatf'])
+      .gte('previsao_parto', hojeStr).lte('previsao_parto', em7dias)
     if (repro?.length) {
-      const gestacao = segmento?.includes('ovino') ? 147 : segmento?.includes('caprino') ? 150 : 283
-      const partosProximos = repro.filter(r => {
-        if (!r.data_evento) return false
-        const previsao = new Date(new Date(r.data_evento).getTime() + gestacao * 86400000)
-        const diasAte = Math.ceil((previsao - hj) / 86400000)
-        return diasAte >= 0 && diasAte <= 7
-      })
+      // Só conta os que ainda não pariram
+      const partosProximos = repro.filter(r => !r.data_parto_real)
       if (partosProximos.length) {
         notificar(
           `🐄 ${partosProximos.length} parto(s) previsto(s)`,

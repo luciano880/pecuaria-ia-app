@@ -36,7 +36,8 @@ export default function ProducaoLeite() {
     if (!form.brinco) { toast('Informe o brinco', 'erro'); return }
     try {
       const animal = animais.find(a => a.brinco === form.brinco)
-      await inserir({ ...form, animal_id: animal?.id || null })
+      const total_litros = parseFloat(form.litros_manha||0) + parseFloat(form.litros_tarde||0) + parseFloat(form.litros_noite||0)
+      await inserir({ ...form, segmento: seg, total_litros, animal_id: animal?.id || null })
       toast('Produção registrada!')
       setModal(false)
     } catch(e) { toast(e.message, 'erro') }

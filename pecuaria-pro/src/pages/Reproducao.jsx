@@ -46,14 +46,21 @@ export default function Reproducao() {
     if (!form.brinco || !form.tipo) { toast('Brinco e tipo obrigatórios', 'erro'); return }
     const animal = animais.find(a => a.brinco === form.brinco)
     try {
+      const dataEvento = form.data_evento && form.data_evento !== '' ? form.data_evento : hoje()
+      // Calcular previsão de parto automaticamente para cobertura/IATF (se não preenchida)
+      let previsao = nd(form.previsao_parto)
+      if (!previsao && (form.tipo === 'cobertura' || form.tipo === 'iatf')) {
+        previsao = calcularParto(dataEvento)
+      }
       const payload = {
+        segmento: seg,
         brinco: form.brinco,
         tipo: form.tipo,
-        data_evento: form.data_evento && form.data_evento !== '' ? form.data_evento : hoje(),
+        data_evento: dataEvento,
         animal_id: animal?.id || null,
         touro_semen: n(form.touro_semen),
         resultado: n(form.resultado),
-        previsao_parto: nd(form.previsao_parto),
+        previsao_parto: previsao,
         data_parto_real: nd(form.data_parto_real),
         sexo_cria: n(form.sexo_cria),
         peso_cria_kg: nf(form.peso_cria_kg),

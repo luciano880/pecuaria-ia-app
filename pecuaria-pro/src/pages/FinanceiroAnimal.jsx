@@ -12,6 +12,7 @@ export default function FinanceiroAnimal() {
   const [receitas, setReceitas] = useState([])
   const [despesas, setDespesas] = useState([])
   const [producao, setProducao] = useState([])
+  const [entregas, setEntregas] = useState([])
   const [loading, setLoading] = useState(true)
   const [ordenar, setOrdenar] = useState('lucro') // lucro | receita | custo | brinco
 
@@ -19,16 +20,18 @@ export default function FinanceiroAnimal() {
 
   async function carregar() {
     setLoading(true)
-    const [aRes, rRes, dRes, pRes] = await Promise.all([
+    const [aRes, rRes, dRes, pRes, eRes] = await Promise.all([
       supabase.from('animais').select('*').eq('user_id', user.id).eq('segmento', seg),
       supabase.from('receitas').select('*').eq('user_id', user.id).eq('segmento', seg),
       supabase.from('despesas').select('*').eq('user_id', user.id).eq('segmento', seg),
       supabase.from('producao_leite').select('*').eq('user_id', user.id).eq('segmento', seg),
+      supabase.from('entrega_leite').select('*').eq('user_id', user.id).eq('segmento', seg),
     ])
     setAnimais(aRes.data || [])
     setReceitas(rRes.data || [])
     setDespesas(dRes.data || [])
     setProducao(pRes.data || [])
+    setEntregas(eRes.data || [])
     setLoading(false)
   }
 
@@ -56,15 +59,24 @@ export default function FinanceiroAnimal() {
     // Produção de leite por animal (receita estimada)
     const litrosPorBrinco = {}
     producao.forEach(p => {
-      const litros = (parseFloat(p.litros_manha || 0) + parseFloat(p.litros_tarde || 0) + parseFloat(p.litros_noite || 0))
+      const litros = parseFloat(p.total_litros || 0) ||
+        (parseFloat(p.litros_manha || 0) + parseFloat(p.litros_tarde || 0) + parseFloat(p.litros_noite || 0))
       litrosPorBrinco[p.brinco] = (litrosPorBrinco[p.brinco] || 0) + litros
     })
 
-    // Preço médio do leite (das receitas de venda de leite)
-    const recLeite = receitas.filter(r => r.categoria === 'venda_leite')
-    const totalLitrosVendidos = recLeite.reduce((s, r) => s + parseFloat(r.quantidade || 0), 0)
-    const totalReceitaLeite = recLeite.reduce((s, r) => s + parseFloat(r.valor || 0), 0)
-    const precoLitro = totalLitrosVendidos > 0 ? totalReceitaLeite / totalLitrosVendidos : 0
+    // Preço médio do leite: das entregas (mais preciso) ou receitas de venda
+    let precoLitro = 0
+    if (entregas.length > 0) {
+      const totL = entregas.reduce((s, e) => s + parseFloat(e.litros || 0), 0)
+      const totV = entregas.reduce((s, e) => s + parseFloat(e.valor_total || 0), 0)
+      precoLitro = totL > 0 ? totV / totL : 0
+    }
+    if (precoLitro === 0) {
+      const recLeite = receitas.filter(r => r.categoria === 'venda_leite')
+      const totalLitrosVendidos = recLeite.reduce((s, r) => s + parseFloat(r.quantidade || 0), 0)
+      const totalReceitaLeite = recLeite.reduce((s, r) => s + parseFloat(r.valor || 0), 0)
+      precoLitro = totalLitrosVendidos > 0 ? totalReceitaLeite / totalLitrosVendidos : 0
+    }
 
     const linhas = ativos.map(a => {
       const receitaDireta = receitaDiretaPorBrinco[a.brinco] || 0
@@ -95,7 +107,7 @@ export default function FinanceiroAnimal() {
     })
 
     return { linhas, despesaTotal, despesaPorAnimal, nAtivos, precoLitro }
-  }, [animais, receitas, despesas, producao, ordenar])
+  }, [animais, receitas, despesas, producao, entregas, ordenar])
 
   const totalReceita = analise.linhas.reduce((s, l) => s + l.receitaTotal, 0)
   const totalLucro = analise.linhas.reduce((s, l) => s + l.lucro, 0)
