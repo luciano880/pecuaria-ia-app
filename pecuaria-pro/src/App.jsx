@@ -11,10 +11,7 @@ import Sanidade           from './pages/Sanidade.jsx'
 import Estoque            from './pages/Estoque.jsx'
 import Pesagens           from './pages/Pesagens.jsx'
 import AnaliseIA          from './pages/AnaliseIA.jsx'
-import Financeiro         from './pages/Financeiro.jsx'
-import FinanceiroAnimal   from './pages/FinanceiroAnimal.jsx'
-import FinanceiroPessoal  from './pages/FinanceiroPessoal.jsx'
-import DeclaracaoIR       from './pages/DeclaracaoIR.jsx'
+import FinanceiroHub      from './pages/FinanceiroHub.jsx'
 import IndicesZootecnicos from './pages/IndicesZootecnicos.jsx'
 import Maquinas           from './pages/Maquinas.jsx'
 import Configuracoes      from './pages/Configuracoes.jsx'
@@ -51,10 +48,7 @@ export default function App() {
         <Route path="estoque"               element={<Estoque />} />
         <Route path="pesagens"              element={<Pesagens />} />
         <Route path="analise-ia"            element={<AnaliseIA />} />
-        <Route path="financeiro"            element={<Financeiro />} />
-        <Route path="financeiro-animal"     element={<FinanceiroAnimal />} />
-        <Route path="financeiro-pessoal"    element={<FinanceiroPessoal />} />
-        <Route path="declaracao-ir"         element={<DeclaracaoIR />} />
+        <Route path="financeiro"            element={<FinanceiroHub />} />
         <Route path="indices"               element={<IndicesZootecnicos />} />
         <Route path="maquinas"              element={<Maquinas />} />
         <Route path="configuracoes"         element={<Configuracoes />} />

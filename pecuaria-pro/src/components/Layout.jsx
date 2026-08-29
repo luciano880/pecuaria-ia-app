@@ -38,107 +38,122 @@ export default function Layout() {
     }
   }, [user, seg])
 
-  const navLeite = [
-    { to:'/',                    icon:'🏠', label:'Início' },
-    { to:'/animais',             icon:'🏷️', label:'Animais' },
-    { to:'/producao-leite',      icon:'🥛', label:'Produção de Leite' },
-    { to:'/reproducao',          icon:'🐄', label:'Reprodução' },
-    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
-    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
-    { to:'/estoque',             icon:'🌽', label:'Estoque & Dietas' },
-    { to:'/pesagens',            icon:'⚖️', label:'Pesagens' },
-    { to:'/maquinas',            icon:'🚜', label:'Máquinas' },
-    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
-    { to:'/financeiro-animal',   icon:'🐄', label:'Financeiro/Animal' },
-    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
-    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
-    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
-  ]
-  const navCorte = [
-    { to:'/',                    icon:'🏠', label:'Início' },
-    { to:'/animais',             icon:'🏷️', label:'Animais' },
-    { to:'/pesagens',            icon:'⚖️', label:'Pesagens & GMD' },
-    { to:'/reproducao',          icon:'🐄', label:'Reprodução' },
-    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
-    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
-    { to:'/estoque',             icon:'🌽', label:'Estoque & Dietas' },
-    { to:'/maquinas',            icon:'🚜', label:'Máquinas' },
-    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
-    { to:'/financeiro-animal',   icon:'🐄', label:'Financeiro/Animal' },
-    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
-    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
-    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
-  ]
-  const navOvinoLeite = [
-    { to:'/',                    icon:'🏠', label:'Início' },
-    { to:'/animais',             icon:'🏷️', label:'Animais' },
-    { to:'/producao-leite',      icon:'🐑', label:'Produção de Leite' },
-    { to:'/reproducao',          icon:'🐑', label:'Reprodução' },
-    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
-    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
-    { to:'/estoque',             icon:'🌿', label:'Estoque & Dietas' },
-    { to:'/pesagens',            icon:'⚖️', label:'Pesagens' },
-    { to:'/maquinas',            icon:'🚜', label:'Máquinas' },
-    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
-    { to:'/financeiro-animal',   icon:'🐄', label:'Financeiro/Animal' },
-    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
-    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
-    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
-  ]
-  const navOvinoCorte = [
-    { to:'/',                    icon:'🏠', label:'Início' },
-    { to:'/animais',             icon:'🏷️', label:'Animais' },
-    { to:'/pesagens',            icon:'⚖️', label:'Pesagens & GMD' },
-    { to:'/reproducao',          icon:'🐑', label:'Reprodução' },
-    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
-    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
-    { to:'/estoque',             icon:'🌿', label:'Estoque & Dietas' },
-    { to:'/maquinas',            icon:'🚜', label:'Máquinas' },
-    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
-    { to:'/financeiro-animal',   icon:'🐄', label:'Financeiro/Animal' },
-    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
-    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
-    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
-  ]
+  // Menus organizados por SEÇÕES para cada segmento
+  const menusPorSegmento = {
+    leite: [
+      { secao: null, itens: [{ to:'/', icon:'🏠', label:'Início' }] },
+      { secao: 'Rebanho', itens: [
+        { to:'/animais', icon:'🏷️', label:'Animais' },
+        { to:'/producao-leite', icon:'🥛', label:'Produção de Leite' },
+        { to:'/reproducao', icon:'🐄', label:'Reprodução' },
+        { to:'/pesagens', icon:'⚖️', label:'Pesagens' },
+      ]},
+      { secao: 'Manejo', itens: [
+        { to:'/sanidade', icon:'💊', label:'Sanidade' },
+        { to:'/estoque', icon:'🌽', label:'Estoque & Dietas' },
+        { to:'/maquinas', icon:'🚜', label:'Máquinas' },
+      ]},
+      { secao: 'Gestão', itens: [
+        { to:'/financeiro', icon:'💰', label:'Financeiro' },
+        { to:'/indices', icon:'📊', label:'Índices Zootécnicos' },
+        { to:'/analise-ia', icon:'🤖', label:'Análise IA' },
+      ]},
+    ],
+    corte: [
+      { secao: null, itens: [{ to:'/', icon:'🏠', label:'Início' }] },
+      { secao: 'Rebanho', itens: [
+        { to:'/animais', icon:'🏷️', label:'Animais' },
+        { to:'/pesagens', icon:'⚖️', label:'Pesagens & GMD' },
+        { to:'/reproducao', icon:'🐄', label:'Reprodução' },
+      ]},
+      { secao: 'Manejo', itens: [
+        { to:'/sanidade', icon:'💊', label:'Sanidade' },
+        { to:'/estoque', icon:'🌽', label:'Estoque & Dietas' },
+        { to:'/maquinas', icon:'🚜', label:'Máquinas' },
+      ]},
+      { secao: 'Gestão', itens: [
+        { to:'/financeiro', icon:'💰', label:'Financeiro' },
+        { to:'/indices', icon:'📊', label:'Índices Zootécnicos' },
+        { to:'/analise-ia', icon:'🤖', label:'Análise IA' },
+      ]},
+    ],
+    ovino_leite: [
+      { secao: null, itens: [{ to:'/', icon:'🏠', label:'Início' }] },
+      { secao: 'Rebanho', itens: [
+        { to:'/animais', icon:'🏷️', label:'Animais' },
+        { to:'/producao-leite', icon:'🐑', label:'Produção de Leite' },
+        { to:'/reproducao', icon:'🐑', label:'Reprodução' },
+        { to:'/pesagens', icon:'⚖️', label:'Pesagens' },
+      ]},
+      { secao: 'Manejo', itens: [
+        { to:'/sanidade', icon:'💊', label:'Sanidade' },
+        { to:'/estoque', icon:'🌾', label:'Estoque & Dietas' },
+        { to:'/maquinas', icon:'🚜', label:'Máquinas' },
+      ]},
+      { secao: 'Gestão', itens: [
+        { to:'/financeiro', icon:'💰', label:'Financeiro' },
+        { to:'/indices', icon:'📊', label:'Índices Zootécnicos' },
+        { to:'/analise-ia', icon:'🤖', label:'Análise IA' },
+      ]},
+    ],
+    ovino_corte: [
+      { secao: null, itens: [{ to:'/', icon:'🏠', label:'Início' }] },
+      { secao: 'Rebanho', itens: [
+        { to:'/animais', icon:'🏷️', label:'Animais' },
+        { to:'/pesagens', icon:'⚖️', label:'Pesagens & GMD' },
+        { to:'/reproducao', icon:'🐑', label:'Reprodução' },
+      ]},
+      { secao: 'Manejo', itens: [
+        { to:'/sanidade', icon:'💊', label:'Sanidade' },
+        { to:'/estoque', icon:'🌾', label:'Estoque & Dietas' },
+        { to:'/maquinas', icon:'🚜', label:'Máquinas' },
+      ]},
+      { secao: 'Gestão', itens: [
+        { to:'/financeiro', icon:'💰', label:'Financeiro' },
+        { to:'/indices', icon:'📊', label:'Índices Zootécnicos' },
+        { to:'/analise-ia', icon:'🤖', label:'Análise IA' },
+      ]},
+    ],
+    caprino_leite: [
+      { secao: null, itens: [{ to:'/', icon:'🏠', label:'Início' }] },
+      { secao: 'Rebanho', itens: [
+        { to:'/animais', icon:'🏷️', label:'Animais' },
+        { to:'/producao-leite', icon:'🐐', label:'Produção de Leite' },
+        { to:'/reproducao', icon:'🐐', label:'Reprodução' },
+        { to:'/pesagens', icon:'⚖️', label:'Pesagens' },
+      ]},
+      { secao: 'Manejo', itens: [
+        { to:'/sanidade', icon:'💊', label:'Sanidade' },
+        { to:'/estoque', icon:'🌾', label:'Estoque & Dietas' },
+        { to:'/maquinas', icon:'🚜', label:'Máquinas' },
+      ]},
+      { secao: 'Gestão', itens: [
+        { to:'/financeiro', icon:'💰', label:'Financeiro' },
+        { to:'/indices', icon:'📊', label:'Índices Zootécnicos' },
+        { to:'/analise-ia', icon:'🤖', label:'Análise IA' },
+      ]},
+    ],
+    caprino_corte: [
+      { secao: null, itens: [{ to:'/', icon:'🏠', label:'Início' }] },
+      { secao: 'Rebanho', itens: [
+        { to:'/animais', icon:'🏷️', label:'Animais' },
+        { to:'/pesagens', icon:'⚖️', label:'Pesagens & GMD' },
+        { to:'/reproducao', icon:'🐐', label:'Reprodução' },
+      ]},
+      { secao: 'Manejo', itens: [
+        { to:'/sanidade', icon:'💊', label:'Sanidade' },
+        { to:'/estoque', icon:'🌾', label:'Estoque & Dietas' },
+        { to:'/maquinas', icon:'🚜', label:'Máquinas' },
+      ]},
+      { secao: 'Gestão', itens: [
+        { to:'/financeiro', icon:'💰', label:'Financeiro' },
+        { to:'/indices', icon:'📊', label:'Índices Zootécnicos' },
+        { to:'/analise-ia', icon:'🤖', label:'Análise IA' },
+      ]},
+    ],
+  }
 
-  const navCaprinoLeite = [
-    { to:'/',                    icon:'🏠', label:'Início' },
-    { to:'/animais',             icon:'🏷️', label:'Animais' },
-    { to:'/producao-leite',      icon:'🐐', label:'Produção de Leite' },
-    { to:'/reproducao',          icon:'🐐', label:'Reprodução' },
-    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
-    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
-    { to:'/estoque',             icon:'🌿', label:'Estoque & Dietas' },
-    { to:'/pesagens',            icon:'⚖️', label:'Pesagens' },
-    { to:'/maquinas',            icon:'🚜', label:'Máquinas' },
-    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
-    { to:'/financeiro-animal',   icon:'🐄', label:'Financeiro/Animal' },
-    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
-    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
-    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
-  ]
-  const navCaprinoCorte = [
-    { to:'/',                    icon:'🏠', label:'Início' },
-    { to:'/animais',             icon:'🏷️', label:'Animais' },
-    { to:'/pesagens',            icon:'⚖️', label:'Pesagens & GMD' },
-    { to:'/reproducao',          icon:'🐐', label:'Reprodução' },
-    { to:'/indices',             icon:'📊', label:'Índices Zootécnicos' },
-    { to:'/sanidade',            icon:'💊', label:'Sanidade' },
-    { to:'/estoque',             icon:'🌿', label:'Estoque & Dietas' },
-    { to:'/maquinas',            icon:'🚜', label:'Máquinas' },
-    { to:'/financeiro',          icon:'💰', label:'Financeiro Rural' },
-    { to:'/financeiro-animal',   icon:'🐄', label:'Financeiro/Animal' },
-    { to:'/financeiro-pessoal',  icon:'👤', label:'Financeiro Pessoal' },
-    { to:'/declaracao-ir',       icon:'📋', label:'Declaração IR' },
-    { to:'/analise-ia',          icon:'🤖', label:'Análise IA' },
-  ]
-
-  const nav = seg === 'leite' ? navLeite
-    : seg === 'corte' ? navCorte
-    : seg === 'ovino_leite' ? navOvinoLeite
-    : seg === 'ovino_corte' ? navOvinoCorte
-    : seg === 'caprino_leite' ? navCaprinoLeite
-    : navCaprinoCorte
+  const secoes = menusPorSegmento[seg] || menusPorSegmento.leite
 
   async function sair() { await logout(); navigate('/auth') }
 
@@ -173,12 +188,23 @@ export default function Layout() {
         </div>
       </div>
 
-      <nav style={{ flex:1, padding:'10px', overflowY:'auto' }}>
-        {nav.map(item => (
-          <NavLink key={item.to} to={item.to} end={item.to === '/'} style={({ isActive }) => itemStyle(isActive)} onClick={() => setOpen(false)}>
-            <span style={{ fontSize:16, width:24, textAlign:'center', flexShrink:0 }}>{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
+      <nav style={{ flex:1, padding:'12px 10px', overflowY:'auto' }}>
+        {secoes.map((grupo, gi) => (
+          <div key={gi} style={{ marginBottom: grupo.secao ? 18 : 8 }}>
+            {grupo.secao && (
+              <div style={{
+                fontSize: 10, fontWeight: 700, color: C.textoMuted,
+                textTransform: 'uppercase', letterSpacing: '0.08em',
+                padding: '0 12px', marginBottom: 8, opacity: 0.7,
+              }}>{grupo.secao}</div>
+            )}
+            {grupo.itens.map(item => (
+              <NavLink key={item.to} to={item.to} end={item.to === '/'} style={({ isActive }) => itemStyle(isActive)} onClick={() => setOpen(false)}>
+                <span style={{ fontSize:16, width:24, textAlign:'center', flexShrink:0 }}>{item.icon}</span>
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </div>
         ))}
         <div style={{ borderTop:`1px solid ${C.border}`, margin:'8px 0' }} />
         <NavLink to="/configuracoes" style={({ isActive }) => ({ ...itemStyle(isActive), borderLeftColor: isActive ? C.ambar : 'transparent', background: isActive ? `${C.ambar}22` : 'transparent' })} onClick={() => setOpen(false)}>
