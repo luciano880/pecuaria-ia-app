@@ -19,9 +19,21 @@ function calcIRPF(base) {
   return 0
 }
 
-// IR Atividade Rural — 20% do lucro (simplificado Livro Caixa)
-function calcIRRural(lucro) {
-  return Math.max(0, lucro * 0.20)
+// IR Atividade Rural (Lei 8.023/1990):
+// O resultado tributável é o MENOR entre:
+//   (a) resultado real = receitas - despesas (Livro Caixa)
+//   (b) resultado presumido = 20% da receita bruta (arbitramento)
+// Esse resultado é somado aos demais rendimentos e tributado pela tabela progressiva.
+function calcResultadoRural(totalReceita, totalDespesa) {
+  const resultadoReal = Math.max(0, totalReceita - totalDespesa)
+  const resultadoPresumido = totalReceita * 0.20
+  // O produtor escolhe o menor (mais vantajoso). Se despesas altas, real é menor.
+  return {
+    real: resultadoReal,
+    presumido: resultadoPresumido,
+    tributavel: Math.min(resultadoReal, resultadoPresumido),
+    metodo: resultadoReal <= resultadoPresumido ? 'real' : 'presumido',
+  }
 }
 
 const CATS_R_RURAL = { venda_leite:'Venda de Leite', venda_animal:'Venda de Animal', venda_bezerro:'Venda de Bezerro', subvencao:'Subvenção/Pronaf', servico:'Serviço', arrendamento:'Arrendamento', outro:'Outro' }
@@ -60,11 +72,12 @@ export default function DeclaracaoIR() {
       const recPF    = recPFRes.data    || []
       const desPF    = desPFRes.data    || []
 
-      // ── Rural ──
+      // ── Rural (Lei 8.023/1990) ──
       const totalRecRural = recRural.reduce((s,r)=>s+parseFloat(r.valor||0),0)
       const totalDesRural = desRural.filter(d=>d.deducivel_ir).reduce((s,r)=>s+parseFloat(r.valor||0),0)
-      const lucroRural    = Math.max(0, totalRecRural - totalDesRural)
-      const irRural       = calcIRRural(lucroRural)
+      // Resultado tributável = menor entre real (rec-desp) e presumido (20% receita)
+      const resRural = calcResultadoRural(totalRecRural, totalDesRural)
+      const lucroRural = resRural.tributavel  // base rural que entra na tabela progressiva
 
       // Agrupar por categoria
       const recRuralCat = {}; recRural.forEach(r=>{ recRuralCat[r.categoria]=(recRuralCat[r.categoria]||0)+parseFloat(r.valor||0) })
@@ -78,7 +91,6 @@ export default function DeclaracaoIR() {
       const totalDesPF = desPFDedutiveis.reduce((s,r)=>s+parseFloat(r.valor||0),0)
       const totalDesPFTodas = desPF.reduce((s,r)=>s+parseFloat(r.valor||0),0)
       const basePF     = Math.max(0, totalRecPF - totalDesPF)
-      const irPF       = calcIRPF(basePF)
 
       const recPFCat = {}
       recPF.forEach(r=>{ recPFCat[r.categoria]=(recPFCat[r.categoria]||0)+parseFloat(r.valor||0) })
@@ -91,13 +103,16 @@ export default function DeclaracaoIR() {
       const desPFDedCat = {}
       desPFDedutiveis.forEach(r=>{ desPFDedCat[r.categoria]=(desPFDedCat[r.categoria]||0)+parseFloat(r.valor||0) })
 
-      // ── Total ──
+      // ── Total: base rural + base PF entram JUNTAS na tabela progressiva ──
       const baseTotal  = lucroRural + basePF
-      const irTotal    = irRural + irPF
-      const irJaPago   = 0 // pode ser implementado futuramente
+      const irTotal    = calcIRPF(baseTotal)  // tabela progressiva sobre a base combinada
+      // IR proporcional de cada origem (para exibição)
+      const irRural    = baseTotal > 0 ? irTotal * (lucroRural / baseTotal) : 0
+      const irPF       = baseTotal > 0 ? irTotal * (basePF / baseTotal) : 0
+      const irJaPago   = 0
       const irDevido   = Math.max(0, irTotal - irJaPago)
 
-      setDados({ anoBase, recRural, desRural, recPF, desPF, totalRecRural, totalDesRural, lucroRural, irRural, recRuralCat, desRuralCat, totalRecPF, totalDesPF, totalDesPFTodas, basePF, irPF, recPFCat, desPFCat, desPFDedCat, baseTotal, irTotal, irDevido })
+      setDados({ anoBase, recRural, desRural, recPF, desPF, totalRecRural, totalDesRural, lucroRural, irRural, resRural, recRuralCat, desRuralCat, totalRecPF, totalDesPF, totalDesPFTodas, basePF, irPF, recPFCat, desPFCat, desPFDedCat, baseTotal, irTotal, irDevido })
     } catch(e) { toast(e.message,'erro') }
     finally { setCarregando(false) }
   }
@@ -116,7 +131,7 @@ ${Object.entries(dados.recRuralCat).map(([k,v])=>`  ${CATS_R_RURAL[k]||k}: ${fmt
 Despesas dedutíveis: ${fmtBRL(dados.totalDesRural)}
 ${Object.entries(dados.desRuralCat).map(([k,v])=>`  ${CATS_D_RURAL[k]||k}: ${fmtBRL(v)}`).join('\n')}
 Lucro tributável rural: ${fmtBRL(dados.lucroRural)}
-IR atividade rural (20%): ${fmtBRL(dados.irRural)}
+Resultado tributável rural (${dados.resRural?.metodo === 'presumido' ? 'presumido 20%' : 'real'}): ${fmtBRL(dados.lucroRural)}\nIR sobre atividade rural: ${fmtBRL(dados.irRural)}
 
 === RENDIMENTOS PESSOA FÍSICA ===
 Rendimentos totais: ${fmtBRL(dados.totalRecPF)}
@@ -168,7 +183,7 @@ Linguagem clara para produtor rural. Sem markdown ou asteriscos.`)
         ['Receita rural bruta', fmtBRL(dados.totalRecRural)],
         ['Despesas dedutíveis rural', fmtBRL(dados.totalDesRural)],
         ['Lucro rural tributável', fmtBRL(dados.lucroRural)],
-        ['IR atividade rural (20%)', fmtBRL(dados.irRural)],
+        ['IR sobre atividade rural', fmtBRL(dados.irRural)],
         ['',''],
         ['Rendimentos PF', fmtBRL(dados.totalRecPF)],
         ['Deduções PF', fmtBRL(dados.totalDesPF)],
@@ -253,7 +268,7 @@ ${relIA}`
         {Item:'Receita rural bruta', Valor:dados.totalRecRural},
         {Item:'Despesas dedutíveis rural', Valor:dados.totalDesRural},
         {Item:'Lucro rural tributável', Valor:dados.lucroRural},
-        {Item:'IR atividade rural (20%)', Valor:dados.irRural},
+        {Item:'IR sobre atividade rural', Valor:dados.irRural},
         {Item:'Rendimentos PF', Valor:dados.totalRecPF},
         {Item:'Deduções PF', Valor:dados.totalDesPF},
         {Item:'Base cálculo PF', Valor:dados.basePF},
@@ -349,9 +364,30 @@ ${relIA}`
               <div style={{fontSize:20,fontWeight:800,color:C.verde,fontFamily:'monospace'}}>{fmtBRL(dados.lucroRural)}</div>
             </div>
             <div style={{textAlign:'right'}}>
-              <div style={{fontSize:11,color:C.textoMuted}}>IR rural (alíquota 20% — Lei 8.023/1990)</div>
+              <div style={{fontSize:11,color:C.textoMuted}}>Base rural: {dados.resRural?.metodo === 'presumido' ? 'presumido (20% da receita)' : 'real (rec. - desp.)'} — Lei 8.023/1990</div>
               <div style={{fontSize:20,fontWeight:800,color:C.ambar,fontFamily:'monospace'}}>{fmtBRL(dados.irRural)}</div>
             </div>
+          </div>
+
+          {/* Comparação: real vs presumido */}
+          {dados.resRural && (
+            <div style={{marginTop:12,display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div style={{background:dados.resRural.metodo==='real'?`${C.verde}18`:'transparent',border:`1px solid ${dados.resRural.metodo==='real'?C.verde:C.border}`,borderRadius:8,padding:'10px 14px'}}>
+                <div style={{fontSize:11,color:C.textoMuted,marginBottom:2}}>📒 Resultado Real (Livro Caixa)</div>
+                <div style={{fontSize:16,fontWeight:800,color:C.texto,fontFamily:'monospace'}}>{fmtBRL(dados.resRural.real)}</div>
+                <div style={{fontSize:10,color:C.textoMuted}}>Receitas − despesas comprovadas</div>
+                {dados.resRural.metodo==='real' && <div style={{fontSize:10,color:C.verde,fontWeight:700,marginTop:3}}>✓ Mais vantajoso</div>}
+              </div>
+              <div style={{background:dados.resRural.metodo==='presumido'?`${C.verde}18`:'transparent',border:`1px solid ${dados.resRural.metodo==='presumido'?C.verde:C.border}`,borderRadius:8,padding:'10px 14px'}}>
+                <div style={{fontSize:11,color:C.textoMuted,marginBottom:2}}>📊 Resultado Presumido (20%)</div>
+                <div style={{fontSize:16,fontWeight:800,color:C.texto,fontFamily:'monospace'}}>{fmtBRL(dados.resRural.presumido)}</div>
+                <div style={{fontSize:10,color:C.textoMuted}}>20% da receita bruta (arbitramento)</div>
+                {dados.resRural.metodo==='presumido' && <div style={{fontSize:10,color:C.verde,fontWeight:700,marginTop:3}}>✓ Mais vantajoso</div>}
+              </div>
+            </div>
+          )}
+          <div style={{marginTop:10,fontSize:11,color:C.textoMuted,lineHeight:1.6,background:`${C.verde}0A`,borderRadius:8,padding:'10px 14px'}}>
+            💡 A lei permite escolher o <strong style={{color:C.textoSub}}>menor</strong> resultado entre os dois métodos. O sistema usa automaticamente o mais vantajoso ({dados.resRural?.metodo === 'presumido' ? 'presumido' : 'real'}). Sobre ele incide a tabela progressiva do IRPF (0% a 27,5%), somado aos rendimentos pessoais.
           </div>
         </Secao>
 
@@ -438,8 +474,10 @@ ${relIA}`
               ))}
             </tbody>
           </table>
-          <div style={{marginTop:10,fontSize:11,color:C.textoMuted}}>
-            📚 Base legal: Lei 8.023/1990 (Atividade Rural) · IN RFB 1700/2017 · Tabela IRPF 2025
+          <div style={{marginTop:10,fontSize:11,color:C.textoMuted,lineHeight:1.7}}>
+            📚 Base legal: Lei 8.023/1990 (Atividade Rural) · IN RFB 1700/2017 · Tabela IRPF 2025<br/>
+            📋 <strong style={{color:C.textoSub}}>Obrigatoriedade rural (ano-base 2025):</strong> declara quem teve receita bruta rural acima de R$ 177.920,00, ou rendimentos tributáveis acima de R$ 35.584,00, ou bens acima de R$ 800.000,00, ou quer compensar prejuízos rurais.<br/>
+            ⚠️ Valores estimados para orientação. A declaração oficial da atividade rural deve ser feita no programa da Receita Federal (não pode usar "Meu Imposto de Renda" online). Consulte seu contador.
           </div>
         </Secao>
 
