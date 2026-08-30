@@ -1,43 +1,49 @@
-// PecuáriaIA — Service Worker v2.0
-const CACHE_NAME = 'pecuaria-ia-v3'
-const STATIC_ASSETS = ['/', '/index.html', '/manifest.json']
+// PecuáriaIA — Service Worker v4
+const CACHE_NAME = 'pecuaria-ia-v4'
 
-// Instalar e cachear assets estáticos
+// Instalar
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
-  )
   self.skipWaiting()
 })
 
-// Ativar e limpar caches antigos
+// Ativar e limpar TODOS os caches antigos
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    ).then(() => self.clients.claim())
   )
-  self.clients.claim()
 })
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
 
-  // Ignorar requisições de outros domínios (CDNs, fontes, Tesseract, etc) — deixa passar direto
-  if (url.origin !== self.location.origin) {
+  // Ignorar outros domínios (CDNs, Tesseract, fontes) — passa direto
+  if (url.origin !== self.location.origin) return
+
+  // API de IA e Supabase — sempre rede
+  if (url.pathname.includes('/api/') || url.hostname.includes('supabase.co')) {
+    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)))
     return
   }
 
-  // Nunca cachear a função de IA nem chamadas de API do Supabase (sempre rede)
-  if (url.pathname.includes('/api/') || url.hostname.includes('supabase.co')) {
+  // index.html e navegação (HTML) — SEMPRE da rede (Network First)
+  // Isso garante que o HTML sempre aponte para o JS/CSS mais recente
+  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request)
+        .then(res => {
+          const clone = res.clone()
+          caches.open(CACHE_NAME).then(c => c.put(event.request, clone))
+          return res
+        })
+        .catch(() => caches.match(event.request).then(r => r || caches.match('/index.html')))
     )
     return
   }
 
-  // JS/CSS com hash (assets do Vite) — Network First para pegar versão nova
-  if (url.pathname.includes('/assets/')) {
+  // Assets com hash (JS/CSS/imagens do Vite) — Network First, cacheia versão nova
+  if (url.pathname.includes('/assets/') || url.pathname.match(/\.(js|css|png|jpg|svg|woff2?)$/)) {
     event.respondWith(
       fetch(event.request)
         .then(res => {
@@ -52,19 +58,18 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // Demais GET — Cache First
+  // Demais GET — tenta rede, cai no cache
   if (event.request.method === 'GET') {
     event.respondWith(
-      caches.match(event.request).then(cached => {
-        if (cached) return cached
-        return fetch(event.request).then(res => {
+      fetch(event.request)
+        .then(res => {
           if (res.ok) {
             const clone = res.clone()
             caches.open(CACHE_NAME).then(c => c.put(event.request, clone))
           }
           return res
-        }).catch(() => caches.match('/index.html'))
-      })
+        })
+        .catch(() => caches.match(event.request))
     )
   }
 })
