@@ -33,6 +33,10 @@ const CATS_D = [
   { value:'financiamento_maq',  label:'🚜 Financiamento de Máquinas/Equipamentos',    deducivel: true  },
   { value:'financiamento_obra', label:'🏗️ Financiamento de Benfeitorias/Obras',       deducivel: true  },
   { value:'sementes_insumos',   label:'🌱 Sementes, Adubos e Defensivos',             deducivel: true  },
+  { value:'gado_reprodutor',    label:'🐂 Aquisição de Gado Reprodutor/Matrizes',     deducivel: true  },
+  { value:'correcao_solo',      label:'🧪 Correção de Solo (calcário, gesso)',        deducivel: true  },
+  { value:'benfeitorias',       label:'🏗️ Benfeitorias (currais, cercas, galpões)',   deducivel: true  },
+  { value:'funrural',           label:'📊 FUNRURAL / Contribuição Previdenciária',    deducivel: true  },
   { value:'arrendamento',       label:'🌾 Arrendamento pago',                          deducivel: true  },
   { value:'impostos',           label:'📋 Impostos/ITR/Taxas rurais',                 deducivel: true  },
   { value:'frete',              label:'🚛 Frete e Transporte rural',                   deducivel: true  },
@@ -52,6 +56,10 @@ const LBL = {
   alimentacao:'Alimentação Animal', sanidade:'Sanidade', reproducao:'Reprodução',
   mao_obra:'Mão de Obra', energia:'Energia', combustivel:'Combustível',
   manutencao:'Manutenção', impostos:'Impostos/ITR', financiamento:'Financiamento',
+  gado_reprodutor:'Gado Reprodutor', correcao_solo:'Correção de Solo', benfeitorias:'Benfeitorias', funrural:'FUNRURAL',
+  financiamento_maq:'Financ. Máquinas', financiamento_obra:'Financ. Benfeitorias', financiamento_custeio:'Financ. Custeio',
+  seguro_rural:'Seguro Rural', assistencia_tecnica:'Assistência Técnica', frete:'Frete', sementes_insumos:'Sementes/Insumos',
+  outro_ded:'Outra (dedutível)',
   financiamento_maq:'Financ. Máquinas', financiamento_obra:'Financ. Benfeitorias',
   financiamento_custeio:'Financ. Custeio', sementes_insumos:'Sementes/Insumos',
   frete:'Frete/Transporte', assistencia_tecnica:'Assist. Técnica',
@@ -105,6 +113,7 @@ export default function Financeiro() {
         // Lançar como receita automaticamente
         const { data: rec } = await supabase.from('receitas').insert({
           user_id: user.id,
+          segmento: seg,
           data: conta.data_vencimento,
           categoria: 'outro',
           descricao: `[AUTO] ${conta.descricao} — ${conta.categoria === 'cheque' ? `Cheque ${conta.numero_cheque || ''}` : conta.categoria}`,
@@ -172,6 +181,7 @@ export default function Financeiro() {
       // Lançar receita
       await supabase.from('receitas').insert({
         user_id: user.id,
+        segmento: seg,
         data: hoje(),
         categoria: 'outro',
         descricao: conta.descricao,

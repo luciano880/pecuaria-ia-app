@@ -37,7 +37,7 @@ function calcResultadoRural(totalReceita, totalDespesa) {
 }
 
 const CATS_R_RURAL = { venda_leite:'Venda de Leite', venda_animal:'Venda de Animal', venda_bezerro:'Venda de Bezerro', subvencao:'Subvenção/Pronaf', servico:'Serviço', arrendamento:'Arrendamento', outro:'Outro' }
-const CATS_D_RURAL = { alimentacao:'Alimentação Animal', sanidade:'Sanidade', reproducao:'Reprodução', mao_obra:'Mão de Obra', energia:'Energia', combustivel:'Combustível', manutencao:'Manutenção', arrendamento:'Arrendamento', impostos:'Impostos/ITR', financiamento:'Financiamento', sementes_insumos:'Sementes/Insumos', outro:'Outro' }
+const CATS_D_RURAL = { alimentacao:'Alimentação Animal', sanidade:'Sanidade', reproducao:'Reprodução', mao_obra:'Mão de Obra', energia:'Energia', combustivel:'Combustível', manutencao:'Manutenção', arrendamento:'Arrendamento', impostos:'Impostos/ITR', financiamento:'Financiamento', financiamento_maq:'Financ. Máquinas', financiamento_obra:'Financ. Benfeitorias', financiamento_custeio:'Financ. Custeio', sementes_insumos:'Sementes/Insumos', gado_reprodutor:'Gado Reprodutor', correcao_solo:'Correção de Solo', benfeitorias:'Benfeitorias', funrural:'FUNRURAL', seguro_rural:'Seguro Rural', assistencia_tecnica:'Assistência Técnica', frete:'Frete', outro_ded:'Outra (dedutível)', outro:'Outro' }
 const CATS_R_PF    = { salario:'Salário/Pró-labore', freela:'Freelance/Bico', aluguel_rec:'Aluguel Recebido', investimento:'Investimentos', bonus:'Bônus/Presente', outro:'Outro' }
 const CATS_D_PF    = { moradia:'Moradia/Aluguel', saude:'Saúde/Plano', educacao:'Educação', outros_dedutiveis:'Outros Dedutíveis' }
 
@@ -290,7 +290,7 @@ ${relIA}`
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
         <div>
           <h2 style={{fontSize:22,fontWeight:800,color:C.ambar,fontFamily:"'Syne',sans-serif"}}>📋 Declaração IR</h2>
-          <p style={{color:C.textoMuted,fontSize:13}}>Apuração automática — Rural + Pessoa Física</p>
+          <p style={{color:C.textoMuted,fontSize:13}}>Apuração automática — Toda a atividade rural + Pessoa Física</p>
         </div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
           <select value={anoBase} onChange={e=>setAnoBase(parseInt(e.target.value))} style={{padding:'8px 12px',borderRadius:6,border:`1.5px solid ${C.border}`,background:C.bgInput,color:C.texto,fontSize:13}}>
@@ -310,6 +310,11 @@ ${relIA}`
       {carregando ? (
         <div style={{textAlign:'center',padding:40,color:C.textoMuted}}>⏳ Carregando dados...</div>
       ) : dados ? (<>
+
+        {/* Banner: consolida todos os segmentos */}
+        <div style={{background:`${C.verde}11`,border:`1px solid ${C.verde}44`,borderRadius:10,padding:'10px 16px',marginBottom:16,fontSize:12,color:C.textoSub,lineHeight:1.7}}>
+          🌾 <strong style={{color:C.verde}}>Toda a atividade rural é declarada em conjunto.</strong> Para o Imposto de Renda, a Receita Federal não separa por espécie animal — bovinos, ovinos e caprinos entram na mesma ficha de Atividade Rural. Este cálculo já consolida <strong style={{color:C.texto}}>todos os seus segmentos</strong> automaticamente.
+        </div>
 
         {/* ── Cards resumo ── */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:20}}>
