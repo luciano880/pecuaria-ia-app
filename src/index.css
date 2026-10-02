@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0A1508;
+  --bg-card:     #141F0F;
+  --bg-input:    #1C2E14;
+  --border:      #243D18;
+  --verde:       #3D6B25;
+  --verde-claro: #5A9A35;
+  --verde-vivo:  #7EC240;
+  --ambar:       #D46A1A;
+  --ambar-claro: #F08A30;
+  --critico:     #C03520;
+  --leite:       #2A8A78;
+  --leite-acc:   '#3DBDAD';
+  --corte:       #8A3A18;
+  --corte-acc:   #D46030;
+  --texto:       #EEE8D0;
+  --texto-sub:   #A0B090;
+  --texto-muted: #607050;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--texto);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+/* Scrollbar fina */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-card); }
+::-webkit-scrollbar-thumb { background: var(--verde); border-radius: 3px; }
+
+/* Focus visível */
+:focus-visible { outline: 2px solid var(--ambar); outline-offset: 2px; border-radius: 4px; }
+
+/* Spin number */
+input[type=number]::-webkit-inner-spin-button { opacity: 0.3; }
+
+/* Animações */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.fade-up   { animation: fadeUp  0.3s ease both; }
+.slide-in  { animation: slideIn 0.2s ease both; }
+.pulse     { animation: pulse   1.5s ease infinite; }
+
+/* Stagger delays */
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.10s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.20s; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, .fade-up, .slide-in, .pulse { animation: none !important; transition: none !important; }
+}
+
+/* Mobile nav */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { padding: 16px !important; }
+}
