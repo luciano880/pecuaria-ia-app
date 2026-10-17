@@ -1,5 +1,5 @@
 // PecuáriaIA — Service Worker v4
-const CACHE_NAME = 'pecuaria-ia-v4'
+const CACHE_NAME = 'pecuaria-ia-v5'
 
 // Instalar
 self.addEventListener('install', event => {
