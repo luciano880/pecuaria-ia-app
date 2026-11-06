@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PecuáriaIA — Conheça o App</title>
+<meta name="description" content="PecuáriaIA — gestão inteligente de rebanhos bovinos, ovinos e caprinos. Produção, reprodução, sanidade, financeiro e análise por IA.">
+<meta name="theme-color" content="#0A1F0D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --bg: #0A1F0D;
+    --bgGrad: radial-gradient(ellipse 90% 55% at 50% -8%, #1A3A0D 0%, transparent 70%);
+    --card: #0F2912;
+    --cardLine: #1E3D22;
+    --fg: #EAF3E6;
+    --muted: #8FA98C;
+    --sub: #B8CDB2;
+    --verde: #3D6B25;
+    --verdeVivo: #4E9A3E;
+    --verdeClaro: #6BCB55;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    background-image: var(--bgGrad);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-top: max(32px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
+  }
+  img { max-width: 100%; }
+  .wrap { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 18px; }
+
+  .hero { text-align: center; padding: 8px 0 4px; }
+  .cow { font-size: 54px; line-height: 1; margin-bottom: 8px; }
+  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 34px; letter-spacing: -0.5px; color: var(--fg); }
+  .tagline { color: var(--sub); font-size: 14px; margin-top: 6px; font-weight: 500; }
+  .segchips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .chip { font-size: 11px; font-weight: 700; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--cardLine); background: var(--card); color: var(--sub); }
+
+  .card { background: var(--card); border: 1px solid var(--cardLine); border-radius: 16px; padding: 22px; box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+  .card h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 14px; color: var(--fg); display: flex; align-items: center; gap: 8px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .stat { text-align: center; background: #0C2410; border: 1px solid var(--cardLine); border-radius: 11px; padding: 14px 8px; }
+  .stat .n { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--verdeClaro); }
+  .stat .l { font-size: 10.5px; color: var(--muted); margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .feats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .feat { background: #0C2410; border: 1px solid var(--cardLine); border-radius: 11px; padding: 13px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .feat .ico { font-size: 20px; line-height: 1; }
+  .feat .t { font-size: 13px; font-weight: 700; color: var(--fg); }
+  .feat .d { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+  .bullets { display: flex; flex-direction: column; gap: 11px; }
+  .bl { display: flex; gap: 10px; align-items: flex-start; }
+  .bl .dot { flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px; margin-top: 1px; display: grid; place-items: center; font-size: 12px; background: rgba(78,154,62,0.18); }
+  .bl .tx { font-size: 13px; color: var(--sub); line-height: 1.5; }
+  .bl .tx b { color: var(--fg); font-weight: 700; }
+
+  .access { text-align: center; }
+  .qrbox { background: #fff; width: 176px; height: 176px; border-radius: 14px; padding: 12px; margin: 4px auto 16px; display: grid; place-items: center; }
+  .qrbox img, .qrbox canvas { width: 100% !important; height: 100% !important; }
+  .qrlabel { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .cta { display: block; width: 100%; text-align: center; text-decoration: none; background: linear-gradient(180deg, var(--verdeVivo), var(--verde)); color: #fff; font-weight: 700; font-size: 15px; padding: 15px; border-radius: 11px; border: none; cursor: pointer; letter-spacing: 0.2px; box-shadow: 0 8px 20px rgba(62,107,37,0.35); transition: transform 0.12s; }
+  .cta:hover { transform: translateY(-1px); }
+  .cta:active { transform: translateY(0); }
+  .urlrow { margin-top: 12px; font-size: 12px; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+  .urlrow code { font-family: ui-monospace, monospace; color: var(--verdeClaro); font-size: 12px; background: #0C2410; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--cardLine); word-break: break-all; }
+
+  .foot { text-align: center; font-size: 11px; color: var(--muted); padding: 4px 0 8px; line-height: 1.6; }
+  .foot b { color: var(--sub); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="cow">🐄</div>
+    <h1 class="brand">PecuáriaIA</h1>
+    <p class="tagline">Gestão inteligente de rebanhos</p>
+    <div class="segchips">
+      <span class="chip">🐄 Bovinos</span>
+      <span class="chip">🐑 Ovinos</span>
+      <span class="chip">🐐 Caprinos</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><div class="n">6</div><div class="l">Segmentos</div></div>
+      <div class="stat"><div class="n">IA</div><div class="l">Análises</div></div>
+      <div class="stat"><div class="n">📴</div><div class="l">Offline</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🐮 O que o app faz</h2>
+    <div class="feats">
+      <div class="feat"><span class="ico">🏷️</span><span class="t">Rebanho</span><span class="d">Cadastro por brinco, genealogia e ficha completa de cada animal</span></div>
+      <div class="feat"><span class="ico">🥛</span><span class="t">Produção</span><span class="d">Leite por ordenha, entregas e média diária do rebanho</span></div>
+      <div class="feat"><span class="ico">🐄</span><span class="t">Reprodução</span><span class="d">Coberturas, IATF e previsão de parto por espécie</span></div>
+      <div class="feat"><span class="ico">⚖️</span><span class="t">Pesagens & GMD</span><span class="d">Ganho médio diário com metas da Embrapa por segmento</span></div>
+      <div class="feat"><span class="ico">💊</span><span class="t">Sanidade</span><span class="d">Vacinas, medicamentos e carência com baixa automática de estoque</span></div>
+      <div class="feat"><span class="ico">🌿</span><span class="t">Estoque & Dietas</span><span class="d">Insumos, dietas e alertas de estoque baixo</span></div>
+      <div class="feat"><span class="ico">💰</span><span class="t">Financeiro</span><span class="d">Rural, pessoal, por animal e Declaração de IR automática</span></div>
+      <div class="feat"><span class="ico">🤖</span><span class="t">Análise IA</span><span class="d">Diagnósticos com referências Embrapa, Cepea e NRC</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>✨ Por que usar</h2>
+    <div class="bullets">
+      <div class="bl"><span class="dot">📊</span><span class="tx"><b>Índices zootécnicos</b> comparados às metas da Embrapa para bovinos, ovinos e caprinos</span></div>
+      <div class="bl"><span class="dot">📱</span><span class="tx"><b>Funciona offline</b> no campo — os lançamentos sincronizam sozinhos quando a internet volta</span></div>
+      <div class="bl"><span class="dot">📋</span><span class="tx"><b>Declaração de IR</b> rural pela Lei 8.023/1990, consolidando todos os segmentos automaticamente</span></div>
+      <div class="bl"><span class="dot">🚜</span><span class="tx"><b>Controle de máquinas</b> com horímetro, manutenções e alertas de revisão</span></div>
+      <div class="bl"><span class="dot">🔔</span><span class="tx"><b>Alertas</b> de vacina, parto e carência direto no celular</span></div>
+    </div>
+  </div>
+
+  <div class="card access">
+    <h2 style="justify-content:center">📲 Acesse o aplicativo</h2>
+    <div class="qrbox" id="qr"></div>
+    <p class="qrlabel">Aponte a câmera do celular para o QR code</p>
+    <a class="cta" href="https://pecuaria-ia.netlify.app" rel="noopener">Entrar no App →</a>
+    <div class="urlrow">
+      <code>pecuaria-ia.netlify.app</code>
+    </div>
+  </div>
+
+  <p class="foot">
+    <b>PecuáriaIA</b> · Gestão de rebanhos leiteiros e de corte<br>
+    Dados protegidos por Supabase · Brasil 2026
+  </p>
+
+</div>
+
+<script>
+  var CARD_URL = 'https://pecuaria-ia.netlify.app/sobre';
+  try {
+    new QRCode(document.getElementById('qr'), {
+      text: CARD_URL,
+      width: 152, height: 152,
+      colorDark: '#0A1F0D', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch (e) {
+    document.getElementById('qr').innerHTML = '<div style="color:#0A1F0D;font-size:12px;padding:20px;text-align:center">Use o link: pecuaria-ia.netlify.app</div>';
+  }
+</script>
+</body>
+</html>
