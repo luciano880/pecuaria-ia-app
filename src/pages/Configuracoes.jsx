@@ -61,12 +61,34 @@ function parseNFe(xmlStr) {
 }
 
 export default function Configuracoes() {
-  const { user, perfil } = useAuth()
+  const { user, perfil, trial } = useAuth()
   const { toast, ToastContainer } = useToast()
   const [nome,     setNome]     = useState(perfil?.nome     || '')
   const [fazenda,  setFazenda]  = useState(perfil?.fazenda  || '')
   const [segmento, setSegmento] = useState(perfil?.segmento || 'leite')
   const [salvando, setSalvando] = useState(false)
+  const [assinando, setAssinando] = useState('')
+
+  async function assinar(plano) {
+    setAssinando(plano)
+    try {
+      const resp = await fetch('/api/criar-assinatura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plano, email: perfil?.email || user?.email, user_id: user?.id }),
+      })
+      const data = await resp.json()
+      if (data.init_point) {
+        window.location.href = data.init_point   // leva ao checkout do Mercado Pago
+      } else {
+        toast(data.error || 'Não foi possível iniciar a assinatura. Tente novamente.', 'erro')
+        setAssinando('')
+      }
+    } catch (e) {
+      toast('Erro de conexão ao iniciar a assinatura.', 'erro')
+      setAssinando('')
+    }
+  }
   const [novaSenha,     setNovaSenha]     = useState('')
   const [confirmaSenha, setConfirmaSenha] = useState('')
   const [salvandoSenha, setSalvandoSenha] = useState(false)
@@ -311,6 +333,51 @@ export default function Configuracoes() {
       <div style={{ background:`${C[perfil?.segmento==='leite'?'leitePrimary':perfil?.segmento==='corte'?'cortePrimary':perfil?.segmento==='ovino_leite'?'ovinoLeitePrimary':'ovinoCortePrimary']||C.verde}22`, border:`1px solid ${C[perfil?.segmento==='leite'?'leiteAccent':perfil?.segmento==='corte'?'corteAccent':perfil?.segmento==='ovino_leite'?'ovinoLeiteAccent':'ovinoCorteAccent']||C.verdeClaro}`, borderRadius:10, padding:'10px 16px', marginBottom:20, fontSize:13, color:C.texto }}>
         Segmento atual: <strong>{getLabelSegmento(perfil?.segmento)}</strong>
       </div>
+
+      {/* Plano & Assinatura */}
+      <Secao titulo="Plano & Assinatura" icon="⭐" cor={C.verde}>
+        {/* Status atual */}
+        {trial?.estado === 'assinante' ? (
+          <div style={{ background:`${C.verde}22`, border:`1px solid ${C.verde}`, borderRadius:10, padding:'12px 16px', marginBottom:16, fontSize:13, color:C.texto }}>
+            ✅ Assinatura <strong>{(perfil?.plano || 'pro').toUpperCase()}</strong> ativa. Obrigado por apoiar o PecuáriaIA!
+          </div>
+        ) : trial?.estado === 'expirado' ? (
+          <div style={{ background:`${C.critico}22`, border:`1px solid ${C.critico}`, borderRadius:10, padding:'12px 16px', marginBottom:16, fontSize:13, color:'#F08070' }}>
+            🔒 Seu teste gratuito terminou — o app está em <strong>modo somente leitura</strong>. Assine um plano para voltar a lançar dados.
+          </div>
+        ) : (
+          <div style={{ background:`${C.ambar}22`, border:`1px solid ${C.ambar}`, borderRadius:10, padding:'12px 16px', marginBottom:16, fontSize:13, color:C.ambar }}>
+            🎁 Período de teste — <strong>{trial?.diasRestantes} {trial?.diasRestantes === 1 ? 'dia restante' : 'dias restantes'}</strong>. Assine para não perder o acesso.
+          </div>
+        )}
+
+        {trial?.estado !== 'assinante' && (
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            {/* PREMIUM */}
+            <div style={{ border:`2px solid ${C.ambar}`, borderRadius:12, padding:16, background:C.bgInput, position:'relative' }}>
+              <div style={{ position:'absolute', top:-10, left:16, background:C.ambar, color:'#fff', fontSize:10, fontWeight:800, padding:'2px 10px', borderRadius:10 }}>COMPLETO</div>
+              <div style={{ fontSize:16, fontWeight:800, color:C.texto, marginTop:4 }}>Premium</div>
+              <div style={{ fontSize:26, fontWeight:800, color:C.verdeClaro, margin:'4px 0' }}>R$ 89,90<span style={{ fontSize:12, color:C.textoMuted, fontWeight:500 }}>/mês</span></div>
+              <div style={{ fontSize:11, color:C.textoMuted, marginBottom:12, lineHeight:1.5 }}>Tudo do Pro + múltiplas fazendas, multiusuário e PDF pro.</div>
+              <Btn cor={C.ambar} onClick={()=>assinar('premium')} disabled={assinando==='premium'}>
+                {assinando==='premium'?'⏳ Abrindo...':'Assinar Premium'}
+              </Btn>
+            </div>
+            {/* PRO */}
+            <div style={{ border:`1px solid ${C.border}`, borderRadius:12, padding:16, background:C.bgInput }}>
+              <div style={{ fontSize:16, fontWeight:800, color:C.texto, marginTop:4 }}>Pro</div>
+              <div style={{ fontSize:26, fontWeight:800, color:C.verdeClaro, margin:'4px 0' }}>R$ 64,90<span style={{ fontSize:12, color:C.textoMuted, fontWeight:500 }}>/mês</span></div>
+              <div style={{ fontSize:11, color:C.textoMuted, marginBottom:12, lineHeight:1.5 }}>Animais ilimitados, 6 segmentos, IA, IR Rural e offline.</div>
+              <Btn cor={C.verde} onClick={()=>assinar('pro')} disabled={assinando==='pro'}>
+                {assinando==='pro'?'⏳ Abrindo...':'Assinar Pro'}
+              </Btn>
+            </div>
+          </div>
+        )}
+        <p style={{ fontSize:11, color:C.textoMuted, marginTop:12, textAlign:'center', lineHeight:1.6 }}>
+          Pagamento seguro via Mercado Pago · cancele quando quiser
+        </p>
+      </Secao>
 
       {/* Dados da fazenda */}
       <Secao titulo="Dados da Fazenda" icon="🏡" cor={C.verdeClaro}>

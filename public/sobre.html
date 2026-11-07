@@ -391,9 +391,29 @@
     </div>
 
     <div class="planos">
-      <!-- PRO -->
+      <!-- PREMIUM -->
       <div class="plano destaque">
-        <span class="tag-pop">⭐ Mais escolhido</span>
+        <span class="tag-pop">★ Completo</span>
+        <div class="pnome">Premium</div>
+        <div class="pdesc">Para fazendas maiores e equipes</div>
+        <div class="preco">
+          <span class="cifrao">R$</span>
+          <span class="valor" data-mensal="89,90" data-anual="74,92">89,90</span>
+          <span class="periodo" data-periodo>/mês</span>
+        </div>
+        <div class="psub" data-sub-premium>&nbsp;</div>
+        <ul>
+          <li><span class="ck">✓</span><b style="color:var(--fg)">Tudo do Pro</b>, e mais:</li>
+          <li><span class="ck">✓</span>Múltiplas fazendas em uma conta</li>
+          <li><span class="ck">✓</span>Vários usuários (funcionários)</li>
+          <li><span class="ck">✓</span>Relatórios profissionais em PDF</li>
+          <li><span class="ck">✓</span>Suporte prioritário</li>
+        </ul>
+        <a class="pcta full" href="https://pecuaria-ia.netlify.app" rel="noopener">Começar teste grátis →</a>
+      </div>
+
+      <!-- PRO -->
+      <div class="plano">
         <div class="pnome">Pro</div>
         <div class="pdesc">Para quem toca a fazenda no dia a dia</div>
         <div class="preco">
@@ -409,26 +429,6 @@
           <li><span class="ck">✓</span>Análise por IA + Índices zootécnicos</li>
           <li><span class="ck">✓</span>Financeiro e Declaração de IR Rural</li>
           <li><span class="ck">✓</span>Funciona offline no campo</li>
-        </ul>
-        <a class="pcta full" href="https://pecuaria-ia.netlify.app" rel="noopener">Começar teste grátis →</a>
-      </div>
-
-      <!-- PREMIUM -->
-      <div class="plano">
-        <div class="pnome">Premium</div>
-        <div class="pdesc">Para fazendas maiores e equipes</div>
-        <div class="preco">
-          <span class="cifrao">R$</span>
-          <span class="valor" data-mensal="89,90" data-anual="74,92">89,90</span>
-          <span class="periodo" data-periodo>/mês</span>
-        </div>
-        <div class="psub" data-sub-premium>&nbsp;</div>
-        <ul>
-          <li><span class="ck">✓</span><b style="color:var(--fg)">Tudo do Pro</b>, e mais:</li>
-          <li><span class="ck">✓</span>Múltiplas fazendas em uma conta</li>
-          <li><span class="ck">✓</span>Vários usuários (funcionários)</li>
-          <li><span class="ck">✓</span>Relatórios profissionais em PDF</li>
-          <li><span class="ck">✓</span>Suporte prioritário</li>
         </ul>
         <a class="pcta ghost" href="https://pecuaria-ia.netlify.app" rel="noopener">Começar teste grátis →</a>
       </div>
@@ -468,6 +468,27 @@
   } catch (e) {
     document.getElementById('qr').innerHTML = '<div style="color:#04140A;font-size:12px;padding:20px;text-align:center">pecuaria-ia.netlify.app</div>';
   }
+
+  // Toggle mensal/anual dos planos
+  function setCiclo(ciclo) {
+    var anual = ciclo === 'anual';
+    document.getElementById('toggle').classList.toggle('anual', anual);
+    document.querySelectorAll('#toggle button').forEach(function (b) {
+      b.classList.toggle('on', b.dataset.ciclo === ciclo);
+    });
+    // valores
+    document.querySelectorAll('.plano .valor').forEach(function (v) {
+      v.textContent = anual ? v.dataset.anual : v.dataset.mensal;
+    });
+    document.querySelectorAll('[data-periodo]').forEach(function (p) {
+      p.textContent = anual ? '/mês' : '/mês';
+    });
+    // subtítulos
+    document.querySelector('[data-sub-pro]').innerHTML    = anual ? 'cobrado R$ 649/ano · 2 meses grátis' : 'cobrança mensal';
+    document.querySelector('[data-sub-premium]').innerHTML = anual ? 'cobrado R$ 899/ano · 2 meses grátis' : 'cobrança mensal';
+    document.getElementById('economia').innerHTML = anual ? '💚 Economize ~17% pagando no plano anual' : '&nbsp;';
+  }
+  setCiclo('mensal');
 </script>
 </body>
 </html>
