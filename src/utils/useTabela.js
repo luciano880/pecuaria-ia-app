@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabase.js'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { enfileirar } from './offlineQueue.js'
+import { statusTrial } from './trial.js'
+
+const ERRO_TRIAL = 'Seu período de teste terminou. Assine um plano para continuar lançando dados. (Seus dados estão salvos e podem ser consultados.)'
 
 // Limpa strings vazias para null antes de enviar ao Supabase
 function limpar(obj) {
@@ -13,10 +16,19 @@ function limpar(obj) {
 }
 
 export function useTabela(tabela, filtrosExtra = {}) {
-  const { user } = useAuth()
+  const { user, perfil } = useAuth()
   const [dados,    setDados]    = useState([])
   const [loading,  setLoading]  = useState(true)
   const [erro,     setErro]     = useState(null)
+
+  // Modo somente-leitura quando o trial expira (leitura continua liberada)
+  function garantirPodeEscrever() {
+    if (statusTrial(perfil).bloqueado) {
+      const e = new Error(ERRO_TRIAL)
+      e.trialBloqueado = true
+      throw e
+    }
+  }
 
   const carregar = useCallback(async () => {
     if (!user) return
@@ -32,6 +44,7 @@ export function useTabela(tabela, filtrosExtra = {}) {
   useEffect(() => { carregar() }, [carregar])
 
   async function inserir(registro) {
+    garantirPodeEscrever()
     const payload = { ...limpar(registro), user_id: user.id }
 
     // Se offline, enfileirar e adicionar localmente
@@ -61,6 +74,7 @@ export function useTabela(tabela, filtrosExtra = {}) {
   }
 
   async function atualizar(id, registro) {
+    garantirPodeEscrever()
     const payload = limpar(registro)
 
     if (!navigator.onLine) {
@@ -86,6 +100,7 @@ export function useTabela(tabela, filtrosExtra = {}) {
   }
 
   async function remover(id) {
+    garantirPodeEscrever()
     if (!navigator.onLine) {
       enfileirar({ tipo: 'delete', tabela, registro_id: id, user_id: user.id })
       setDados(prev => prev.filter(r => r.id !== id))

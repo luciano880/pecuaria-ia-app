@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { C } from '../utils/helpers.js'
+import { mascararCPF, cpfValido } from '../utils/trial.js'
 
 // ── Telas possíveis: 'login' | 'cadastro' | 'recuperar' | 'otp' | 'nova_senha'
 export default function AuthPage() {
@@ -179,6 +180,7 @@ function TelaCadastro({ setTela }) {
   const { cadastrar } = useAuth()
   const [nome,      setNome]      = useState('')
   const [fazenda,   setFazenda]   = useState('')
+  const [cpf,       setCpf]       = useState('')
   const [segmento,  setSegmento]  = useState('')
   const [email,     setEmail]     = useState('')
   const [senha,     setSenha]     = useState('')
@@ -188,15 +190,17 @@ function TelaCadastro({ setTela }) {
 
   async function criar() {
     setErro('')
-    if (!nome || !fazenda || !segmento || !email || !senha)
+    if (!nome || !fazenda || !cpf || !segmento || !email || !senha)
       return setErro('Preencha todos os campos.')
+    if (!cpfValido(cpf))
+      return setErro('CPF inválido. Confira os números.')
     if (senha.length < 6)
       return setErro('Senha deve ter ao menos 6 caracteres.')
     if (senha !== confirma)
       return setErro('As senhas não coincidem.')
     setLoad(true)
     try {
-      await cadastrar(email, senha, nome, fazenda, segmento)
+      await cadastrar(email, senha, nome, fazenda, segmento, cpf)
     } catch (e) {
       setErro(e.message || 'Erro ao criar conta.')
     } finally {
@@ -212,6 +216,8 @@ function TelaCadastro({ setTela }) {
       <Erro msg={erro} />
       <Campo label="Seu nome" value={nome} onChange={setNome} placeholder="João da Silva" />
       <Campo label="Nome da fazenda" value={fazenda} onChange={setFazenda} placeholder="Fazenda São João" />
+      <Campo label="CPF" value={cpf} onChange={v => setCpf(mascararCPF(v))}
+        placeholder="000.000.000-00" />
 
       {/* Seletor de segmento */}
       <div style={{ marginBottom: 14 }}>
@@ -253,8 +259,12 @@ function TelaCadastro({ setTela }) {
       <Campo label="Senha" type="password" value={senha} onChange={setSenha} placeholder="Min. 6 caracteres" />
       <Campo label="Confirmar senha" type="password" value={confirma} onChange={setConfirma} placeholder="Repita a senha" />
 
-      <Btn onClick={criar} loading={load} cor={C.verde}>Criar conta</Btn>
-      <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: C.textoMuted }}>
+      <Btn onClick={criar} loading={load} cor={C.verde}>Criar conta · 14 dias grátis</Btn>
+      <p style={{ textAlign: 'center', marginTop: 10, fontSize: 11, color: C.textoMuted, lineHeight: 1.5 }}>
+        🎁 Teste todos os recursos por 14 dias, sem cobrança.<br />
+        Depois, escolha um plano para continuar.
+      </p>
+      <p style={{ textAlign: 'center', marginTop: 14, fontSize: 13, color: C.textoMuted }}>
         Já tem conta?{' '}
         <Link onClick={() => setTela('login')}>Entrar</Link>
       </p>

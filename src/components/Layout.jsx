@@ -6,7 +6,7 @@ import { contarPendentes, iniciarAutoSync, sincronizar } from '../utils/offlineQ
 import { iniciarVerificacaoAlertas } from '../utils/notificacoes.js'
 
 export default function Layout() {
-  const { user, perfil, logout } = useAuth()
+  const { user, perfil, logout, trial } = useAuth()
   const navigate = useNavigate()
   const seg = perfil?.segmento
   const { accent, primary } = getCor(seg || 'leite')
@@ -275,6 +275,40 @@ export default function Layout() {
               ? <>📴 Modo offline — {pendentes > 0 ? `${pendentes} lançamento(s) serão sincronizados ao voltar a internet` : 'seus dados serão salvos localmente'}</>
               : <>🔄 Sincronizando {pendentes} lançamento(s) pendente(s)...</>
             }
+          </div>
+        )}
+
+        {/* Banner de TRIAL / assinatura */}
+        {trial?.estado === 'ativo' && (
+          <div style={{
+            display:'flex', alignItems:'center', justifyContent:'center', gap:10, flexWrap:'wrap',
+            padding:'8px 16px', fontSize:12, fontWeight:600,
+            background: trial.diasRestantes <= 3 ? `${C.ambar}22` : `${C.verde}1A`,
+            color: trial.diasRestantes <= 3 ? C.ambar : C.verdeClaro,
+            borderBottom:`1px solid ${trial.diasRestantes <= 3 ? C.ambar : C.border}`,
+          }}>
+            <span>
+              {trial.diasRestantes <= 3 ? '⏳' : '🎁'} Período de teste —{' '}
+              <strong>{trial.diasRestantes} {trial.diasRestantes === 1 ? 'dia restante' : 'dias restantes'}</strong>
+            </span>
+            <a href="https://pecuaria-ia.netlify.app/sobre#planos" target="_blank" rel="noopener"
+              style={{ color:'#fff', background:C.verde, padding:'4px 12px', borderRadius:20, fontSize:11, fontWeight:700, textDecoration:'none' }}>
+              Assinar agora
+            </a>
+          </div>
+        )}
+        {trial?.estado === 'expirado' && (
+          <div style={{
+            display:'flex', alignItems:'center', justifyContent:'center', gap:10, flexWrap:'wrap',
+            padding:'10px 16px', fontSize:12.5, fontWeight:700,
+            background:`${C.critico}22`, color:'#F08070',
+            borderBottom:`1px solid ${C.critico}`,
+          }}>
+            <span>🔒 Seu teste gratuito terminou — modo somente leitura</span>
+            <a href="https://pecuaria-ia.netlify.app/sobre#planos" target="_blank" rel="noopener"
+              style={{ color:'#fff', background:C.critico, padding:'5px 14px', borderRadius:20, fontSize:11, fontWeight:700, textDecoration:'none' }}>
+              Escolher um plano
+            </a>
           </div>
         )}
 
