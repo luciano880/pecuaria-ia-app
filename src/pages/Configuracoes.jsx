@@ -89,6 +89,29 @@ export default function Configuracoes() {
       setAssinando('')
     }
   }
+
+  const [cancelando, setCancelando] = useState(false)
+  async function cancelarAssinatura() {
+    if (!window.confirm('Tem certeza que deseja cancelar sua assinatura? Você manterá o acesso até o fim do período já pago.')) return
+    setCancelando(true)
+    try {
+      const resp = await fetch('/api/cancelar-assinatura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user?.id }),
+      })
+      const data = await resp.json()
+      if (data.ok) {
+        toast('Assinatura cancelada. Você pode reassinar quando quiser.', 'ok')
+      } else {
+        toast(data.error || 'Não foi possível cancelar. Tente novamente.', 'erro')
+      }
+    } catch (e) {
+      toast('Erro de conexão ao cancelar.', 'erro')
+    } finally {
+      setCancelando(false)
+    }
+  }
   const [novaSenha,     setNovaSenha]     = useState('')
   const [confirmaSenha, setConfirmaSenha] = useState('')
   const [salvandoSenha, setSalvandoSenha] = useState(false)
