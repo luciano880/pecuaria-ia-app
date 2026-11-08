@@ -31,7 +31,7 @@ export default function AnaliseIA() {
       // Buscar dados reais do Supabase
       const [animRes, prodRes, aplRes, estRes, pesRes] = await Promise.all([
         supabase.from('animais').select('categoria').eq('user_id', user.id).eq('segmento', seg),
-        seg === 'leite'
+        (seg === 'leite' || seg === 'ovino_leite' || seg === 'caprino_leite')
           ? supabase.from('producao_leite').select('total_litros,data').eq('user_id', user.id).gte('data', new Date(Date.now() - 30*86400000).toISOString().split('T')[0])
           : supabase.from('pesagens').select('*').eq('user_id', user.id).gte('data', new Date(Date.now() - 60*86400000).toISOString().split('T')[0]),
         supabase.from('aplicacoes').select('*').eq('user_id', user.id).gte('fim_carencia_leite', hoje()),
@@ -45,12 +45,13 @@ export default function AnaliseIA() {
 
       const segLabel = {
         leite:'Bovinos Leiteiros', corte:'Bovinos de Corte',
-        ovino_leite:'Ovinos Leiteiros', ovino_corte:'Ovinos de Corte'
+        ovino_leite:'Ovinos Leiteiros', ovino_corte:'Ovinos de Corte',
+        caprino_leite:'Caprinos Leiteiros', caprino_corte:'Caprinos de Corte'
       }
       let contexto = `Fazenda: ${perfil?.fazenda} | Segmento: ${segLabel[seg]||seg}\n`
       contexto += `Rebanho: ${animais.length} animais ativos\n`
 
-      if (seg === 'leite' || seg === 'ovino_leite') {
+      if (seg === 'leite' || seg === 'ovino_leite' || seg === 'caprino_leite') {
         const prod = prodRes.data || []
         const totalLitros30d = prod.reduce((s,r) => s + parseFloat(r.total_litros||0), 0)
         const mediaLitrosDia = prod.length > 0 ? totalLitros30d / (new Set(prod.map(r=>r.data)).size) : 0
@@ -93,18 +94,40 @@ export default function AnaliseIA() {
       const isCaprino = segAtual?.includes('caprino')
       const isPequeno = isOvino || isCaprino
 
+      const base = `Atue como consultor técnico sênior (médico-veterinário/zootecnista) em ${animal}, Brasil. ` +
+        `Referências técnicas: ${ref}. ` +
+        `Regras de redação: linguagem técnico-profissional, terminologia zootécnica correta, texto corrido sem markdown. ` +
+        `Para cada indicador do produtor, confronte com o benchmark nacional citando o valor de referência e o desvio (% ou absoluto). ` +
+        `Fundamente em dados; onde faltar informação, aponte a lacuna e o que coletar. ` +
+        `Recomendações priorizadas por impacto, com meta numérica e, quando possível, estimativa de efeito técnico-econômico.`
+
       const prompts = {
-        geral: `Veterinário/zootecnista especialista em ${animal} no Brasil. Referências: ${ref}. Diagnóstico em 4 seções: 1-PONTOS POSITIVOS, 2-ATENÇÃO, 3-RISCOS, 4-PLANO DESTA SEMANA. Direto ao produtor, sem markdown.`,
-        producao: `Especialista em produção de leite de ${animal}. Referências: ${ref}. Analise produção, DEL, eficiência leiteira e sugira melhorias práticas. Sem markdown.`,
-        confinamento: `Especialista em crescimento/engorda de ${animal}. Referências: ${ref}. Analise GMD, conversão alimentar, projeção de abate e rentabilidade. Benchmarks nacionais. Sem markdown.`,
-        nutricao: `Nutricionista animal especialista em ${animal}. Referências: ${ref}. Analise estoque, dieta e custo nutricional. Identifique deficiências e sugira ajustes práticos. Sem markdown.`,
-        sanidade: `Médico veterinário especialista em ${animal}. Referências: ${ref}. Analise carências, vacinação e riscos sanitários. Calendário sanitário para Sul do Brasil. Sem markdown.`,
-        reproducao: `Especialista em reprodução de ${animal}. Referências: ${ref}. Analise índices reprodutivos e gargalos. ${isCaprino ? 'Compare com: IEPA<240d, natalidade>90%, prolificidade>1,8 cabritos/parto, gestação 150d (Embrapa CNPCO).' : isOvino ? 'Compare com: IEPA<270d, natalidade>90%, prolificidade>1,5 cordeiros/parto.' : 'Compare com: IEP<365d, concepção>60%, DEA<90d.'} Sem markdown.`,
+        geral: `${base} Estruture o diagnóstico técnico em 5 blocos numerados: ` +
+          `1. SÍNTESE DO REBANHO (status geral e principais indicadores vs. metas); ` +
+          `2. PONTOS FORTES (o que está dentro ou acima do benchmark, com os números); ` +
+          `3. PONTOS DE ATENÇÃO (indicadores abaixo da meta, com o desvio e a causa provável); ` +
+          `4. RISCOS CRÍTICOS (sanitários, nutricionais ou reprodutivos que exigem ação imediata); ` +
+          `5. PLANO DE AÇÃO DA SEMANA (3 a 5 medidas objetivas, priorizadas, com meta e prazo).`,
+        producao: `${base} Analise o desempenho leiteiro: produção total e média/animal/dia vs. meta da raça, ` +
+          `persistência de lactação e DEL médio, eficiência (L por kg de MS ou por UA), e qualidade (CCS/CBT quando houver). ` +
+          `Aponte os gargalos de produtividade e as 3 a 5 intervenções de maior retorno, com meta numérica e impacto esperado em litros.`,
+        confinamento: `${base} Analise crescimento/terminação: GMD observado vs. meta da raça/categoria, ` +
+          `conversão alimentar estimada, uniformidade do lote, projeção de peso e data de abate, e custo por arroba/kg produzido. ` +
+          `Indique os ajustes de manejo e dieta de maior retorno, com GMD-alvo e efeito esperado no prazo de terminação.`,
+        nutricao: `${base} Faça o diagnóstico nutricional: adequação da dieta às exigências (NRC/CBNA) por categoria, ` +
+          `balanço energético-proteico aparente, relação volumoso:concentrado, e cobertura de estoque (dias) por insumo. ` +
+          `Sinalize deficiências e riscos (acidose, carências minerais) e proponha ajustes de formulação priorizados por custo-benefício.`,
+        sanidade: `${base} Faça a avaliação sanitária: animais em período de carência e impacto na comercialização, ` +
+          `aderência ao calendário sanitário obrigatório e recomendado para o Sul do Brasil, e principais riscos epidemiológicos da estação. ` +
+          `Entregue um calendário sanitário objetivo (o que, quando e por quê) e as ações preventivas prioritárias.`,
+        reproducao: `${base} Avalie a eficiência reprodutiva e os gargalos do ciclo. ` +
+          `${isCaprino ? 'Benchmarks (Embrapa CNPCO): IEPA <240 d, taxa de natalidade >90%, prolificidade >1,8 cabritos/parto, gestação 150 d.' : isOvino ? 'Benchmarks: IEPA <270 d, taxa de natalidade >90%, prolificidade >1,5 cordeiros/parto, gestação 147 d.' : 'Benchmarks: IEP <365 d, taxa de concepção >60%, DEA <90 d, taxa de prenhez por estação de monta.'} ` +
+          `Compare cada índice com a meta, identifique a causa provável do desvio e proponha o plano reprodutivo (manejo, nutrição pré-cobertura, protocolo de IATF quando aplicável).`,
       }
 
-      const prompt = `${prompts[modulo] || prompts.geral}\n\nDados:\n${contexto}\n\nData: ${new Date().toLocaleDateString('pt-BR')}`
+      const prompt = `${prompts[modulo] || prompts.geral}\n\n=== DADOS DO PRODUTOR ===\n${contexto}\nData da análise: ${new Date().toLocaleDateString('pt-BR')}`
 
-      const texto = await chamarIA(prompt, 700)
+      const texto = await chamarIA(prompt, 1300, { temperature: 0.25 })
       setAnalise(texto)
     } catch(e) {
       setAnalise(`Erro: ${e.message}`)
@@ -116,12 +139,15 @@ export default function AnaliseIA() {
   return (
     <div style={{ maxWidth: 860, margin: '0 auto' }}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: cor }}>🤖 Análise IA</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: cor }}>🤖 Análise Técnica IA</h2>
         <p style={{ color: C.textoMuted, fontSize: 13 }}>
-          Diagnóstico inteligente baseado nos seus dados reais · {
+          Diagnóstico zootécnico com base nos seus dados reais, confrontados com benchmarks nacionais · {
             perfil?.segmento === 'leite' ? 'Referências: Embrapa CNPGL, CBNA, NRC Dairy, MAPA' :
             perfil?.segmento === 'corte' ? 'Referências: Embrapa CNPGC, Cepea/USP, CBNA, NRC Beef' :
             perfil?.segmento === 'ovino_leite' ? 'Referências: Embrapa CNPCO, SEBRAE Ovinos, NRC Small Ruminants' :
+            perfil?.segmento === 'ovino_corte' ? 'Referências: Embrapa CNPCO, SEBRAE Ovinos, ACOB, NRC Small Ruminants' :
+            perfil?.segmento === 'caprino_leite' ? 'Referências: Embrapa CNPCO, ACOC, NRC Small Ruminants, IDF' :
+            perfil?.segmento === 'caprino_corte' ? 'Referências: Embrapa CNPCO, ACOC, NRC Small Ruminants, MAPA' :
             'Referências: Embrapa CNPCO, SEBRAE Ovinos, ACOB, NRC Small Ruminants'
           }
         </p>

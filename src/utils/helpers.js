@@ -109,13 +109,15 @@ export const diasAte = (dataStr) => {
   return Math.ceil(diff / 86400000)
 }
 
-export async function chamarIA(prompt, maxTokens = 800) {
+export async function chamarIA(prompt, maxTokens = 1100, opcoes = {}) {
   const res = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages: [{ role: 'user', content: prompt }],
       max_tokens: maxTokens,
+      ...(opcoes.system ? { system: opcoes.system } : {}),
+      ...(opcoes.temperature != null ? { temperature: opcoes.temperature } : {}),
     }),
   })
   if (!res.ok) {
