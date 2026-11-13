@@ -31,18 +31,30 @@ export function AuthProvider({ children }) {
       .eq('id', uid)
       .single()
 
-    // Rede de segurança: se não existe perfil, cria um padrão automaticamente
+    // Rede de segurança: se não existe perfil, cria usando os dados do cadastro
+    // que foram guardados nos metadados do usuário (funciona com confirmação de e-mail).
     if (!data) {
       const { data: userData } = await supabase.auth.getUser()
-      const email = userData?.user?.email || ''
+      const u = userData?.user
+      const email = u?.email || ''
+      const meta = u?.user_metadata || {}
+
+      const agora = new Date()
+      const fim = new Date(agora.getTime() + 14 * 24 * 60 * 60 * 1000)
+
       const { data: novoPerfil } = await supabase
         .from('perfis')
         .insert({
           id: uid,
           email,
-          nome: email.split('@')[0] || 'Produtor',
-          fazenda: 'Minha Fazenda',
-          segmento: 'leite',
+          nome: meta.nome || email.split('@')[0] || 'Produtor',
+          fazenda: meta.fazenda || 'Minha Fazenda',
+          segmento: meta.segmento || 'leite',
+          cpf: meta.cpf || null,
+          plano: 'trial',
+          trial_iniciado_em: agora.toISOString(),
+          trial_fim: fim.toISOString(),
+          assinatura_ativa: false,
         })
         .select()
         .single()
@@ -77,47 +89,44 @@ export function AuthProvider({ children }) {
       throw new Error('Este CPF já utilizou o período de teste gratuito. Faça login ou assine um plano.')
     }
 
-    // 3) Cria o usuário no Supabase Auth
+    // 3) Cria o usuário no Supabase Auth, guardando os dados do cadastro nos metadados.
+    // Esses metadados são usados para montar o perfil quando a pessoa confirmar o e-mail e entrar.
     const emailNorm = normalizarEmail(email)
-    const { data, error } = await supabase.auth.signUp({ email: emailNorm, password: senha })
+    const { data, error } = await supabase.auth.signUp({
+      email: emailNorm,
+      password: senha,
+      options: { data: { nome, fazenda, segmento, cpf: cpfLimpo } },
+    })
     if (error) {
       if (error.message?.toLowerCase().includes('already'))
         throw new Error('Este e-mail já está cadastrado. Faça login.')
       throw error
     }
 
-    // 4) Cria o perfil com CPF + trial (o trigger do banco registra o CPF em trials_usados)
-    if (data.user) {
+    // 4) Se o cadastro já criou sessão (confirmação de e-mail DESLIGADA), cria o perfil agora.
+    //    Se a confirmação estiver LIGADA, não há sessão ainda e o RLS bloquearia o insert —
+    //    nesse caso o perfil é criado por carregarPerfil() assim que a pessoa confirmar e entrar.
+    const temSessao = !!data.session
+    if (data.user && temSessao) {
       const agora = new Date()
       const fim = new Date(agora.getTime() + 14 * 24 * 60 * 60 * 1000)
-
-      let tentativas = 0
-      let perfilCriado = false
-      while (tentativas < 3 && !perfilCriado) {
-        const { error: perfilError } = await supabase.from('perfis').upsert({
-          id: data.user.id,
-          email: emailNorm,
-          nome, fazenda, segmento,
-          cpf: cpfLimpo,
-          plano: 'trial',
-          trial_iniciado_em: agora.toISOString(),
-          trial_fim: fim.toISOString(),
-          assinatura_ativa: false,
-        })
-        if (!perfilError) {
-          perfilCriado = true
-        } else if (perfilError.code === '23505') {
-          // violação de unicidade = CPF já existe em outra conta
-          throw new Error('Este CPF já está cadastrado em outra conta.')
-        } else {
-          tentativas++
-          await new Promise(r => setTimeout(r, 500))
-        }
-      }
-      if (!perfilCriado) {
-        console.error('Não foi possível criar o perfil após o cadastro')
+      const { error: perfilError } = await supabase.from('perfis').upsert({
+        id: data.user.id,
+        email: emailNorm,
+        nome, fazenda, segmento,
+        cpf: cpfLimpo,
+        plano: 'trial',
+        trial_iniciado_em: agora.toISOString(),
+        trial_fim: fim.toISOString(),
+        assinatura_ativa: false,
+      })
+      if (perfilError && perfilError.code === '23505') {
+        throw new Error('Este CPF já está cadastrado em outra conta.')
       }
     }
+
+    // Informa à tela se precisa confirmar o e-mail (sem sessão = precisa confirmar)
+    return { precisaConfirmarEmail: !temSessao }
   }
 
   async function logout() {

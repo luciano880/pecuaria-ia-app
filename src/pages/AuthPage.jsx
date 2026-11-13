@@ -186,10 +186,11 @@ function TelaCadastro({ setTela }) {
   const [senha,     setSenha]     = useState('')
   const [confirma,  setConfirma]  = useState('')
   const [erro,      setErro]      = useState('')
+  const [ok,        setOk]        = useState('')
   const [load,      setLoad]      = useState(false)
 
   async function criar() {
-    setErro('')
+    setErro(''); setOk('')
     if (!nome || !fazenda || !cpf || !segmento || !email || !senha)
       return setErro('Preencha todos os campos.')
     if (!cpfValido(cpf))
@@ -200,12 +201,30 @@ function TelaCadastro({ setTela }) {
       return setErro('As senhas não coincidem.')
     setLoad(true)
     try {
-      await cadastrar(email, senha, nome, fazenda, segmento, cpf)
+      const res = await cadastrar(email, senha, nome, fazenda, segmento, cpf)
+      if (res?.precisaConfirmarEmail) {
+        setOk('Conta criada! Enviamos um link de confirmação para ' + email + '. Confira sua caixa de entrada (e o spam), confirme e depois faça login.')
+      }
+      // Se não precisa confirmar, o login é automático e a tela troca sozinha.
     } catch (e) {
       setErro(e.message || 'Erro ao criar conta.')
     } finally {
       setLoad(false)
     }
+  }
+
+  // Tela de sucesso após cadastro com confirmação de e-mail
+  if (ok) {
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 44, marginBottom: 14 }}>📧</div>
+        <h2 style={{ color: C.texto, fontSize: 18, fontWeight: 700, marginBottom: 12 }}>
+          Verifique seu e-mail
+        </h2>
+        <p style={{ color: C.textoSub, fontSize: 13.5, lineHeight: 1.6, marginBottom: 24 }}>{ok}</p>
+        <Btn onClick={() => setTela('login')} cor={C.verde}>Ir para o login</Btn>
+      </div>
+    )
   }
 
   return (
