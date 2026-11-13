@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
       const meta = u?.user_metadata || {}
 
       const agora = new Date()
-      const fim = new Date(agora.getTime() + 14 * 24 * 60 * 60 * 1000)
+      const fim = new Date(agora.getTime() + 30 * 24 * 60 * 60 * 1000)
 
       const { data: novoPerfil } = await supabase
         .from('perfis')
@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
-  // ── Cadastro com CPF único + trial de 14 dias ──────────────
+  // ── Cadastro com CPF único + trial de 30 dias ──────────────
   async function cadastrar(email, senha, nome, fazenda, segmento, cpf) {
     const cpfLimpo = soDigitos(cpf)
 
@@ -109,7 +109,7 @@ export function AuthProvider({ children }) {
     const temSessao = !!data.session
     if (data.user && temSessao) {
       const agora = new Date()
-      const fim = new Date(agora.getTime() + 14 * 24 * 60 * 60 * 1000)
+      const fim = new Date(agora.getTime() + 30 * 24 * 60 * 60 * 1000)
       const { error: perfilError } = await supabase.from('perfis').upsert({
         id: data.user.id,
         email: emailNorm,

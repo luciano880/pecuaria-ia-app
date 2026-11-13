@@ -52,12 +52,12 @@ export function normalizarEmail(email = '') {
 
 // ── Status do trial (cálculo local, espelha status_trial do banco) ──
 export function statusTrial(perfil) {
-  if (!perfil) return { estado: 'ativo', diasRestantes: 14, bloqueado: false }
+  if (!perfil) return { estado: 'ativo', diasRestantes: 30, bloqueado: false }
   if (perfil.assinatura_ativa || perfil.plano === 'pro' || perfil.plano === 'premium') {
     return { estado: 'assinante', diasRestantes: null, bloqueado: false }
   }
   const fim = perfil.trial_fim ? new Date(perfil.trial_fim) : null
-  if (!fim) return { estado: 'ativo', diasRestantes: 14, bloqueado: false }
+  if (!fim) return { estado: 'ativo', diasRestantes: 30, bloqueado: false }
 
   const agora = new Date()
   const ms = fim.getTime() - agora.getTime()

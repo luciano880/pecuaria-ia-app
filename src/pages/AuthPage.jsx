@@ -278,9 +278,9 @@ function TelaCadastro({ setTela }) {
       <Campo label="Senha" type="password" value={senha} onChange={setSenha} placeholder="Min. 6 caracteres" />
       <Campo label="Confirmar senha" type="password" value={confirma} onChange={setConfirma} placeholder="Repita a senha" />
 
-      <Btn onClick={criar} loading={load} cor={C.verde}>Criar conta · 14 dias grátis</Btn>
+      <Btn onClick={criar} loading={load} cor={C.verde}>Criar conta · 30 dias grátis</Btn>
       <p style={{ textAlign: 'center', marginTop: 10, fontSize: 11, color: C.textoMuted, lineHeight: 1.5 }}>
-        🎁 Teste todos os recursos por 14 dias, sem cobrança.<br />
+        🎁 Teste todos os recursos por 30 dias, sem cobrança.<br />
         Depois, escolha um plano para continuar.
       </p>
       <p style={{ textAlign: 'center', marginTop: 14, fontSize: 13, color: C.textoMuted }}>
